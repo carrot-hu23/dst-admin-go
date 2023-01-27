@@ -1,0 +1,5 @@
+steamcmd=/root/steamcmd/
+force_install_dir=/root/dst/
+doNotStarveTogether=C:\Users\xm\Desktop\backup\
+cluster=cluster1
+backup=C:\Users\xm\Desktop\backup\backup\
