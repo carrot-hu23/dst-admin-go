@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
+	"path"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,14 +33,19 @@ func GetBackupList() []vo.BackupVo {
 	}
 
 	for _, file := range fileInfoList {
-		backup := vo.BackupVo{
-			FileName:   file.Name(),
-			FileSize:   file.Size(),
-			CreateTime: file.ModTime(),
-			Time:       file.ModTime().Unix(),
+		if file.IsDir() {
+			continue
 		}
-		//log.Println(backup)
-		backupList = append(backupList, backup)
+		suffix := path.Ext(file.Name())
+		if suffix == ".zip" || suffix == ".tar" {
+			backup := vo.BackupVo{
+				FileName:   file.Name(),
+				FileSize:   file.Size(),
+				CreateTime: file.ModTime(),
+				Time:       file.ModTime().Unix(),
+			}
+			backupList = append(backupList, backup)
+		}
 	}
 
 	return backupList
@@ -107,14 +112,14 @@ func DownloadBackup(c *gin.Context) {
 	if err != nil {
 		log.Panicln("download filePath error", err)
 	}
-	f, e := os.Stat(filePath)
-	if e != nil {
-		log.Println(e)
-	}
+	// f, e := os.Stat(filePath)
+	// if e != nil {
+	// 	log.Println(e)
+	// }
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+fileName)
 	c.Header("Content-Transfer-Encoding", "binary")
-	c.Header("Content-Length", strconv.FormatInt(f.Size(), 10))
+	// c.Header("Content-Length", strconv.FormatInt(f.Size(), 10))
 	c.File(filePath)
 }
 

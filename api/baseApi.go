@@ -10,7 +10,7 @@ var sessions *session.Manager
 const COOKIE_NAME = "token"
 
 func init() {
-	sessions = session.NewManager("memory", COOKIE_NAME, 3600)
+	sessions = session.NewManager("memory", COOKIE_NAME, 3600*5)
 	go sessions.GC()
 }
 
