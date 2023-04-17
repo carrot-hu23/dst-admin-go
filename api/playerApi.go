@@ -13,7 +13,7 @@ func GetDstPlayerList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: nil,
+		Data: service.GetPlayerList(),
 	})
 }
 

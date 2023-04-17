@@ -3,19 +3,81 @@ package service
 import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/vo"
+	"log"
+	"strconv"
+	"strings"
+	"time"
 )
 
-var adminlist_txt_path = constant.HOME_PATH + constant.SINGLE_SLASH + constant.DST_ADMIN_LIST_PATH
-var blocklist_txt_path = constant.HOME_PATH + constant.SINGLE_SLASH + constant.DST_PLAYER_BLOCK_LIST_PATH
+func GetPlayerList() []vo.PlayerVO {
+	id := strconv.FormatInt(time.Now().Unix(), 10)
 
-// var adminlist_txt_path = "C:/Users/xm/Desktop/dst-admin-go/dst/adminlist.txt"
-// var blocklist_txt_path = "C:/Users/xm/Desktop/dst-admin-go/dst/blocklist.txt"
+	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
+	//command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
+
+	playerCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"" + command + "\\n\""
+
+	Shell(playerCMD)
+
+	time.Sleep(time.Duration(1) * time.Second)
+
+	// 读取日志
+	dstLogs := ReadDstMasterLog(100)
+	var playerVOList []vo.PlayerVO
+
+	for _, line := range dstLogs {
+		if strings.Contains(line, id) && strings.Contains(line, "KU") && !strings.Contains(line, "Host") {
+			str := strings.Split(line, " ")
+			log.Println("players:", str)
+			playerVO := vo.PlayerVO{Key: str[2], Day: str[3], KuId: str[4], Name: str[5], Role: str[6]}
+			playerVOList = append(playerVOList, playerVO)
+		}
+	}
+
+	return playerVOList
+	// str = line.split(' ')
+	// data = {'key': str[2], 'day': str[3], 'ku': str[4], 'name': str[5], 'role': str[6]}
+	// return []vo.PlayerVO{
+	// 	{
+	// 		Key:  "111",
+	// 		Day:  "12",
+	// 		Name: "猜猜我是谁",
+	// 		KuId: "Ku_xsklado",
+	// 		Role: "wendy",
+	// 	},
+	// 	{
+	// 		Key:  "111",
+	// 		Day:  "12",
+	// 		Name: "猜猜我是谁",
+	// 		KuId: "Ku_xsklado",
+	// 		Role: "wendy",
+	// 	},
+	// 	{
+	// 		Key:  "111",
+	// 		Day:  "12",
+	// 		Name: "猜猜我是谁",
+	// 		KuId: "Ku_xsklado",
+	// 		Role: "wendy",
+	// 	},
+	// 	{
+	// 		Key:  "111",
+	// 		Day:  "12",
+	// 		Name: "猜猜我是谁",
+	// 		KuId: "Ku_xsklado",
+	// 		Role: "wendy",
+	// 	},
+	// }
+}
 
 func GetDstAdminList() (str []string) {
-	if !fileUtils.Exists(adminlist_txt_path) {
+	path := constant.GET_DST_ADMIN_LIST_PATH()
+	if !fileUtils.Exists(path) {
+		log.Println("路径不存在", path)
 		return
 	}
-	str, err := fileUtils.ReadLnFile(adminlist_txt_path)
+	str, err := fileUtils.ReadLnFile(path)
+	log.Println("str:", str)
 	if err != nil {
 		panic("read dst adminlist.txt error: \n" + err.Error())
 	}
@@ -23,10 +85,13 @@ func GetDstAdminList() (str []string) {
 }
 
 func GetDstBlcaklistPlayerList() (str []string) {
-	if !fileUtils.Exists(blocklist_txt_path) {
+	path := constant.GET_DST_BLOCKLIST_PATH()
+	if !fileUtils.Exists(path) {
+		log.Println("路径不存在", path)
 		return
 	}
-	str, err := fileUtils.ReadLnFile(blocklist_txt_path)
+	str, err := fileUtils.ReadLnFile(path)
+	log.Println("str:", str)
 	if err != nil {
 		panic("read dst blocklist.txt error: \n" + err.Error())
 	}
@@ -35,14 +100,19 @@ func GetDstBlcaklistPlayerList() (str []string) {
 
 func SaveDstAdminList(adminlist []string) {
 
-	err := fileUtils.WriterLnFile(adminlist_txt_path, adminlist)
+	path := constant.GET_DST_ADMIN_LIST_PATH()
+
+	err := fileUtils.WriterLnFile(path, adminlist)
 	if err != nil {
 		panic("write dst adminlist.txt error: \n" + err.Error())
 	}
 }
 
 func SaveDstBlacklistPlayerList(blacklist []string) {
-	err := fileUtils.WriterLnFile(blocklist_txt_path, blacklist)
+
+	path := constant.GET_DST_BLOCKLIST_PATH()
+
+	err := fileUtils.WriterLnFile(path, blacklist)
 	if err != nil {
 		panic("write dst adminlist.txt error: \n" + err.Error())
 	}

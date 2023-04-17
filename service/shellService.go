@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"dst-admin-go/constant"
+	optype "dst-admin-go/constant/opType"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
@@ -19,19 +20,55 @@ func UpdateGame() {
 	SentBroadcast(":pig 正在更新游戏......")
 	ElegantShutdownMaster()
 	ElegantShutdownCaves()
+	log.Println(constant.GET_UPDATE_GAME_CMD())
 	_, err := Shell(constant.GET_UPDATE_GAME_CMD())
 	if err != nil {
 		log.Panicln("update game error: " + err.Error())
 	}
 }
 
-func StartGame() {
-	SentBroadcast(":pig 正在重启游戏......")
-	stopMaster()
-	stopCaves()
-	startMaster()
-	startCaves()
+func StartGame(opType int) {
+
+	if opType == optype.START_MASTER {
+		SentBroadcast(":pig 正在重启游戏......")
+		stopMaster()
+		stopCaves()
+		startMaster()
+		startCaves()
+	}
+
+	if opType == optype.START_MASTER {
+		SentBroadcast(":pig 正在重启世界......")
+		stopMaster()
+		startMaster()
+	}
+
+	if opType == optype.START_CAVES {
+		SentBroadcast(":pig 正在重启洞穴......")
+		stopCaves()
+		startCaves()
+	}
 	ClearScreen()
+}
+
+func StopGame(opType int) {
+
+	if opType == optype.START_GAME {
+		SentBroadcast(":pig 正在停止游戏......")
+		ElegantShutdownMaster()
+		ElegantShutdownCaves()
+	}
+
+	if opType == optype.START_MASTER {
+		SentBroadcast(":pig 正在停止世界......")
+		ElegantShutdownMaster()
+	}
+
+	if opType == optype.START_CAVES {
+		SentBroadcast(":pig 正在停止洞穴......")
+		ElegantShutdownCaves()
+	}
+
 }
 
 func StartMaster() {
@@ -210,6 +247,24 @@ func KickPlayer(KuId string) {
 
 	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
 	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
+
+	Shell(masterCMD)
+	Shell(cavesCMD)
+}
+
+func KillPlayer(KuId string) {
+
+	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+
+	Shell(masterCMD)
+	Shell(cavesCMD)
+}
+
+func RespawnPlayer(KuId string) {
+
+	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)

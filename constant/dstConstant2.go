@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
+	"path"
 )
 
 var HOME_PATH string
@@ -257,59 +258,71 @@ func GET_DST_MOD_SETTING_PATH() string {
 func GET_DST_ADMIN_LIST_PATH() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
-	return ".klei/DoNotStarveTogether/" + cluster + "/adminlist.txt"
+	return path.Join(HOME_PATH, ".klei", "DoNotStarveTogether", cluster, "adminlist.txt")
 }
 
 func GET_DST_BLOCKLIST_PATH() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
-	return ".klei/DoNotStarveTogether/" + cluster + "/blocklist.txt"
+	return path.Join(HOME_PATH, ".klei", "DoNotStarveTogether", cluster, "blocklist.txt")
 }
 
-//TODO 日志 命令
+// TODO 日志 命令
+func GET_DST_MASTER_LOG_PATH() string {
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Master", "server_log.txt")
+}
+
+func GET_DST_CAVES_LOG_PATH() string {
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Caves", "server_log.txt")
+}
 
 func GET_DST_USER_GAME_CONFG_PATH() string {
 	cluster := dstConfigUtils.GetDstConfig().Cluster
-	var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + cluster + "/"
-	return path
+	path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
+	// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + cluster + "/"
+	return path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
 }
 
 func GET_CLUSTER_TOKEN_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "cluster token.txt"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "cluster_token.txt")
 }
 
 func GET_CLUSTER_INI_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "cluster.ini"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "cluster.ini")
 }
 
 func GET_MASTER_DIR_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "Master"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Master")
 }
 
 func GET_MASTER_DIR_SERVER_INI_PATH() string {
-	return GET_MASTER_DIR_PATH() + "/server.ini"
+	return path.Join(GET_MASTER_DIR_PATH(), "server.ini")
 }
 
 func GET_CAVE_DIR_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "Caves"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Caves")
 }
 
 func GET_CAVES_DIR_SERVER_INI_PATH() string {
-	return GET_CAVE_DIR_PATH() + "/server.ini"
+	return path.Join(GET_CAVE_DIR_PATH(), "server.ini")
 }
 
 func GET_MASTER_LEVELDATAOVERRIDE_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "/Caves/leveldataoverride.lua"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Caves", "leveldataoverride.lua")
 }
 
 func GET_CAVES_LEVELDATAOVERRIDE_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "/Caves/leveldataoverride.lua"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Caves", "leveldataoverride.lua")
 }
 
 func GET_MASTER_MOD_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "/Master/modoverrides.lua"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Master", "modoverrides.lua")
 }
 
 func GET_CAVES_MOD_PATH() string {
-	return GET_DST_USER_GAME_CONFG_PATH() + "/Caves/modoverrides.lua"
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Caves", "modoverrides.lua")
+}
+
+func GET_DST_BACKUP_PATH() string {
+	return dstConfigUtils.GetDstConfig().Backup
 }

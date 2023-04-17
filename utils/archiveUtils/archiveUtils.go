@@ -169,7 +169,10 @@ func Zip2(src_dir string, zip_file_name string) {
 		log.Println("删除 zip 失败", e)
 	}
 	// 创建：zip文件
-	zipfile, _ := os.Create(zip_file_name)
+	zipfile, err := os.Create(zip_file_name)
+	if err != nil {
+		log.Panicln("create file error: ", err)
+	}
 	defer zipfile.Close()
 
 	// 打开：zip文件

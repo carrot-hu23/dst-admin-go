@@ -23,7 +23,9 @@ func UpdateGame(ctx *gin.Context) {
 
 func StartGame(ctx *gin.Context) {
 
-	service.StartGame()
+	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
+	log.Println("正在启动游戏服务 type:", opType)
+	service.StartGame(opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -34,8 +36,9 @@ func StartGame(ctx *gin.Context) {
 
 func StoptGame(ctx *gin.Context) {
 
-	service.ElegantShutdownMaster()
-	service.ElegantShutdownCaves()
+	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
+	log.Println("正在停止游戏服务 type:", opType)
+	service.StopGame(opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -104,6 +107,30 @@ func KickPlayer(ctx *gin.Context) {
 	kuId := ctx.Query("kuId")
 	log.Println("踢出玩家：" + kuId)
 	service.KickPlayer(kuId)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func KillPlayer(ctx *gin.Context) {
+	kuId := ctx.Query("kuId")
+	log.Println("kill玩家：" + kuId)
+	service.KillPlayer(kuId)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func RespawnPlayer(ctx *gin.Context) {
+	kuId := ctx.Query("kuId")
+	log.Println("复活玩家：" + kuId)
+	service.RespawnPlayer(kuId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

@@ -47,7 +47,7 @@ func RenameBackup(ctx *gin.Context) {
 
 	var body struct {
 		FileName string `json:"fileName"`
-		NewName  string `json:"NewName"`
+		NewName  string `json:"newName"`
 	}
 	if err := ctx.BindJSON(&body); err != nil {
 		return
@@ -78,7 +78,7 @@ func CreateBackup(ctx *gin.Context) {
 		BackupName string `json:"backupName"`
 	}
 	if err := ctx.BindJSON(&body); err != nil {
-		return
+		body.BackupName = ""
 	}
 	service.CreateBackup(body.BackupName)
 

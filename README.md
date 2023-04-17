@@ -33,7 +33,7 @@ https://studygolang.com/articles/34361
 
 
 ## 饥荒指令
-https://www.bilibili.com/read/cv5536132/
+https://dontstarve.fandom.com/zh/wiki/%E6%8E%A7%E5%88%B6%E5%8F%B0/%E5%A4%9A%E4%BA%BA%E7%89%88%E9%A5%91%E8%8D%92%E4%B8%AD%E7%9A%84%E5%91%BD%E4%BB%A4?variant=zh
 
 ## API
 

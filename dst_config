@@ -1,5 +1,5 @@
 steamcmd=/root/steamcmd/
 force_install_dir=/root/dst/
 doNotStarveTogether=C:\Users\xm\Desktop\backup\
-cluster=cluster1
-backup=C:\Users\xm\Desktop\backup\backup\
+cluster=cluster2
+backup=C:\Users\xm\Desktop\饥荒配置文件和建家截图\饥荒存储备份\backup
