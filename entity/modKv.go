@@ -2,8 +2,10 @@ package entity
 
 import "gorm.io/gorm"
 
-type ModKv struct {
+type ModKV struct {
 	gorm.Model
-	ModId  int    `json:"modId"`
-	Config string `json:"config"`
+	UserId  string `json:"userId"`
+	ModId   int    `json:"modId"`
+	Config  string `json:"config"`
+	Version string `json:"version"`
 }

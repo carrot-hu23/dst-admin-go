@@ -114,6 +114,12 @@ func NewRoute() *gin.Engine {
 		playerLog.GET("/log", api.PlayerLogQueryPage)
 	}
 
+	mod := app.Group("/api/mod")
+	{
+		mod.GET("/search", api.SearchModList)
+		mod.GET("/modId", api.GetModInfo)
+	}
+
 	statistics := app.Group("/api/statistics")
 	{
 		statistics.GET("/active/user", api.CountActiveUser)

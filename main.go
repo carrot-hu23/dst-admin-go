@@ -38,6 +38,7 @@ func InitConfig() {
 		fmt.Println(err.Error())
 	}
 	configData = _config
+	entity.Config = configData
 	fmt.Println(_config)
 }
 
