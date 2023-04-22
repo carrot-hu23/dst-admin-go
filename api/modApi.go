@@ -1,6 +1,7 @@
 package api
 
 import (
+	"dst-admin-go/entity"
 	"dst-admin-go/mod"
 	"dst-admin-go/vo"
 	"log"
@@ -37,4 +38,19 @@ func GetModInfo(ctx *gin.Context) {
 		Msg:  "success",
 		Data: mod.GetModInfo(moId),
 	})
+}
+
+func GetMyModList(ctx *gin.Context) {
+
+	modInfos := []entity.ModInfo{}
+	db := entity.DB
+
+	db.Find(&modInfos)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: modInfos,
+	})
+
 }

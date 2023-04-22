@@ -334,14 +334,14 @@ func GetModInfo(modID string) entity.ModInfo {
 
 	modId := data2["publishedfileid"].(string)
 	name := data2["title"].(string)
-	last_time := data2["time_updated"].(int64)
+	last_time := data2["time_updated"].(float64)
 	description := data2["file_description"].(string)
 	auth = authorURL
 	file_url := data2["file_url"]
 	img = fmt.Sprintf("%s?imw=64&imh=64&ima=fit&impolicy=Letterbox&imcolor=%%23000000&letterbox=true", img)
 	v := getVersion(data["tags"])
-	creator_appid := data2["creator_appid"].(int64)
-	consumer_appid := data2["consumer_appid"].(int64)
+	creator_appid := data2["creator_appid"].(float64)
+	consumer_appid := data2["consumer_appid"].(float64)
 
 	// modInfoRaw := map[string]interface{}{
 	// 	"id":             data2["publishedfileid"].(string),
@@ -380,7 +380,7 @@ func GetModInfo(modID string) entity.ModInfo {
 	return newModInfo
 }
 
-func getModInfoConfig(modid string, lastTime int64) (entity.ModInfo, bool) {
+func getModInfoConfig(modid string, lastTime float64) (entity.ModInfo, bool) {
 	db := entity.DB
 	modInfo := entity.ModInfo{}
 	db.Where("modid = ? and last_time = ?", modid, lastTime).First(&modInfo)
