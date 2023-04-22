@@ -364,6 +364,7 @@ func GetModInfo(modID string) entity.ModInfo {
 	if file_url != nil {
 		fileUrl = file_url.(string)
 	}
+	modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
 	newModInfo := entity.ModInfo{
 		Auth:          auth,
 		ConsumerAppid: consumer_appid,
@@ -375,7 +376,7 @@ func GetModInfo(modID string) entity.ModInfo {
 		LastTime:      last_time,
 		Name:          name,
 		V:             v,
-		ModConfig:     get_mod_info_config(modID),
+		ModConfig:     string(modConfigJson),
 	}
 
 	db := entity.DB
