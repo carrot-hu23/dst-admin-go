@@ -1,7 +1,9 @@
 package collect
 
 import (
+	"dst-admin-go/chatgpt"
 	"dst-admin-go/entity"
+	"dst-admin-go/service"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -12,6 +14,13 @@ import (
 )
 
 func CollectChatLog(text string) {
+
+	if strings.Contains(text, entity.Config.Flag) {
+		arr := strings.Split(text, entity.Config.Flag)
+		s := arr[1]
+		chatgpt.ChatGpt(s, service.SentBroadcast)
+	}
+
 	//[00:00:55]: [Join Announcement] 猜猜我是谁
 	if strings.Contains(text, "[Join Announcement]") {
 		parseJoin(text)
