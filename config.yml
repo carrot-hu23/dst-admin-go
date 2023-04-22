@@ -2,5 +2,5 @@ port: 8082
 db: dst-db
 path: /root/.klei/DoNotStarveTogether/MyDediServer
 OPENAI_API_KEY: 
-prompt: 我希望你能扮演一个饥荒联机版wiki的角色
+prompt: 我希望你能扮演一个饥荒联机版wiki的角色, 尽快可能参考这个网站https://dontstarve.fandom.com/来回答我的问题
 flag: '#'
