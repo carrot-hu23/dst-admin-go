@@ -360,13 +360,16 @@ func GetModInfo(modID string) entity.ModInfo {
 	if modInfo, ok := getModInfoConfig(modID, last_time); ok {
 		return modInfo
 	}
-
+	var fileUrl = ""
+	if file_url != nil {
+		fileUrl = file_url.(string)
+	}
 	newModInfo := entity.ModInfo{
 		Auth:          auth,
 		ConsumerAppid: consumer_appid,
 		CreatorAppid:  creator_appid,
 		Description:   description,
-		FileUrl:       file_url,
+		FileUrl:       fileUrl,
 		Modid:         modId,
 		Img:           img,
 		LastTime:      last_time,
