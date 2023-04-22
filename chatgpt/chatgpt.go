@@ -56,7 +56,8 @@ func ChatGpt(text string, f func(message string)) {
 		return
 	}
 	content := data["choices"].([]interface{})[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
-	f(content)
+	str := strings.ReplaceAll(content, "\n", "\\\n")
+	f(str)
 }
 
 func Post(messages []ChatMessage) *http.Response {
