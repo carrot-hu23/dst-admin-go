@@ -39,7 +39,7 @@ func (m *ModifiedResponse) Read(p []byte) (int, error) {
 func ChatGpt(text string, f func(message string)) {
 	chatMessages := []ChatMessage{
 		{Role: "system", Content: entity.Config.Prompt},
-		{Role: "user", Content: "text"},
+		{Role: "user", Content: text},
 	}
 	response := Post(chatMessages)
 	defer response.Body.Close()
