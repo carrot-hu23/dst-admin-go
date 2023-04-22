@@ -118,6 +118,7 @@ func NewRoute() *gin.Engine {
 	{
 		mod.GET("/search", api.SearchModList)
 		mod.GET("/:modId", api.GetModInfo)
+		mod.GET("", api.GetMyModList)
 	}
 
 	statistics := app.Group("/api/statistics")
