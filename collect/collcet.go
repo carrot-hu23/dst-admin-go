@@ -15,12 +15,6 @@ import (
 
 func CollectChatLog(text string) {
 
-	if strings.Contains(text, entity.Config.Flag) {
-		arr := strings.Split(text, entity.Config.Flag)
-		s := arr[1]
-		chatgpt.ChatGpt(s, service.SentBroadcast)
-	}
-
 	//[00:00:55]: [Join Announcement] 猜猜我是谁
 	if strings.Contains(text, "[Join Announcement]") {
 		parseJoin(text)
@@ -78,6 +72,12 @@ func parseSay(text string) {
 	//playerLog := entity.PlayerLog{Name: name, Role: spawn.Role, KuId: kuId, Action: action, ActionDesc: actionDesc, Time: time}
 
 	entity.DB.Create(&playerLog)
+
+	if strings.Contains(text, entity.Config.Flag) {
+		arr := strings.Split(text, entity.Config.Flag)
+		s := arr[1]
+		chatgpt.ChatGpt(kuId, s, service.SentBroadcast)
+	}
 
 }
 

@@ -1,6 +1,7 @@
 package chatgpt
 
 import (
+	"container/list"
 	"dst-admin-go/entity"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,8 @@ const (
 	OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 	Model          = "gpt-3.5-turbo"
 )
+
+var History = NewLRUCache(20)
 
 type ModifiedResponse struct {
 	reader io.Reader
@@ -36,12 +39,18 @@ func (m *ModifiedResponse) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func ChatGpt(text string, f func(message string)) {
-	chatMessages := []ChatMessage{
-		{Role: "system", Content: entity.Config.Prompt},
-		{Role: "user", Content: text},
-	}
-	response := Post(chatMessages)
+func ChatGpt(user, text string, f func(message string)) {
+
+	message := ChatMessage{Role: "user", Content: text}
+	messages := History.AddMessage(user, message)
+
+	// message := ChatMessage{Role: "user", Content: text}
+	// messages := History.AddMessage(user, message)
+	// chatMessages := []ChatMessage{
+	// 	{Role: "system", Content: entity.Config.Prompt},
+	// 	{Role: "user", Content: text},
+	// }
+	response := Post(messages)
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
@@ -56,8 +65,10 @@ func ChatGpt(text string, f func(message string)) {
 		return
 	}
 	content := data["choices"].([]interface{})[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
-	str := strings.ReplaceAll(content, "\n", "\\\n")
+	str := strings.ReplaceAll(content, "\n", "\\\\n")
 	f(str)
+
+	History.Put(user, messages)
 }
 
 func Post(messages []ChatMessage) *http.Response {
@@ -102,4 +113,76 @@ func generatePayload(message []ChatMessage) string {
 type ChatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
+}
+
+type LRUCache struct {
+	capacity int
+	cache    map[string]*list.Element
+	list     *list.List
+}
+
+type Pair struct {
+	Key   string
+	Value []ChatMessage
+}
+
+func NewLRUCache(capacity int) *LRUCache {
+	return &LRUCache{
+		capacity: capacity,
+		cache:    make(map[string]*list.Element),
+		list:     list.New(),
+	}
+}
+
+func (c *LRUCache) Get(key string) ([]ChatMessage, bool) {
+	if elem, ok := c.cache[key]; ok {
+		c.list.MoveToFront(elem)
+		return elem.Value.(*Pair).Value, true
+	}
+	return nil, false
+}
+
+func (c *LRUCache) Put(key string, value []ChatMessage) {
+	if elem, ok := c.cache[key]; ok {
+		// Move the element to the front of the list
+		c.list.MoveToFront(elem)
+		// Update the value of the element
+		elem.Value.(*Pair).Value = value
+	} else {
+		// Add a new element to the front of the list
+		elem := c.list.PushFront(&Pair{Key: key, Value: value})
+		c.cache[key] = elem
+		// Remove the least recently used element if the cache is full
+		if c.list.Len() > c.capacity {
+			tail := c.list.Back()
+			delete(c.cache, tail.Value.(*Pair).Key)
+			c.list.Remove(tail)
+		}
+	}
+}
+
+func (c *LRUCache) AddMessage(key string, message ChatMessage) []ChatMessage {
+	if elem, ok := c.cache[key]; ok {
+		// Move the element to the front of the list
+		c.list.MoveToFront(elem)
+		// Add the new message to the value of the element
+		pair := elem.Value.(*Pair)
+		pair.Value = append(pair.Value, message)
+		// Limit the size of the slice to 20
+		if len(pair.Value) > 20 {
+			pair.Value = pair.Value[len(pair.Value)-20:]
+		}
+		return pair.Value
+	} else {
+		// Add a new element to the front of the list
+		elem := c.list.PushFront(&Pair{Key: key, Value: []ChatMessage{message}})
+		c.cache[key] = elem
+		// Remove the least recently used element if the cache is full
+		if c.list.Len() > c.capacity {
+			tail := c.list.Back()
+			delete(c.cache, tail.Value.(*Pair).Key)
+			c.list.Remove(tail)
+		}
+		return []ChatMessage{message}
+	}
 }
