@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -71,6 +72,13 @@ func ChatGpt(user, text string, f func(message string)) {
 	History.AddMessage(user, ChatMessage{Role: "system", Content: content})
 }
 
+func randApikey() string {
+	s := entity.Config.OPENAI_API_KEY
+	availableAPIKeys := strings.Split(s, ",")
+	key := availableAPIKeys[rand.Intn(len(availableAPIKeys))]
+	return key
+}
+
 func Post(messages []ChatMessage) *http.Response {
 	http_proxy, _ := url.Parse(HTTPS_PROXY)
 
@@ -85,7 +93,7 @@ func Post(messages []ChatMessage) *http.Response {
 	req, _ := http.NewRequest("POST", OPENAI_API_URL, payload)
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+entity.Config.OPENAI_API_KEY)
+	req.Header.Add("Authorization", "Bearer "+randApikey())
 
 	resp, err := client.Do(req)
 	if err != nil {
