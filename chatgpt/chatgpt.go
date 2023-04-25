@@ -68,7 +68,7 @@ func ChatGpt(user, text string, f func(message string)) {
 	str := strings.ReplaceAll(content, "\n", "\\\\n")
 	f(str)
 
-	History.Put(user, messages)
+	History.AddMessage(user, ChatMessage{Role: "system", Content: content})
 }
 
 func Post(messages []ChatMessage) *http.Response {
