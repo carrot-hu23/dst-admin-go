@@ -2,11 +2,13 @@ package mod
 
 import (
 	"dst-admin-go/entity"
+	"dst-admin-go/utils/dstConfigUtils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 
@@ -49,13 +51,16 @@ type ModInfo struct {
 
 func get_mod_info_config(mod_id string) map[string]interface{} {
 	// 检查 mod 文件是否已经存在
-	mod_download_path := "/root/mine/dst/dst-admin-go-1.0.0/go-mod/mod"
-	mod_path := mod_download_path + "/steamapps/workshop/content/322330/" + mod_id
+	// mod_download_path := "/root/mine/dst/dst-admin-go-1.0.0/go-mod/mod"
+	dstConfig := dstConfigUtils.GetDstConfig()
+	mod_download_path := dstConfig.Mod_download_path
+	mod_path := path.Join(mod_download_path, "/steamapps/workshop/content/322330/", mod_id)
 	if _, err := os.Stat(mod_path); err == nil {
 		fmt.Println("Mod already downloaded to:", mod_path)
 	} else {
 		// 调用 SteamCMD 命令下载 mod
-		cmd := exec.Command("/root/steamcmd/steamcmd.sh", "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+		steamcmd := dstConfig.Steamcmd
+		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Error executing command:", err)

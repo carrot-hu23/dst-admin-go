@@ -12,6 +12,7 @@ type DstConfig struct {
 	DoNotStarveTogether string `json:"doNotStarveTogether"`
 	Cluster             string `json:"cluster"`
 	Backup              string `json:"backup"`
+	Mod_download_path   string `json:"mod_download_path"`
 }
 
 const dst_config_path = "./dst_config"
@@ -74,6 +75,13 @@ func GetDstConfig() DstConfig {
 				dst_config.Backup = strings.Replace(s, "\\n", "", -1)
 			}
 		}
+		if strings.Contains(value, "mod_download_path") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				dst_config.Mod_download_path = strings.Replace(s, "\\n", "", -1)
+			}
+		}
 	}
 
 	return *dst_config
@@ -88,6 +96,7 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		"doNotStarveTogether=" + dstConfig.DoNotStarveTogether,
 		"cluster=" + dstConfig.Cluster,
 		"backup=" + dstConfig.Backup,
+		"mod_download_path=" + dstConfig.Mod_download_path,
 	})
 	if error != nil {
 		log.Panicln("write dst_config error:", error)
