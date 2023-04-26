@@ -3,12 +3,42 @@
 >
 > Date: 2022/12/18
 
+
+## 预览
+
+在线预定地址 http://1.12.223.51:8082/
+
+![首页效果](./doc/登录.png)
+![统计效果](./doc/统计.png)
+![面板效果](./doc/面板.png)
+![日志效果](./doc/日志.png)
 ## 运行
 
+**修改config.yml**
 ```
-go run .\main.go port=:8888
+#端口
+port: 8082
+db: dst-db
 ```
-port=: 可以指定端口启动
+
+**修改dst_config**（也可以通过页面修改）
+```
+# steamcmd 位置
+steamcmd=/root/steamcmd/
+# steamcmd 饥荒安装的位置
+force_install_dir=/root/dst/
+# 要启动的服务器
+cluster=cluster2
+# 游戏备份的路径
+backup=C:\Users\xm\Desktop\饥荒配置文件和建家截图\饥荒存储备份\backup
+# 游戏mod下载的路径
+mod_download_path=/download_mod
+```
+
+运行
+```
+./dst-admin-go
+```
 
 ## 打包
 
@@ -20,35 +50,3 @@ set GOOS=linux
 
 go build
 ```
-
-## 全局处理异常
-https://blog.csdn.net/u014155085/article/details/106733391
-
-## byte[] to string
-https://www.yisu.com/zixun/621470.html
-
-## session
-https://www.w3cschool.cn/yqbmht/ndc5uozt.html
-https://studygolang.com/articles/34361
-
-
-## 饥荒指令
-https://dontstarve.fandom.com/zh/wiki/%E6%8E%A7%E5%88%B6%E5%8F%B0/%E5%A4%9A%E4%BA%BA%E7%89%88%E9%A5%91%E8%8D%92%E4%B8%AD%E7%9A%84%E5%91%BD%E4%BB%A4?variant=zh
-
-## API
-
-[-] backupController
-
-[-] homeController
-
-[-] loginController
-
-[-] mainController
-
-[x] playerController
-
-[x] settingController
-
-[-] systemController
-
-[-] userController
