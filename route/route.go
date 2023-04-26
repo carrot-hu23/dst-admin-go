@@ -42,6 +42,11 @@ func NewRoute() *gin.Engine {
 
 	app.GET("/ws", api.HandlerWS)
 
+	user := app.Group("/api/user")
+	{
+		user.GET("", api.GetUserInfo)
+	}
+
 	dashboard := app.Group("/api/dashboard")
 	{
 		dashboard.GET("", api.GetDashboardInfo)
