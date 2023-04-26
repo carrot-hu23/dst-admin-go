@@ -8,6 +8,7 @@ first
 version
 dst-admin-go
 dst-admin-go.log
+dst-db
 
 /.pnp
 .pnp.js
