@@ -38,8 +38,8 @@ func NewRoute() *gin.Engine {
 	app.GET("/api/logout", api.Logout)
 	app.POST("/api/change/password", api.ChangePassword)
 
-	app.GET("/first", api.CheckIsFirst)
-	app.POST("/init", api.InitFirst)
+	app.GET("/api/init", api.CheckIsFirst)
+	app.POST("/api/init", api.InitFirst)
 
 	app.GET("/ws", api.HandlerWS)
 

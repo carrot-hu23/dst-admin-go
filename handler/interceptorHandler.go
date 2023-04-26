@@ -54,7 +54,7 @@ func checkIsInstallDst(path string) bool {
 	return fileUtils.Exists(dst_path)
 }
 
-var whilelist = []string{"/api/login", "/api/logout", "/ws"}
+var whilelist = []string{"/api/login", "/api/logout", "/ws", "/api/init"}
 
 func filter(s []string, str string) bool {
 	//开放不是 /api 开头接口
