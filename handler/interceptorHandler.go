@@ -84,11 +84,13 @@ func Authentucation() gin.HandlerFunc {
 			log.Println("cookiName: " + fmt.Sprintf("%v", session.Get("username")))
 			log.Println("sessionID: " + sessionID)
 			if cookieName == nil {
-				c.Abort()
-				c.JSON(http.StatusBadGateway, vo.Response{
-					Code: 401,
-					Msg:  "Please login",
-				})
+				// c.Abort()
+				// c.JSON(http.StatusBadGateway, vo.Response{
+				// 	Code: 401,
+				// 	Msg:  "Please login",
+				// })
+				// 如果用户未登录，返回 HTTP 401
+				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
 				c.Next()
 			}

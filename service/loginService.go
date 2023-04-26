@@ -48,8 +48,13 @@ func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.R
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 
+	// username := strings.TrimSpace(strings.Split(user[0], "=")[1])
+	// password := strings.TrimSpace(strings.Split(user[1], "=")[1])
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	password := strings.TrimSpace(strings.Split(user[1], "=")[1])
+	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
+	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
 
 	if username != userVO.Username || password != userVO.Password {
 		log.Panicln("User authentication failed")
@@ -66,7 +71,12 @@ func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.R
 	response.Code = 200
 	response.Msg = "Login success"
 	userVO.Password = ""
-	response.Data = userVO
+	response.Data = map[string]interface{}{
+		"username":    username,
+		"displayName": displayName,
+		"email":       email,
+		"photoURL":    photoURL,
+	}
 
 	return response
 }
