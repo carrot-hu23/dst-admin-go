@@ -12,7 +12,6 @@ func loadStaticeFile(app *gin.Engine) {
 	app.LoadHTMLGlob("dist/index.html") // 添加入口index.html
 	//r.LoadHTMLFiles("dist//*") // 添加资源路径
 	app.Static("/assets", "./dist/assets")
-	app.Static("/static/js", "./dist/static/js")
 	app.Static("/static/js", "./dist/static/js")                         // 添加资源路径
 	app.Static("/static/css", "./dist/static/css")                       // 添加资源路径
 	app.Static("/static/img", "./dist/static/img")                       // 添加资源路径
