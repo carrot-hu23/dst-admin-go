@@ -11,6 +11,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetUserInfo() map[string]interface{} {
+	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+
+	if err != nil {
+		log.Panicln("Not find password file error: " + err.Error())
+	}
+
+	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
+	// password := strings.TrimSpace(strings.Split(user[1], "=")[1])
+	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
+	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
+
+	return map[string]interface{}{
+		"username":    username,
+		"displayName": displayName,
+		"email":       email,
+		"photoURL":    photoURL,
+	}
+}
+
 func Inituser(userVO *vo.UserVO) {
 	username := "username=" + userVO.Username
 	password := "password=" + userVO.Password

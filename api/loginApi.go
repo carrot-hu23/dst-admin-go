@@ -8,6 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetUserInfo(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "Init user success",
+		Data: service.GetUserInfo(),
+	})
+}
+
 func InitUser(ctx *gin.Context) {
 
 	userVO := vo.NewUserVO()
