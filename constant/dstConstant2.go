@@ -308,7 +308,7 @@ func GET_CAVES_DIR_SERVER_INI_PATH() string {
 }
 
 func GET_MASTER_LEVELDATAOVERRIDE_PATH() string {
-	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Caves", "leveldataoverride.lua")
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "Master", "leveldataoverride.lua")
 }
 
 func GET_CAVES_LEVELDATAOVERRIDE_PATH() string {
