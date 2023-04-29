@@ -207,7 +207,7 @@ func SaveConfig(gameConfigVo vo.GameConfigVO) {
 	createCavesLeveldataoverride(gameConfigVo.CavesMapData)
 	//创建mod设置
 	createModoverrides(gameConfigVo.ModData)
-
+	//TODO dedicated_server_mods_setup
 	otype := gameConfigVo.Otype
 	if otype == START_NEW_GAME {
 		DeleteGameRecord()
@@ -367,6 +367,14 @@ func createModoverrides(modConfig string) {
 	if modConfig != "" {
 		fileUtils.WriterTXT(constant.GET_MASTER_MOD_PATH(), modConfig)
 		fileUtils.WriterTXT(constant.GET_CAVES_MOD_PATH(), modConfig)
+
+		var serverModSetup = ""
+		//TODO 添加mod setup
+		workshopIds := WorkshopIds(modConfig)
+		for _, workshopId := range workshopIds {
+			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
+		}
+		fileUtils.WriterTXT(constant.GET_DST_MOD_SETUP_PATH(), serverModSetup)
 	} else {
 		//置空
 		fileUtils.WriterTXT(constant.GET_MASTER_MOD_PATH(), "")

@@ -326,3 +326,7 @@ func GET_CAVES_MOD_PATH() string {
 func GET_DST_BACKUP_PATH() string {
 	return dstConfigUtils.GetDstConfig().Backup
 }
+
+func GET_DST_MOD_SETUP_PATH() string {
+	return path.Join(dstConfigUtils.GetDstConfig().Force_install_dir, "mods", "dedicated_server_mods_setup.lua")
+}
