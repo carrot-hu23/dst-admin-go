@@ -14,9 +14,13 @@ import (
 
 	lua "github.com/yuin/gopher-lua"
 
+	"archive/zip"
+	"bytes"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
@@ -84,10 +88,10 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 		fmt.Println("Error finding modinfo.lua:", err)
 		return make(map[string]interface{})
 	}
-	return read_mod_info(modinfo_path)
+	return read_mod_info(mod_id, modinfo_path)
 }
 
-func read_mod_info(modinfo_path string) map[string]interface{} {
+func read_mod_info(mod_id, modinfo_path string) map[string]interface{} {
 	// 读取 modinfo.lua 文件内容
 	script, err := ioutil.ReadFile(modinfo_path)
 	if err != nil {
@@ -99,12 +103,27 @@ func read_mod_info(modinfo_path string) map[string]interface{} {
 	// fmt.Println("Modinfo.lua content:")
 	// fmt.Println(string(content))
 
-	return parseModInfoLua(string(script))
+	return parseModInfoLua(mod_id, string(script))
 }
 
-func parseModInfoLua(script string) map[string]interface{} {
+func parseModInfoLua(mod_id, script string) map[string]interface{} {
 	L := lua.NewState()
 	defer L.Close()
+
+	// 模�~K~_�~P�~L�~N��~C
+	lang := "zh"
+	L.SetGlobal("locale", lua.LString(lang))
+	L.SetGlobal("folder_name", lua.LString(fmt.Sprintf("workshop-%s", mod_id)))
+	L.SetGlobal("ChooseTranslationTable", L.NewFunction(func(L *lua.LState) int {
+		tbl := L.ToTable(1)
+		langTbl := tbl.RawGetString(lang)
+		if langTbl != lua.LNil {
+			L.Push(langTbl)
+		} else {
+			L.Push(tbl.RawGetInt(1))
+		}
+		return 1
+	}))
 
 	// 运行Lua脚本文件
 	L.DoString(script)
@@ -369,7 +388,18 @@ func GetModInfo(modID string) entity.ModInfo {
 	if file_url != nil {
 		fileUrl = file_url.(string)
 	}
-	modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
+
+	var modConfig string
+
+	if fileUrl != "" {
+		modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modID, fileUrl))
+		modConfig = string(modConfigJson)
+	} else {
+		modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
+		modConfig = string(modConfigJson)
+	}
+
+	// modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
 	newModInfo := entity.ModInfo{
 		Auth:          auth,
 		ConsumerAppid: consumer_appid,
@@ -381,7 +411,8 @@ func GetModInfo(modID string) entity.ModInfo {
 		LastTime:      last_time,
 		Name:          name,
 		V:             v,
-		ModConfig:     string(modConfigJson),
+		// ModConfig:     string(modConfigJson),
+		ModConfig: modConfig,
 	}
 
 	db := entity.DB
@@ -412,4 +443,75 @@ func getVersion(tags interface{}) string {
 		}
 	}
 	return ""
+}
+
+func get_v1_mod_info_config(modid, file_url string) map[string]interface{} {
+	log.Println("开始下载 v1 mod，并提取 modinfo.lua 文件")
+	// 0: 下载失败, 1: 下载成功, 2: mod 中没有 modinfo.lua 文件
+	modinfo := map[string][]byte{"modinfo": nil, "modinfo_chs": nil}
+	var tmp bytes.Buffer
+	for i := 0; i < 3; i++ {
+		req, err := http.NewRequest("GET", file_url, nil)
+		if err != nil {
+			log.Println(file_url, "下载失败")
+			log.Println(err)
+			continue
+		}
+		client := http.Client{
+			Timeout: time.Duration(10 * time.Second),
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			log.Println(file_url, "下载失败")
+			log.Println(err)
+			continue
+		}
+		defer res.Body.Close()
+		_, err = tmp.ReadFrom(res.Body)
+		if err != nil {
+			log.Println(file_url, "下载失败")
+			log.Println(err)
+			continue
+		}
+		break
+	}
+	if tmp.Len() == 0 {
+		log.Println(file_url, "下载失败 3 次，不再尝试")
+		return make(map[string]interface{})
+	}
+	log.Println(file_url, "下载成功，开始解压")
+	zipReader, err := zip.NewReader(bytes.NewReader(tmp.Bytes()), int64(tmp.Len()))
+	if err != nil {
+		log.Println(file_url, "解压失败")
+		log.Println(err)
+		return make(map[string]interface{})
+	}
+	for _, file := range zipReader.File {
+		switch file.Name {
+		case "modinfo.lua":
+			log.Println(file_url, "开始解压 modinfo.lua")
+			f, _ := file.Open()
+			modinfoBytes, err := ioutil.ReadAll(f)
+			if err != nil {
+				log.Println(file_url, "解压 modinfo.lua 失败")
+				log.Println(err)
+				continue
+			}
+			modinfo["modinfo"] = modinfoBytes
+		case "modinfo_chs.lua":
+			log.Println(file_url, "开始解压 modinfo_chs.lua")
+			f, _ := file.Open()
+			modinfoBytes, err := ioutil.ReadAll(f)
+			if err != nil {
+				log.Println(file_url, "解压 modinfo_chs.lua 失败")
+				log.Println(err)
+				continue
+			}
+			modinfo["modinfo_chs"] = modinfoBytes
+		}
+	}
+	if modinfo["modinfo"] != nil {
+		return parseModInfoLua(modid, string(modinfo["modinfo"]))
+	}
+	return make(map[string]interface{})
 }
