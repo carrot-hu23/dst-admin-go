@@ -161,7 +161,8 @@ func stopMaster() {
 }
 
 func startMaster() {
-	_, err := Shell(constant.START_MASTER_CMD)
+	// TODO 有些变量还没有修改完成
+	_, err := Shell(constant.GET_START_MASTER_CMD())
 	if err != nil {
 		log.Panicln("start master error: " + err.Error())
 	}
