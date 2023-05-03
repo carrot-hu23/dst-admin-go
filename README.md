@@ -42,7 +42,7 @@ mod_download_path=/download_mod
 
 ## 打包
 
-window 下打包 Linux 二进制
+window 下打包 Linux 二进制 （由于sqlite受操作系统影响，Linux二进制请在Linux环境build）
 ```
 打开 cmd
 set GOARCH=amd64
