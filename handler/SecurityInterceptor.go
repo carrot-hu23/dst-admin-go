@@ -27,7 +27,7 @@ func ShellInjectionInterceptor() gin.HandlerFunc {
 				return
 			}
 			// 检查参数是否包含系统文件路径或Linux shadow文件路径
-			if strings.Contains(param[0], "/etc/") || strings.Contains(param[0], "/usr/bin/") || strings.Contains(param[0], "/etc/shadow") {
+			if strings.Contains(param[0], "/etc/") || strings.Contains(param[0], "/usr/bin/") || strings.Contains(param[0], "/etc/shadow") || strings.Contains(param[0], "../") || strings.Contains(param[0], "..") {
 				// 如果包含，则返回错误信息
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid characters in parameter"})
 				c.Abort()
