@@ -28,7 +28,9 @@ func NewRoute() *gin.Engine {
 	app := gin.Default()
 
 	app.Use(handler.Recover)
+	app.Use(handler.ShellInjectionInterceptor())
 	app.Use(handler.Authentucation())
+
 	// app.Use(handler.CheckDstHandler())
 
 	app.GET("/hello", func(ctx *gin.Context) {
