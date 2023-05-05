@@ -35,7 +35,10 @@ func GetUserInfo() map[string]interface{} {
 func Inituser(userVO *vo.UserVO) {
 	username := "username=" + userVO.Username
 	password := "password=" + userVO.Password
-	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password})
+	displayName := ""
+	email := ""
+	photoURL := ""
+	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password, displayName, photoURL, email})
 }
 
 func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
@@ -43,7 +46,6 @@ func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.R
 	response := &vo.Response{}
 
 	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
-
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
@@ -86,9 +88,19 @@ func Logout(ctx *gin.Context, sessions *session.Manager) {
 }
 
 func ChangeUser(username, password string) {
+	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+	if err != nil {
+		log.Panicln("Not find password file error: " + err.Error())
+	}
+	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
+	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
 	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
 		"username = " + username,
 		"password = " + password,
+		"displayName=" + displayName,
+		"photoURL=" + photoURL,
+		"email=" + email,
 	})
 }
 
@@ -101,11 +113,15 @@ func ChangePassword(newPassword string) *vo.Response {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
-	//password := strings.TrimSpace(strings.Split(user[1], "=")[1])
-
+	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
+	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
 	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
 		"username = " + username,
 		"password = " + newPassword,
+		"displayName=" + displayName,
+		"photoURL=" + photoURL,
+		"email=" + email,
 	})
 
 	response.Code = 200

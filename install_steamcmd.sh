@@ -41,7 +41,7 @@ echo "Check Dont Starve Together Sever is installed"
 echo "=================================================="
 # 如果 $steam_dst_server 目录不存在，则下载并解压 SteamCMD 并安装游戏服务器
 retry=1
-while [ ! -e "${steam_dst_server}/dst_server/bin/dontstarve_dedicated_server_nullrenderer" ]; do
+while [ ! -e "${steam_dst_server}/dst-dedicated-server/bin/dontstarve_dedicated_server_nullrenderer" ]; do
   if [ $retry -gt 3 ]; then
     echo "=================================================="
     echo "Download Dont Starve Together Sever failed after three times"
@@ -49,8 +49,8 @@ while [ ! -e "${steam_dst_server}/dst_server/bin/dontstarve_dedicated_server_nul
     exit -2
   fi
   echo "Not found Dont Starve Together Sever, start to installing, try: ${retry}"
-  bash $steam_cmd_path/steamcmd/steamcmd.sh +force_install_dir $steam_dst_server/dst_server +login anonymous +app_update 343050 validate +quit
-  cp $steam_cmd_path/steamcmd/linux32/libstdc++.so.6 $steam_dst_server/dst_server/bin/lib32/
+  bash $steam_cmd_path/steamcmd/steamcmd.sh +force_install_dir $steam_dst_server/dst-dedicated-server +login anonymous +app_update 343050 validate +quit
+  cp $steam_cmd_path/steamcmd/linux32/libstdc++.so.6 $steam_dst_server/dst-dedicated-server/bin/lib32/
   # mkdir -p $USER_DIR/.klei/DoNotStarveTogether/MyDediServer
   sleep 3
   ((retry++))
@@ -63,7 +63,7 @@ echo "=================================================="
 echo "=================================================="
 echo "Start updating steamcmd Dont Starve Together Sever"
 echo "=================================================="
-bash $steam_cmd_path/steamcmd/steamcmd.sh +force_install_dir $steam_dst_server/dst_server +login anonymous +app_update 343050 validate +quit
+bash $steam_cmd_path/steamcmd/steamcmd.sh +force_install_dir $steam_dst_server/dst-dedicated-server +login anonymous +app_update 343050 validate +quit
 echo "Ok!!!"
 
 # 运行其他命令，这里只是做示例
