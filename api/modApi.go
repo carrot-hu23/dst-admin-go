@@ -92,3 +92,17 @@ func GetMyModList(ctx *gin.Context) {
 	})
 
 }
+
+func DeleteMod(ctx *gin.Context) {
+
+	moId := ctx.Param("modId")
+	db := entity.DB
+
+	db.Where("modid = ?", moId).Delete(&entity.ModInfo{})
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: moId,
+	})
+}
