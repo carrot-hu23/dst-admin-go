@@ -1,19 +1,29 @@
 # 基础镜像
-FROM ubuntu:20.04
+FROM debian:stretch-slim
 
 # 设置维护者信息
 LABEL maintainer="your-name <your-email>"
 
-# 更新 apt 软件包索引并安装基础依赖
-RUN apt-get update && \
-    apt-get install -y ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+# # 更新 apt 软件包索引并安装基础依赖
+# RUN apt-get update && \
+#     apt-get install -y ca-certificates && \
+#     rm -rf /var/lib/apt/lists/*
 
 # 安装需要的依赖
-RUN apt-get update && \
-    apt-get install -y libstdc++6:i386 libgcc1:i386 lib32gcc1 lib32stdc++6 libcurl4-gnutls-dev:i386 screen sudo && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN dpkg --add-architecture i386 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --no-install-suggests  \
+        libstdc++6:i386 \
+        libgcc1:i386 \
+        lib32gcc1 \
+        lib32stdc++6 \
+        libcurl4-gnutls-dev:i386 \
+        wget \
+        ca-certificates \
+        openjdk-8-jre \
+        screen \
+        sudo \
+    && apt-get clean
 
 # 设置工作目录
 WORKDIR /app
