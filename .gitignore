@@ -29,3 +29,7 @@ dst-db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+#py-dst-cli
+/py-dst-cli/__pycache__
+/py-dst-cli/data

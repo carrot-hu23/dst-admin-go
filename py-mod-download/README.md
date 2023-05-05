@@ -1,1 +1,0 @@
-pip freeze > requirements.txt
