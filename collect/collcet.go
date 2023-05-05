@@ -289,14 +289,19 @@ func Tailf_server_log(path string) {
 					// 解析 ip
 					fmt.Println(1, text)
 					str := strings.Split(text, " ")
-					var ip string
-					if strings.Contains(text, "[LAN]") {
-						ip = str[5]
+					if len(str) < 5 {
+						log.Println("[EROOR] str 解析错误: ", str)
 					} else {
-						ip = str[4]
+						var ip string
+						if strings.Contains(text, "[LAN]") {
+							ip = str[5]
+						} else {
+							ip = str[4]
+						}
+						connect.Ip = ip
+						fmt.Println("ip", ip)
 					}
-					connect.Ip = ip
-					fmt.Println("ip", ip)
+
 				} else if i == 3 {
 					fmt.Println(3, text)
 					// 解析 KU 和 用户名
@@ -315,13 +320,17 @@ func Tailf_server_log(path string) {
 					fmt.Println(4, text)
 					// 解析 steamId
 					str := strings.Split(text, " ")
-					steamId := str[4]
-					steamId = steamId[1 : len(steamId)-1]
-					fmt.Println("steamId", steamId)
+					if len(str) < 4 {
+						log.Println("[EROOR] str 解析错误: ", str)
+					} else {
+						steamId := str[4]
+						steamId = steamId[1 : len(steamId)-1]
+						fmt.Println("steamId", steamId)
 
-					//记录
-					connect.SteamId = steamId
-					entity.DB.Create(&connect)
+						//记录
+						connect.SteamId = steamId
+						entity.DB.Create(&connect)
+					}
 				}
 				i++
 			}
