@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -218,7 +219,9 @@ func SaveConfig(gameConfigVo vo.GameConfigVO) {
 }
 
 func createMyDediServerDir() {
-	myDediServerPath := constant.HOME_PATH + constant.DST_USER_GAME_CONFG_PATH
+	dstConfig := dstConfigUtils.GetDstConfig()
+	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
+	myDediServerPath := path.Join(basePath, dstConfig.Cluster)
 	log.Println("生成 myDediServer 目录：" + myDediServerPath)
 	fileUtils.CreateDir(myDediServerPath)
 }

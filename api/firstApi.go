@@ -33,10 +33,10 @@ func InitFirst(ctx *gin.Context) {
 	service.ChangeUser(username, password)
 
 	dstConfig := dstConfigUtils.DstConfig{
-		Steamcmd:            initData.DstConfig.Steamcmd,
-		Force_install_dir:   initData.DstConfig.Force_install_dir,
-		DoNotStarveTogether: initData.DstConfig.DoNotStarveTogether,
-		Cluster:             initData.DstConfig.Cluster,
+		Steamcmd:                   initData.DstConfig.Steamcmd,
+		Force_install_dir:          initData.DstConfig.Force_install_dir,
+		DoNotStarveServerDirectory: initData.DstConfig.DoNotStarveServerDirectory,
+		Cluster:                    initData.DstConfig.Cluster,
 	}
 
 	dstConfigUtils.SaveDstConfig(&dstConfig)
