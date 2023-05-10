@@ -8,8 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// /backup/deleteBackup
-// DELETE /api/game/back/{backupName}
 func DeleteBackup(ctx *gin.Context) {
 	var body struct {
 		FileNames []string `json:"fileNames"`
@@ -25,14 +23,10 @@ func DeleteBackup(ctx *gin.Context) {
 	})
 }
 
-// /backup/download
-// GET /api/game/back/download/{backupName}
 func DownloadBackup(ctx *gin.Context) {
 	service.DownloadBackup(ctx)
 }
 
-// /backup/getBackupList
-// GET /api/game/back/
 func GetBackupList(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -42,7 +36,6 @@ func GetBackupList(ctx *gin.Context) {
 	})
 }
 
-// PUT /api/game/back/
 func RenameBackup(ctx *gin.Context) {
 
 	var body struct {
@@ -61,7 +54,7 @@ func RenameBackup(ctx *gin.Context) {
 	})
 }
 
-// POST /api/game/back/
+//TODO untest
 func UploadBackup(ctx *gin.Context) {
 
 	service.UploadBackup(ctx)
