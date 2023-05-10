@@ -92,7 +92,10 @@ func CreateBackup(backupName string) {
 	}
 	dst := path.Join(backupPath, backupName)
 	log.Println("src", src, dst)
-	zip.Zip(src, dst)
+	err := zip.Zip(src, dst)
+	if err != nil {
+		log.Panicln("create backup error", err)
+	}
 	log.Println("创建备份成功")
 }
 
