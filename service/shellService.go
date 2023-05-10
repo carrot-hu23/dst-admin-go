@@ -29,7 +29,7 @@ func UpdateGame() {
 
 func StartGame(opType int) {
 
-	if opType == optype.START_MASTER {
+	if opType == optype.START_GAME {
 		SentBroadcast(":pig 正在重启游戏......")
 		stopMaster()
 		stopCaves()

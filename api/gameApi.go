@@ -23,7 +23,7 @@ func UpdateGame(ctx *gin.Context) {
 
 func StartGame(ctx *gin.Context) {
 
-	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "1"))
+	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
 	log.Println("正在启动游戏服务 type:", opType)
 	service.StartGame(opType)
 

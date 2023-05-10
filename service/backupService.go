@@ -93,6 +93,7 @@ func CreateBackup(backupName string) {
 	dst := path.Join(backupPath, backupName)
 	log.Println("src", src, dst)
 	zip.Zip(src, dst)
+	log.Println("创建备份成功")
 }
 
 // TODO: 下载存档
