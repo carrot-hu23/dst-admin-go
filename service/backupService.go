@@ -88,7 +88,7 @@ func CreateBackup(backupName string) {
 	if backupName == "" {
 		gameConfig := vo.NewGameConfigVO()
 		GetClusterIni(gameConfig)
-		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName
+		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName + ".zip"
 	}
 	dst := path.Join(backupPath, backupName)
 	log.Println("src", src, dst)
