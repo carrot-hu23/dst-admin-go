@@ -70,7 +70,7 @@ func CreateBackup(ctx *gin.Context) {
 	var body struct {
 		BackupName string `json:"backupName"`
 	}
-	if err := ctx.BindJSON(&body); err != nil {
+	if err := ctx.ShouldBind(&body); err != nil {
 		body.BackupName = ""
 	}
 	service.CreateBackup(body.BackupName)
