@@ -131,7 +131,7 @@ func GetClusterIni(gameconfig *vo.GameConfigVO) {
 				s := strings.TrimSpace(split[1])
 				b, err := strconv.ParseBool(s)
 				if err == nil {
-					gameconfig.Pvp = b
+					gameconfig.PauseWhenNobody = b
 				}
 			}
 		}
