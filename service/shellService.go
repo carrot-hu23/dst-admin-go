@@ -183,7 +183,7 @@ func stopCaves() {
 
 }
 func startCaves() {
-	_, err := Shell(constant.START_CAVES_CMD)
+	_, err := Shell(constant.GET_START_CAVES_CMD())
 	if err != nil {
 		log.Panicln("start caves error: " + err.Error())
 	}
