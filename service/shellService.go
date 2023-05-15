@@ -20,8 +20,9 @@ func UpdateGame() {
 	SentBroadcast(":pig 正在更新游戏......")
 	ElegantShutdownMaster()
 	ElegantShutdownCaves()
-	log.Println(constant.GET_UPDATE_GAME_CMD())
-	_, err := Shell(constant.GET_UPDATE_GAME_CMD())
+	updateGameCMd := constant.GET_UPDATE_GAME_CMD()
+	log.Println(updateGameCMd)
+	_, err := Shell(updateGameCMd)
 	if err != nil {
 		log.Panicln("update game error: " + err.Error())
 	}
@@ -86,7 +87,10 @@ func StartCaves() {
 const max_waitting = 10
 
 func ElegantShutdownMaster() {
-
+	SentBroadcast(":pig 正在关闭世界......")
+	SentBroadcast(":pig 正在关闭世界......")
+	SentBroadcast(":pig 正在关闭世界......")
+	ShutdownMaster()
 	if getMasterStatus() {
 		var i uint8 = 1
 		for {
@@ -100,15 +104,14 @@ func ElegantShutdownMaster() {
 			}
 		}
 	}
-	SentBroadcast(":pig 正在关闭世界......")
-	SentBroadcast(":pig 正在关闭世界......")
-	SentBroadcast(":pig 正在关闭世界......")
-	ShutdownMaster()
 	stopMaster()
 }
 
 func ElegantShutdownCaves() {
-
+	SentBroadcast(":pig 正在关闭洞穴......")
+	SentBroadcast(":pig 正在关闭洞穴......")
+	SentBroadcast(":pig 正在关闭洞穴......")
+	shutdownCaves()
 	if getCavesStatus() {
 		var i uint8 = 1
 		for {
@@ -122,14 +125,13 @@ func ElegantShutdownCaves() {
 			}
 		}
 	}
-	SentBroadcast(":pig 正在关闭洞穴......")
-	SentBroadcast(":pig 正在关闭洞穴......")
-	SentBroadcast(":pig 正在关闭洞穴......")
-	shutdownCaves()
 	stopCaves()
 }
 
 func ShutdownMaster() {
+	if !getMasterStatus() {
+		return
+	}
 	shell := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
 	_, err := Shell(shell)
 	if err != nil {
@@ -138,6 +140,9 @@ func ShutdownMaster() {
 }
 
 func shutdownCaves() {
+	if !getCavesStatus() {
+		return
+	}
 	shell := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
 	_, err := Shell(shell)
 	if err != nil {
@@ -146,7 +151,7 @@ func shutdownCaves() {
 }
 
 func stopMaster() {
-	//TODO 写入mod安装文件
+
 	check_cmd := "ps -ef | grep -v grep |grep '" + constant.DST_MASTER + "' |sed -n '1P'|awk '{print $2}'"
 	check, error := Shell(check_cmd)
 
@@ -155,7 +160,7 @@ func stopMaster() {
 	} else {
 		_, err := Shell(constant.STOP_MASTER_CMD)
 		if err != nil {
-			log.Panicln("shut down caves error: " + err.Error())
+			log.Panicln("shut down Master error: " + err.Error())
 		}
 	}
 }

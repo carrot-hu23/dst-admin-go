@@ -220,11 +220,6 @@ func OperatePlayer(ctx *gin.Context) {
 	})
 }
 
-// TODO GET /game/backup
-func Backup(ctx *gin.Context) {
-	ctx.String(200, "test")
-}
-
 // TODO GET /game/restore
 func RestoreBackup(ctx *gin.Context) {
 

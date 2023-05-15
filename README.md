@@ -24,16 +24,28 @@
 2. 解压，上传到服务器
 
 3. 修改config.yml 配置（端口）
+    | 配置              | 解释                      | 是否必须|
+    | ----------------- | ------------------------- | -------|
+    | port          | 端口浩          | 是 |
+    | db | 数据库名称（可以随便叫啥）              | 是 |
+    | path           | 监听日志的路径(`/$HOME/.klei/DoNotStarveTogether/$Cluster1`)          | 是 |
+
+    **参考配置**
+    ```yml
+    port: 8082
+    db: dst-db
+    path: /root/.klei/DoNotStarveTogether/MyDediServer
+    ```
 
 4. 修改dis_config 配置文件
    
-    | 配置              | 解释                      |
-    | ----------------- | ------------------------- |
-    | steamcmd          | steamcmd安装路径          |
-    | force_install_dir | 饥荒安装路径              |
-    | cluster           | 要启动房间的名称          |
-    | backup            | 存档备份位置              |
-    | mod_download_path | mod下载位置(路径要求存在) |
+    | 配置              | 解释                      | 是否必须|
+    | ----------------- | ------------------------- | -------|
+    | steamcmd          | steamcmd安装路径          | 是 |
+    | force_install_dir | 饥荒安装路径              | 是 |
+    | cluster           | 要启动房间的名称          | 是 |
+    | backup            | 存档备份位置              | 是 |
+    | mod_download_path | mod下载位置(路径要求存在) | 是 |
     
     
     
@@ -67,6 +79,8 @@
 #端口
 port: 8082
 db: dst-db
+#监听日志路径
+path: /root/.klei/DoNotStarveTogether/MyDediServer
 ```
 
 **修改dst_config**（也可以通过页面修改）
@@ -85,12 +99,23 @@ mod_download_path=/download_mod
 
 运行
 ```
-./dst-admin-go
+go mod tidy
+go run main.go
 ```
 
 ## 打包
 
+### Linux 打包
+```sh
+go build
+```
+
+### window 打包
+
 window 下打包 Linux 二进制 （由于sqlite受操作系统影响，Linux二进制请在Linux环境build）
+
+***也有可能是我环境原因**
+
 ```
 打开 cmd
 set GOARCH=amd64

@@ -111,8 +111,6 @@ func NewRoute() *gin.Engine {
 		backup.POST("/upload", api.UploadBackup)
 	}
 
-	loadStaticeFile(app)
-
 	//第三方api转发
 	app.GET("/api/dst/version", api.GetDstVersion)
 	app.POST("/api/dst/home/server", api.GetDstHomeServerList)
@@ -150,6 +148,6 @@ func NewRoute() *gin.Engine {
 		proxyApp.PUT("", api.UpdateProxyEntity)
 		proxyApp.DELETE("", api.DeleteProxyEntity)
 	}
-
+	loadStaticeFile(app)
 	return app
 }
