@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 
 	lua "github.com/yuin/gopher-lua"
 
@@ -224,6 +225,17 @@ func isTableArray(t *lua.LTable) bool {
 
 // SearchModList 搜索 mod 的函数
 func SearchModList(text string, page int, num int) (map[string]interface{}, error) {
+	modId, ok := isModId(text)
+	if ok {
+		return map[string]interface{}{
+			"page":      1,
+			"size":      1,
+			"total":     1,
+			"totalPage": 1,
+			"data":      []ModInfo{getModInfo(modId)},
+		}, nil
+	}
+
 	urlStr := "http://api.steampowered.com/IPublishedFileService/QueryFiles/v1/"
 	data := url.Values{
 		"page":             {fmt.Sprintf("%d", page)},
@@ -514,4 +526,81 @@ func get_v1_mod_info_config(modid, file_url string) map[string]interface{} {
 		return parseModInfoLua(modid, string(modinfo["modinfo"]))
 	}
 	return make(map[string]interface{})
+}
+
+func isModId(str string) (int, bool) {
+	id, err := strconv.Atoi(str)
+	return id, err == nil
+}
+
+func getModInfo(modID int) ModInfo {
+
+	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
+	data := url.Values{}
+	data.Set("key", steamAPIKey)
+	data.Set("language", "6")
+	data.Set("publishedfileids[0]", string(modID))
+	urlStr = urlStr + "?" + data.Encode()
+
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		fmt.Println(err)
+		return ModInfo{}
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return ModInfo{}
+	}
+	defer resp.Body.Close()
+
+	var result map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		fmt.Println(err)
+		return ModInfo{}
+	}
+
+	dataList, ok := result["response"].(map[string]interface{})["publishedfiledetails"].([]interface{})
+	if !ok || len(dataList) == 0 {
+		fmt.Println("get mod error")
+		return ModInfo{}
+	}
+
+	data2 := dataList[0].(map[string]interface{})
+	img := data2["preview_url"].(string)
+	auth := data2["creator"].(string)
+	var authorURL string
+	if auth != "" {
+		authorURL = fmt.Sprintf("https://steamcommunity.com/profiles/%s/?xml=1", auth)
+	} else {
+		authorURL = ""
+	}
+
+	modId := data2["publishedfileid"].(string)
+	name := data2["title"].(string)
+	description := data2["file_description"].(string)
+	auth = authorURL
+	img = fmt.Sprintf("%s?imw=64&imh=64&ima=fit&impolicy=Letterbox&imcolor=%%23000000&letterbox=true", img)
+	voteData := data2["vote_data"].(map[string]interface{})
+	modInfo := ModInfo{
+		ID:     modId,
+		Name:   name,
+		Author: auth,
+		Desc:   description,
+		Time:   int(data2["time_updated"].(float64)),
+		Sub:    int(data2["subscriptions"].(float64)),
+		Img:    img,
+		Vote: struct {
+			Star int `json:"star"`
+			Num  int `json:"num"`
+		}{
+			Star: int(voteData["score"].(float64)*5) + 1,
+			Num:  int(voteData["votes_up"].(float64) + voteData["votes_down"].(float64)),
+		},
+	}
+
+	return modInfo
 }
