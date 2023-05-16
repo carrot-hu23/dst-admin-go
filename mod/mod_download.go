@@ -227,12 +227,17 @@ func isTableArray(t *lua.LTable) bool {
 func SearchModList(text string, page int, num int) (map[string]interface{}, error) {
 	modId, ok := isModId(text)
 	if ok {
+		modInfo := getModInfo(modId)
+		data := []ModInfo{}
+		if modInfo.ID != "" {
+			data = append(data, modInfo)
+		}
 		return map[string]interface{}{
 			"page":      1,
 			"size":      1,
 			"total":     1,
 			"totalPage": 1,
-			"data":      []ModInfo{getModInfo(modId)},
+			"data":      data,
 		}, nil
 	}
 
@@ -375,7 +380,7 @@ func GetModInfo(modID string) entity.ModInfo {
 	auth = authorURL
 	file_url := data2["file_url"]
 	img = fmt.Sprintf("%s?imw=64&imh=64&ima=fit&impolicy=Letterbox&imcolor=%%23000000&letterbox=true", img)
-	v := getVersion(data["tags"])
+	v := getVersion(data["views"])
 	creator_appid := data2["creator_appid"].(float64)
 	consumer_appid := data2["consumer_appid"].(float64)
 
@@ -539,8 +544,10 @@ func getModInfo(modID int) ModInfo {
 	data := url.Values{}
 	data.Set("key", steamAPIKey)
 	data.Set("language", "6")
-	data.Set("publishedfileids[0]", string(modID))
+	data.Set("publishedfileids[0]", strconv.Itoa(modID))
 	urlStr = urlStr + "?" + data.Encode()
+
+	log.Println(urlStr)
 
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
@@ -570,6 +577,9 @@ func getModInfo(modID int) ModInfo {
 	}
 
 	data2 := dataList[0].(map[string]interface{})
+	if data2["consumer_appid"] == nil || data2["consumer_appid"].(float64) != 322330 {
+		return ModInfo{}
+	}
 	img := data2["preview_url"].(string)
 	auth := data2["creator"].(string)
 	var authorURL string
@@ -584,7 +594,6 @@ func getModInfo(modID int) ModInfo {
 	description := data2["file_description"].(string)
 	auth = authorURL
 	img = fmt.Sprintf("%s?imw=64&imh=64&ima=fit&impolicy=Letterbox&imcolor=%%23000000&letterbox=true", img)
-	voteData := data2["vote_data"].(map[string]interface{})
 	modInfo := ModInfo{
 		ID:     modId,
 		Name:   name,
@@ -593,13 +602,6 @@ func getModInfo(modID int) ModInfo {
 		Time:   int(data2["time_updated"].(float64)),
 		Sub:    int(data2["subscriptions"].(float64)),
 		Img:    img,
-		Vote: struct {
-			Star int `json:"star"`
-			Num  int `json:"num"`
-		}{
-			Star: int(voteData["score"].(float64)*5) + 1,
-			Num:  int(voteData["votes_up"].(float64) + voteData["votes_down"].(float64)),
-		},
 	}
 
 	return modInfo
