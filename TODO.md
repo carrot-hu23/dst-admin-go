@@ -39,3 +39,24 @@
 由于某些原因，导致房间炸档，服务器download了
 
 起个后台监控，当饥荒服务器挂掉后，自动重启，
+
+
+## 修改启动方式
+
+本地写个文件 start_world
+```
+Master
+
+Caves
+```
+
+根据 start_world 里面的内容来启动世界
+
+```
+./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
+```
+
+启动之前需要杀掉全部的 Master 和 Caves 世界
+
+配置文件详情
+https://steamcommunity.com/sharedfiles/filedetails/?id=1616647350

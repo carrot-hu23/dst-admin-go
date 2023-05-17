@@ -110,7 +110,7 @@ type World struct {
 type MultiLevelWorldConfig struct {
 	Cluster      *Cluster `json:"cluster"`
 	ClusterToken string   `json:"cluster_token"`
-	Adminlist    string   `json:"adminlist"`
-	Blocklist    string   `json:"blocklist"`
+	Adminlist    []string `json:"adminlist"`
+	Blocklist    []string `json:"blocklist"`
 	Worlds       []World  `json:"worlds"`
 }
