@@ -107,6 +107,12 @@ func NewRoute() *gin.Engine {
 		clusterConfig.POST("", api.SaveClusterConfig)
 	}
 
+	clusterGameConfig := app.Group("/api/cluster/game/config")
+	{
+		clusterGameConfig.GET("", api.GetGameConfog)
+		clusterGameConfig.POST("", api.SaveGameConfog)
+	}
+
 	backup := app.Group("/api/game/backup")
 	{
 		backup.GET("", api.GetBackupList)

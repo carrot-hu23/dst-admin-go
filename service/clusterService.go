@@ -328,3 +328,136 @@ func SaveMultiLevelWorldConfig(multiLevelWorldConfig *cluster.MultiLevelWorldCon
 		// 设置失败
 	}
 }
+
+func ReadMaster() *cluster.World {
+	master := cluster.World{}
+
+	master.WorldName = "Master"
+	master.IsMaster = true
+
+	master.Leveldataoverride = ReadLeveldataoverrideFile(constant.GET_MASTER_LEVELDATAOVERRIDE_PATH())
+	master.Modoverrides = ReadModoverridesFile(constant.GET_MASTER_MOD_PATH())
+	master.ServerIni = ReadServerIniFile(constant.GET_MASTER_DIR_SERVER_INI_PATH(), true)
+
+	return &master
+}
+
+func ReadCaves() *cluster.World {
+	caves := cluster.World{}
+
+	caves.WorldName = "Caves"
+	caves.IsMaster = false
+
+	caves.Leveldataoverride = ReadLeveldataoverrideFile(constant.GET_CAVES_LEVELDATAOVERRIDE_PATH())
+	caves.Modoverrides = ReadModoverridesFile(constant.GET_CAVES_MOD_PATH())
+	caves.ServerIni = ReadServerIniFile(constant.GET_CAVES_DIR_SERVER_INI_PATH(), false)
+
+	return &caves
+}
+
+func SaveMaster(world *cluster.World) {
+
+	l_path := constant.GET_MASTER_LEVELDATAOVERRIDE_PATH()
+	m_path := constant.GET_MASTER_MOD_PATH()
+	s_path := constant.GET_MASTER_DIR_SERVER_INI_PATH()
+
+	createFileIfNotExsists(l_path)
+	createFileIfNotExsists(m_path)
+	createFileIfNotExsists(s_path)
+
+	fileUtils.WriterTXT(l_path, world.Leveldataoverride)
+	fileUtils.WriterTXT(m_path, world.Modoverrides)
+
+	serverBuf := pareseTemplate(MASTER_SERVER_INI_TEMPLATE, world.ServerIni)
+
+	fileUtils.WriterTXT(s_path, serverBuf)
+}
+
+func SaveCavesr(world *cluster.World) {
+
+	l_path := constant.GET_CAVES_LEVELDATAOVERRIDE_PATH()
+	m_path := constant.GET_CAVES_MOD_PATH()
+	s_path := constant.GET_CAVES_DIR_SERVER_INI_PATH()
+
+	createFileIfNotExsists(l_path)
+	createFileIfNotExsists(m_path)
+	createFileIfNotExsists(s_path)
+
+	fileUtils.WriterTXT(l_path, world.Leveldataoverride)
+	fileUtils.WriterTXT(m_path, world.Modoverrides)
+
+	serverBuf := pareseTemplate(CAVES_SERVER_INI_TEMPLATE, world.ServerIni)
+
+	fileUtils.WriterTXT(s_path, serverBuf)
+}
+
+func GetGameConfog() *cluster.GameConfig {
+	gameConfig := cluster.GameConfig{}
+	var wg sync.WaitGroup
+	wg.Add(6)
+
+	go func() {
+		gameConfig.ClusterToken = ReadClusterTokenFile()
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Cluster = ReadClusterIniFile()
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Adminlist = ReadAdminlistFile()
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Blocklist = ReadBlocklistFile()
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Master = ReadMaster()
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Caves = ReadCaves()
+		wg.Done()
+	}()
+	wg.Wait()
+	return &gameConfig
+}
+
+func SaveGameConfig(gameConfig *cluster.GameConfig) {
+
+	var wg sync.WaitGroup
+	wg.Add(6)
+
+	go func() {
+		SaveClusterToken(gameConfig.ClusterToken)
+		wg.Done()
+	}()
+
+	go func() {
+		SaveClusterIni(gameConfig.Cluster)
+		wg.Done()
+	}()
+
+	go func() {
+		SaveAdminlist(gameConfig.Adminlist)
+		wg.Done()
+	}()
+
+	go func() {
+		SaveBlocklist(gameConfig.Blocklist)
+		wg.Done()
+	}()
+
+	go func() {
+		SaveMaster(gameConfig.Master)
+		wg.Done()
+	}()
+
+	go func() {
+		SaveCavesr(gameConfig.Caves)
+		wg.Done()
+	}()
+
+	wg.Wait()
+}

@@ -114,3 +114,12 @@ type MultiLevelWorldConfig struct {
 	Blocklist    []string `json:"blocklist"`
 	Worlds       []World  `json:"worlds"`
 }
+
+type GameConfig struct {
+	Cluster      *Cluster `json:"cluster"`
+	ClusterToken string   `json:"cluster_token"`
+	Adminlist    []string `json:"adminlist"`
+	Blocklist    []string `json:"blocklist"`
+	Master       *World   `json:"master"`
+	Caves        *World   `json:"caves"`
+}
