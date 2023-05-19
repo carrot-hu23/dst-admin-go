@@ -13,7 +13,7 @@ type Cluster struct {
 	LanOnlyCluster     bool   `json:"lan_only_cluster"`
 	ClusterIntention   string `json:"cluster_intention"`
 	ClusterDescription string `json:"cluster_description"`
-	ClusterPassword    string `json:"clusterPassword"`
+	ClusterPassword    string `json:"cluster_password"`
 	ClusterName        string `json:"cluster_name"`
 	OfflineCluster     bool   `json:"offline_cluster"`
 	ClusterLanguage    string `json:"cluster_language"`

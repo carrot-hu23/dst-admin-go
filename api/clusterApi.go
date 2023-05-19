@@ -39,7 +39,7 @@ func GetGameConfog(ctx *gin.Context) {
 func SaveGameConfog(ctx *gin.Context) {
 
 	gameConfig := cluster.GameConfig{}
-	ctx.ShouldBind(gameConfig)
+	ctx.ShouldBind(&gameConfig)
 	log.Println(gameConfig)
 	service.SaveGameConfig(&gameConfig)
 
