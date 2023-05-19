@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	CLUSTER_INI_TEMPLATE       = "./static/template/cluster.ini"
+	CLUSTER_INI_TEMPLATE       = "./static/template/cluster2.ini"
 	MASTER_SERVER_INI_TEMPLATE = "./static/template/master_server.ini"
 	CAVES_SERVER_INI_TEMPLATE  = "./static/template/caves_server.ini"
 )
@@ -71,7 +71,7 @@ func ReadClusterIniFile() *cluster.Cluster {
 
 	cluster.SteamGroupOnly = STEAM.Key("steam_group_only").MustBool(false)
 	cluster.SteamGroupId = STEAM.Key("steam_group_id").MustUint(0)
-	cluster.SteamGroupAdmins = STEAM.Key("steam_group_admins").MustBool(false)
+	cluster.SteamGroupAdmins = STEAM.Key("steam_group_admins").MustString("")
 
 	return cluster
 }
