@@ -4,7 +4,7 @@ import (
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/cluster"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,8 +39,8 @@ func GetGameConfog(ctx *gin.Context) {
 func SaveGameConfog(ctx *gin.Context) {
 
 	gameConfig := cluster.GameConfig{}
-	ctx.ShouldBind(&gameConfig)
-	log.Println(gameConfig)
+	ctx.Bind(&gameConfig)
+	fmt.Printf("%v", gameConfig.Caves.ServerIni)
 	service.SaveGameConfig(&gameConfig)
 
 	ctx.JSON(http.StatusOK, vo.Response{

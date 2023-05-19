@@ -63,7 +63,7 @@ func ReadClusterIniFile() *cluster.Cluster {
 	cluster.ShardEnabled = SHARD.Key("shard_enabled").MustBool(true)
 	cluster.BindIp = SHARD.Key("bind_ip").MustString("127.0.0.1")
 	cluster.MasterIp = SHARD.Key("master_ip").MustString("127.0.0.1")
-	cluster.MasterPort = SHARD.Key("master_ip").MustUint(108888)
+	cluster.MasterPort = SHARD.Key("master_port").MustUint(10888)
 	cluster.ClusterKey = SHARD.Key("cluster_key").String()
 
 	// [STEAM]
@@ -162,8 +162,8 @@ func ReadServerIniFile(filepath string, isMaster bool) *cluster.ServerIni {
 	// [STEAM]
 	STEAM := cfg.Section("STEAM")
 
-	serverIni.AuthenticationPort = STEAM.Key("authentication_port").MustUint()
-	serverIni.Master_serverPort = STEAM.Key("master_server_port").MustUint()
+	serverIni.AuthenticationPort = STEAM.Key("authentication_port").MustUint(8766)
+	serverIni.MasterServerPort = STEAM.Key("master_server_port").MustUint(27016)
 
 	return serverIni
 }

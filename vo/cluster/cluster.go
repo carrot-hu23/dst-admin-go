@@ -51,7 +51,7 @@ type ServerIni struct {
 
 	// [STEAM]
 	AuthenticationPort uint `json:"authentication_port"`
-	Master_serverPort  uint `json:"master_server_port"`
+	MasterServerPort   uint `json:"master_server_port"`
 }
 
 func NewCluster() *Cluster {
@@ -69,7 +69,7 @@ func NewCluster() *Cluster {
 		ShardEnabled:     true,
 		BindIp:           "127.0.0.1",
 		MasterIp:         "127.0.0.1",
-		MasterPort:       108888,
+		MasterPort:       10888,
 		ClusterKey:       "",
 		SteamGroupOnly:   false,
 		SteamGroupId:     0,
@@ -95,7 +95,7 @@ func NewCavesServerIni() *ServerIni {
 		Id:                 10010,
 		EncodeUserPath:     true,
 		AuthenticationPort: 8766,
-		Master_serverPort:  27016,
+		MasterServerPort:   27016,
 	}
 }
 
