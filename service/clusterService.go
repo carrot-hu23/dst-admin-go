@@ -440,12 +440,12 @@ func SaveGameConfig(gameConfig *cluster.GameConfig) {
 	}()
 
 	go func() {
-		SaveAdminlist(gameConfig.Adminlist)
+		// SaveAdminlist(gameConfig.Adminlist)
 		wg.Done()
 	}()
 
 	go func() {
-		SaveBlocklist(gameConfig.Blocklist)
+		// SaveBlocklist(gameConfig.Blocklist)
 		wg.Done()
 	}()
 
