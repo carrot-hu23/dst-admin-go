@@ -81,6 +81,7 @@ func GetConfig() vo.GameConfigVO {
 }
 
 func getClusterToken() string {
+	createFileIfNotExsists(constant.GET_CLUSTER_TOKEN_PATH())
 	token, err := fileUtils.ReadFile(constant.GET_CLUSTER_TOKEN_PATH())
 	if err != nil {
 		panic("read cluster_token.txt file error: " + err.Error())
@@ -90,6 +91,10 @@ func getClusterToken() string {
 }
 
 func GetClusterIni(gameconfig *vo.GameConfigVO) {
+	if !fileUtils.Exists(constant.GET_CLUSTER_INI_PATH()) {
+		createFileIfNotExsists(constant.GET_CLUSTER_INI_PATH())
+		return
+	}
 	cluster_ini, err := fileUtils.ReadLnFile(constant.GET_CLUSTER_INI_PATH())
 	if err != nil {
 		panic("read cluster.ini file error: " + err.Error())
@@ -168,6 +173,13 @@ func GetClusterIni(gameconfig *vo.GameConfigVO) {
 }
 
 func getMasteLeveldataoverride() string {
+
+	filepath := constant.GET_MASTER_LEVELDATAOVERRIDE_PATH()
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	level, err := fileUtils.ReadFile(constant.GET_MASTER_LEVELDATAOVERRIDE_PATH())
 	if err != nil {
 		panic("read Master/leveldataoverride.lua file error: " + err.Error())
@@ -176,6 +188,13 @@ func getMasteLeveldataoverride() string {
 }
 
 func getCavesLeveldataoverride() string {
+
+	filepath := constant.GET_CAVES_LEVELDATAOVERRIDE_PATH()
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	level, err := fileUtils.ReadFile(constant.GET_CAVES_LEVELDATAOVERRIDE_PATH())
 	if err != nil {
 		panic("read Caves/leveldataoverride.lua file error: " + err.Error())
@@ -184,6 +203,13 @@ func getCavesLeveldataoverride() string {
 }
 
 func getModoverrides() string {
+
+	filepath := constant.GET_MASTER_MOD_PATH()
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	level, err := fileUtils.ReadFile(constant.GET_MASTER_MOD_PATH())
 	if err != nil {
 		panic("read Master/modoverrides.lua file error: " + err.Error())
@@ -357,4 +383,16 @@ func createModoverrides(modConfig string) {
 		fileUtils.WriterTXT(constant.GET_MASTER_MOD_PATH(), "")
 		fileUtils.WriterTXT(constant.GET_CAVES_MOD_PATH(), "")
 	}
+}
+
+func UpdateDedicatedServerModsSetup(modConfig string) {
+	if modConfig != "" {
+		var serverModSetup = ""
+		workshopIds := WorkshopIds(modConfig)
+		for _, workshopId := range workshopIds {
+			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
+		}
+		fileUtils.WriterTXT(constant.GET_DST_MOD_SETUP_PATH(), serverModSetup)
+	}
+
 }

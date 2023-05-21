@@ -23,7 +23,12 @@ const (
 func ReadClusterIniFile() *cluster.Cluster {
 	cluster := cluster.NewCluster()
 	// 加载 INI 文件
-	cfg, err := ini.Load(constant.GET_CLUSTER_INI_PATH())
+	cluster_ini_path := constant.GET_CLUSTER_INI_PATH()
+	if !fileUtils.Exists(cluster_ini_path) {
+		createFileIfNotExsists(cluster_ini_path)
+		return cluster
+	}
+	cfg, err := ini.Load(cluster_ini_path)
 	if err != nil {
 		log.Panicln("Failed to load INI file:", err)
 	}
@@ -77,7 +82,13 @@ func ReadClusterIniFile() *cluster.Cluster {
 }
 
 func ReadClusterTokenFile() string {
-	token, err := fileUtils.ReadFile(constant.GET_CLUSTER_TOKEN_PATH())
+	cluster_token_path := constant.GET_CLUSTER_TOKEN_PATH()
+	if !fileUtils.Exists(cluster_token_path) {
+		createFileIfNotExsists(cluster_token_path)
+		return ""
+	}
+
+	token, err := fileUtils.ReadFile(cluster_token_path)
 	if err != nil {
 		panic("read cluster_token.txt file error: " + err.Error())
 	}
@@ -107,6 +118,11 @@ func ReadBlocklistFile() (str []string) {
 }
 
 func ReadLeveldataoverrideFile(filepath string) string {
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	leveldataoverride, err := fileUtils.ReadFile(filepath)
 	if err != nil {
 		panic("read leveldataoverride.lua file error: " + err.Error())
@@ -115,6 +131,10 @@ func ReadLeveldataoverrideFile(filepath string) string {
 }
 
 func ReadModoverridesFile(filepath string) string {
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
 	modoverrides, err := fileUtils.ReadFile(filepath)
 	if err != nil {
 		panic("read modoverrides.lua file error: " + err.Error())
@@ -123,7 +143,7 @@ func ReadModoverridesFile(filepath string) string {
 }
 
 func ReadServerIniFile(filepath string, isMaster bool) *cluster.ServerIni {
-
+	createFileIfNotExsists(filepath)
 	var server_port_default uint = 10998
 	id_default := 10010
 
@@ -453,6 +473,7 @@ func SaveGameConfig(gameConfig *cluster.GameConfig) {
 
 	go func() {
 		SaveMaster(gameConfig.Master)
+		UpdateDedicatedServerModsSetup(gameConfig.Master.Modoverrides)
 		wg.Done()
 	}()
 

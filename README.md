@@ -4,6 +4,9 @@
 > Date: 2023/05/11
 
 
+## 部署
+注意目录必须要有读写权限。点击查看 [部署文档](./install.md)
+
 ## 预览
 
 在线预览地址 http://1.12.223.51:8082/
@@ -15,61 +18,6 @@
 ![统计效果](./doc/统计.png)
 ![面板效果](./doc/面板.png)
 ![日志效果](./doc/日志.png)
-
-## 部署
-> 注意目录必须要有读写权限
-
->前置要求: 自行安装 steamcmd 和 饥荒服务，目前不提供自动安装
-
-1. 从release下载 dst-admin-go.tgz
-
-2. 解压，上传到服务器
-
-3. 修改config.yml 配置（端口）
-    | 配置              | 解释                      | 是否必须|
-    | ----------------- | ------------------------- | -------|
-    | port          | 端口          | 是 |
-    | db | 数据库名称（可以随便叫啥）              | 是 |
-
-    **参考配置**
-    ```yml
-    port: 8082
-    db: dst-db
-    ```
-
-4. 修改dst_config 配置文件
-   
-    | 配置              | 解释                      | 是否必须|
-    | ----------------- | ------------------------- | -------|
-    | steamcmd          | steamcmd安装路径          | 是 |
-    | force_install_dir | 饥荒安装路径              | 是 |
-    | cluster           | 要启动房间的名称          | 是 |
-    | backup            | 存档备份位置              | 是 |
-    | mod_download_path | mod下载位置(路径要求存在,这个下载路径和饥荒mod无关) | 是 |
-    
-    
-    
-    如果你的启动路径不是 ` /$HOME/.klei/DoNotStarveTogether `, 请修改
-
-    | 配置                          | 解释 |
-    | ----------------------------- | ---- |
-    | persistent_storage_root       |      |
-    | donot_starve_server_directory |      |
-    
-    [参考命令](https://dontstarve.fandom.com/zh/wiki/%E5%A4%9A%E4%BA%BA%E7%89%88%E9%A5%A5%E8%8D%92%E7%8B%AC%E7%AB%8B%E6%9C%8D%E5%8A%A1%E5%99%A8?variant=zh#%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0)
-    
-    ```sh
-    dontstarve_dedicated_server_nullrenderer -console -persistent_storage_root " + persistent_storage_root + "-conf_dir " + donot_starve_server_directory + " -cluster " + cluster + " -shard " + DST_CAVES + " ;"
-    ```
-    
-    
-    
-5. 启动
-    
-    ```
-    nohup ./dst-admin-go >dst-admin-go/log &
-    ```
-    
     
 
 ## 运行
