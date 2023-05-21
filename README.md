@@ -7,7 +7,7 @@
 ## 预览
 
 在线预览地址 http://1.12.223.51:8082/
-
+（admin 123456）
 ![首页效果](./doc/登录.png)
 ![首页效果](./doc/房间.png)
 ![首页效果](./doc/mod.png)
@@ -19,6 +19,8 @@
 ## 部署
 > 注意目录必须要有读写权限
 
+>前置要求: 自行安装 steamcmd 和 饥荒服务，目前不提供自动安装
+
 1. 从release下载 dst-admin-go.tgz
 
 2. 解压，上传到服务器
@@ -28,16 +30,14 @@
     | ----------------- | ------------------------- | -------|
     | port          | 端口          | 是 |
     | db | 数据库名称（可以随便叫啥）              | 是 |
-    | path           | 监听日志的路径(`/$HOME/.klei/DoNotStarveTogether/$Cluster1`)          | 是 |
 
     **参考配置**
     ```yml
     port: 8082
     db: dst-db
-    path: /root/.klei/DoNotStarveTogether/MyDediServer
     ```
 
-4. 修改dis_config 配置文件
+4. 修改dst_config 配置文件
    
     | 配置              | 解释                      | 是否必须|
     | ----------------- | ------------------------- | -------|
@@ -45,7 +45,7 @@
     | force_install_dir | 饥荒安装路径              | 是 |
     | cluster           | 要启动房间的名称          | 是 |
     | backup            | 存档备份位置              | 是 |
-    | mod_download_path | mod下载位置(路径要求存在) | 是 |
+    | mod_download_path | mod下载位置(路径要求存在,这个下载路径和饥荒mod无关) | 是 |
     
     
     
@@ -98,6 +98,8 @@ mod_download_path=/download_mod
 ```
 
 运行
+>由于window sqlite3 依赖gcc，请自行下载安装，更多详细点击查看 
+ [sqlite3](https://github.com/mattn/go-sqlite3#windows)
 ```
 go mod tidy
 go run main.go
@@ -112,9 +114,7 @@ go build
 
 ### window 打包
 
-window 下打包 Linux 二进制 （由于sqlite受操作系统影响，Linux二进制请在Linux环境build）
-
-***也有可能是我环境原因**
+window 下打包 Linux 二进制 
 
 ```
 打开 cmd
