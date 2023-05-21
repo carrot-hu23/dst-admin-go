@@ -17,8 +17,8 @@ import (
 
 const (
 	cluster_template = "./static/template/cluster2.ini"
-	master_template  = "./static/template/master_server.ini"
-	caves_template   = "./static/template/caves_server.ini"
+	master_template  = "./static/Master"
+	caves_template   = "./static/Cave"
 
 	// cluster_template = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\template\\cluster2.ini"
 	// master_template  = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\Master"
@@ -26,11 +26,10 @@ const (
 )
 
 type InitDstData struct {
-	UserInfo *vo.UserInfo
-
-	InstallDstEnv bool
-	ClusterToken  string
-	DstConfig     *dstConfigUtils.DstConfig
+	InstallDstEnv bool                      `json:"installDstEnv"`
+	ClusterToken  string                    `json:"clusterToken"`
+	DstConfig     *dstConfigUtils.DstConfig `json:"dstConfig"`
+	UserInfo      *vo.UserInfo              `json:"userInfo"`
 }
 
 func InstallSteamCmd() {
