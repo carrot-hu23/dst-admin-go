@@ -41,7 +41,7 @@
 起个后台监控，当饥荒服务器挂掉后，自动重启，
 
 
-## 修改启动方式
+## 修改启动方式 (暂时pass)
 
 本地写个文件 start_world
 ```
@@ -60,3 +60,63 @@ Caves
 
 配置文件详情
 https://steamcommunity.com/sharedfiles/filedetails/?id=1616647350
+
+
+## 多开
+
+一般的启动流程
+
+启动
+1. 检查是否启动了
+    ps -ef | grep -v grep | grep 'Master' | sed -n '1P' | awk '{print $2}'
+2. 杀掉Master 进程
+    "ps -ef | grep -v grep |grep '" + DST_MASTER + "' |sed -n '1P'|awk '{print $2}' |xargs kill -9"
+
+3. screen -d -m -S 启动进程
+
+./dontstarve_dedicated_server_nullrenderer -console -cluster Cluster1 -shard Master
+
+
+### 设置
+1. 用户创建存档 Cluster2
+2. 配置世界（可视化界面操作）
+3. 后台在 ~/.klei/DontStarveTogether/Cluser2 创建相应的文件
+
+|-- Cluster1
+|   |-- adminlist.txt
+|   |-- blocklist.txt
+|   |-- Caves
+|   |   |-- leveldataoverride.lua
+|   |   |-- modoverrides.lua
+|   |   `-- server.ini
+|   |-- cluster.ini
+|   |-- cluster_token.txt
+|   |-- Master
+|   |   |-- leveldataoverride.lua
+|   |   |-- modoverrides.lua
+|   |   `-- server.ini
+
+
+4. 返回用户 ~/.klei/DontStarveTogether 创建的世界 集合 [Cluster1, Cluster2]
+ClusterList:[
+    {
+    name: Cluster1,
+    masterStatus: false,
+    cavesStatus: true,
+    mem: 1200,
+    cpu: 50%,
+    onlinePlayers: 8/10,
+    days: 1,
+    season: spring
+    },
+    {
+    name: Cluster1,
+    masterStatus: false,
+    cavesStatus: true,
+    mem: 1200,
+    cpu: 50%,
+    onlinePlayers: 8/10,
+    days: 1,
+    season: spring
+    },
+]

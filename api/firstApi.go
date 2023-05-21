@@ -2,7 +2,6 @@ package api
 
 import (
 	"dst-admin-go/service"
-	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"log"
@@ -13,11 +12,6 @@ import (
 
 const first = "./first"
 
-type InitData struct {
-	User      *vo.UserVO                `json:"user"`
-	DstConfig *dstConfigUtils.DstConfig `json:"dstConfig"`
-}
-
 func InitFirst(ctx *gin.Context) {
 
 	exist := fileUtils.Exists(first)
@@ -25,21 +19,10 @@ func InitFirst(ctx *gin.Context) {
 		log.Panicln("非法请求")
 	}
 
-	initData := &InitData{}
+	initData := &service.InitDstData{}
 	ctx.Bind(initData)
 
-	username := initData.User.Username
-	password := initData.User.Password
-	service.ChangeUser(username, password)
-
-	dstConfig := dstConfigUtils.DstConfig{
-		Steamcmd:                   initData.DstConfig.Steamcmd,
-		Force_install_dir:          initData.DstConfig.Force_install_dir,
-		DoNotStarveServerDirectory: initData.DstConfig.DoNotStarveServerDirectory,
-		Cluster:                    initData.DstConfig.Cluster,
-	}
-
-	dstConfigUtils.SaveDstConfig(&dstConfig)
+	service.InitDstEnv(initData, ctx)
 
 	fileUtils.CreateFile(first)
 	ctx.JSON(http.StatusOK, vo.Response{

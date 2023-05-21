@@ -32,15 +32,6 @@ func GetUserInfo() map[string]interface{} {
 	}
 }
 
-func Inituser(userVO *vo.UserVO) {
-	username := "username=" + userVO.Username
-	password := "password=" + userVO.Password
-	displayName := ""
-	email := ""
-	photoURL := ""
-	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password, displayName, photoURL, email})
-}
-
 func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
 
 	response := &vo.Response{}
@@ -128,4 +119,13 @@ func ChangePassword(newPassword string) *vo.Response {
 	response.Msg = "Update user new password success"
 
 	return response
+}
+
+func InitUserInfo(userInfo *vo.UserInfo) {
+	username := "username=" + userInfo.Username
+	password := "password=" + userInfo.Password
+	displayName := "displayName=" + userInfo.DisplayeName
+	email := ""
+	photoURL := "photoURL=" + userInfo.PhotoURL
+	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password, displayName, photoURL, email})
 }

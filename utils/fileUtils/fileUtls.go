@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -225,6 +226,38 @@ func FindWorldDirs(rootPath string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return dirs, nil
+}
+
+func ListDirectories(root string) ([]string, error) {
+	var dirs []string
+
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			dirs = append(dirs, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(dirs, func(i, j int) bool {
+		fi, err := os.Stat(dirs[i])
+		if err != nil {
+			return false
+		}
+		fj, err := os.Stat(dirs[j])
+		if err != nil {
+			return false
+		}
+		return fi.ModTime().Before(fj.ModTime())
+	})
 
 	return dirs, nil
 }

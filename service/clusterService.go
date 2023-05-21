@@ -248,6 +248,12 @@ func createFileIfNotExsists(filepath string) {
 	}
 }
 
+func createDirIfNotExsists(filepath string) {
+	if !fileUtils.Exists(filepath) {
+		fileUtils.CreateDir(filepath)
+	}
+}
+
 func handleWorldDir(basePath string, world *cluster.World) {
 
 	fileUtils.CreateDir(basePath)
