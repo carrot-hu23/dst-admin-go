@@ -200,8 +200,8 @@ func SaveConfig(gameConfigVo vo.GameConfigVO) {
 	//创建token配置
 	createClusterToken(strings.TrimSpace(gameConfigVo.Token))
 	//创建地面和洞穴的ini配置文件
-	createMasterServerIni()
-	createCavesServerIni()
+	// createMasterServerIni()
+	// createCavesServerIni()
 	//创建地面世界设置
 	createMasteLeveldataoverride(gameConfigVo.MasterMapData)
 	//创建洞穴世界设置
@@ -229,44 +229,18 @@ func createMyDediServerDir() {
 func createClusterIni(gameConfigVo vo.GameConfigVO) {
 
 	log.Println("生成游戏配置文件 cluster.ini文件: ", constant.GET_CLUSTER_INI_PATH())
+	oldCluster := ReadClusterIniFile()
 
-	// cluster_ini := ""
-	// cluster_ini += "[GAMEPLAY]\n"
-	// cluster_ini += "game_mode = " + gameConfigVo.GameMode + "\n"
-	// cluster_ini += "max_players = " + strconv.Itoa(int(gameConfigVo.MaxPlayers)) + "\n"
-	// cluster_ini += "pvp = " + strconv.FormatBool(gameConfigVo.Pvp) + "\n"
-	// cluster_ini += "pause_when_empty = " + strconv.FormatBool(gameConfigVo.PauseNobody) + "\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "[NETWORK]\n"
-	// cluster_ini += "lan_only_cluster = false\n"
-	// cluster_ini += "cluster_intention = " + gameConfigVo.ClusterIntention + "\n"
-	// password := gameConfigVo.ClusterPassword
-	// if password != "" {
-	// 	password = strings.TrimSpace(password)
-	// 	cluster_ini += "cluster_password = " + password + "\n"
-	// } else {
-	// 	cluster_ini += "cluster_password = \n"
-	// }
-	// cluster_ini += "cluster_description =  " + gameConfigVo.ClusterDescription + " \n"
-	// cluster_ini += "cluster_name =  " + gameConfigVo.ClusterName + " \n"
-	// cluster_ini += "offline_cluster = false \n"
+	oldCluster.ClusterName = gameConfigVo.ClusterName
+	oldCluster.ClusterDescription = gameConfigVo.ClusterDescription
+	oldCluster.GameMode = gameConfigVo.GameMode
+	oldCluster.MaxPlayers = uint(gameConfigVo.MaxPlayers)
+	oldCluster.Pvp = gameConfigVo.Pvp
+	oldCluster.VoteEnabled = gameConfigVo.VoteEnabled
+	oldCluster.PauseWhenNobody = gameConfigVo.PauseWhenNobody
+	oldCluster.ClusterPassword = gameConfigVo.ClusterPassword
 
-	// cluster_ini += "cluster_language =  zh\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "[MISC]\n"
-	// cluster_ini += "console_enabled = true\n"
-	// cluster_ini += "max_snapshots = 6 \n"
-	// cluster_ini += "\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "[SHARD]\n"
-	// cluster_ini += "shard_enabled = true\n"
-	// cluster_ini += "bind_ip = 127.0.0.1\n"
-	// cluster_ini += "master_ip = 127.0.0.1\n"
-	// cluster_ini += "master_port = 10888\n"
-	// cluster_ini += "cluster_key = defaultPass\n"
-
-	cluster_ini := pareseTemplate(cluster_init_template, gameConfigVo)
+	cluster_ini := pareseTemplate(cluster_init_template, oldCluster)
 	fileUtils.WriterTXT(constant.GET_CLUSTER_INI_PATH(), cluster_ini)
 }
 

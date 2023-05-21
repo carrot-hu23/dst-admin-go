@@ -196,9 +196,9 @@ func ConvertByte2String(byte []byte, charset Charset) string {
 	return str
 }
 
-func Tailf_server_chat_log(path string) {
+func Tailf_server_chat_log(path string, level string) {
 	//fileName := "C:\\Users\\xm\\Documents\\Klei\\DoNotStarveTogether\\900587905\\Cluster_2\\Master\\server_chat_log.txt"
-	fileName := filepath.Join(path, "Master", "server_chat_log.txt")
+	fileName := filepath.Join(path, level, "server_chat_log.txt")
 	log.Println("开始采集 server_chat_log, path:", fileName)
 	config := tail.Config{
 		ReOpen:    true,                                 // 重新打开
@@ -225,9 +225,9 @@ func Tailf_server_chat_log(path string) {
 	}
 }
 
-func Tailf_server_log(path string) {
+func Tailf_server_log(path string, level string) {
 	//fileName := "C:\\Users\\xm\\Documents\\Klei\\DoNotStarveTogether\\900587905\\Cluster_2\\Master\\server_log.txt"
-	fileName := filepath.Join(path, "Master", "server_log.txt")
+	fileName := filepath.Join(path, level, "server_log.txt")
 	log.Println("开始采集 server_log, path:", fileName)
 	config := tail.Config{
 		ReOpen:    true,                                 // 重新打开

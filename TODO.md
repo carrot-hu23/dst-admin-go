@@ -123,3 +123,9 @@ ClusterList:[
 
 启动
 return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
+
+
+
+
+
+ ./dontstarve_dedicated_server_nullrenderer -console -cluster MyCluster3 -shard Caves

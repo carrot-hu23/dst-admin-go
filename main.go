@@ -3,8 +3,10 @@ package main
 import (
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
+	"dst-admin-go/constant"
 	"dst-admin-go/entity"
 	"dst-admin-go/route"
+	"dst-admin-go/utils/dstConfigUtils"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,6 +14,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
@@ -98,8 +101,12 @@ func main() {
 
 	fmt.Println(":pig, 你是好人")
 
-	go collect.Tailf_server_chat_log(configData.Path)
-	go collect.Tailf_server_log(configData.Path)
+	base_log_path := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
+
+	go collect.Tailf_server_chat_log(base_log_path, "Master")
+	go collect.Tailf_server_log(base_log_path, "Master")
+	go collect.Tailf_server_chat_log(base_log_path, "Caves")
+	go collect.Tailf_server_log(base_log_path, "Caves")
 
 	app := route.NewRoute()
 	app.Run(":" + configData.Port)

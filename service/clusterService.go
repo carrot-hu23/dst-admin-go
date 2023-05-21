@@ -155,11 +155,11 @@ func ReadServerIniFile(filepath string, isMaster bool) *cluster.ServerIni {
 	ACCOUNT := cfg.Section("ACCOUNT")
 	serverIni.EncodeUserPath = ACCOUNT.Key("encode_user_path").MustBool(true)
 
-	// [STEAM]
-	STEAM := cfg.Section("STEAM")
+	// // [STEAM]
+	// STEAM := cfg.Section("STEAM")
 
-	serverIni.AuthenticationPort = STEAM.Key("authentication_port").MustUint(8766)
-	serverIni.MasterServerPort = STEAM.Key("master_server_port").MustUint(27016)
+	// serverIni.AuthenticationPort = STEAM.Key("authentication_port").String()
+	// serverIni.MasterServerPort = STEAM.Key("master_server_port").String()
 
 	return serverIni
 }
