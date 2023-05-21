@@ -2,6 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant"
+	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"log"
@@ -16,7 +17,10 @@ func GetPlayerList() []vo.PlayerVO {
 	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 	//command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 
-	playerCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"" + command + "\\n\""
+	clsuerName := dstConfigUtils.GetDstConfig().Cluster
+	screenKey := getscreenKey(clsuerName, "Master")
+
+	playerCMD := "screen -S \"" + screenKey + "\" -p 0 -X stuff \"" + command + "\\n\""
 
 	Shell(playerCMD)
 
