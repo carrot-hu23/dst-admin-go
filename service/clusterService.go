@@ -86,9 +86,7 @@ func ReadClusterTokenFile() string {
 
 func ReadAdminlistFile() (str []string) {
 	path := constant.GET_DST_ADMIN_LIST_PATH()
-	if !fileUtils.Exists(path) {
-		log.Panicln("路径不存在", path)
-	}
+	createFileIfNotExsists(path)
 	str, err := fileUtils.ReadLnFile(path)
 	log.Println("str:", str)
 	if err != nil {
@@ -99,9 +97,7 @@ func ReadAdminlistFile() (str []string) {
 
 func ReadBlocklistFile() (str []string) {
 	path := constant.GET_DST_BLOCKLIST_PATH()
-	if !fileUtils.Exists(path) {
-		log.Println("路径不存在", path)
-	}
+	createFileIfNotExsists(path)
 	str, err := fileUtils.ReadLnFile(path)
 	log.Println("str:", str)
 	if err != nil {

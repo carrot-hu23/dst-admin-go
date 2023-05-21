@@ -120,3 +120,6 @@ ClusterList:[
     season: spring
     },
 ]
+
+启动
+return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_MASTER + "  ;"

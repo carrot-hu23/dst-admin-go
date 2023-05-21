@@ -18,7 +18,7 @@ import (
 const (
 	cluster_template = "./static/template/cluster2.ini"
 	master_template  = "./static/Master"
-	caves_template   = "./static/Cave"
+	caves_template   = "./static/Caves"
 
 	// cluster_template = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\template\\cluster2.ini"
 	// master_template  = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\Master"

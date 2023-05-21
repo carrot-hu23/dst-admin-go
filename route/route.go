@@ -160,6 +160,15 @@ func NewRoute() *gin.Engine {
 		proxyApp.PUT("", api.UpdateProxyEntity)
 		proxyApp.DELETE("", api.DeleteProxyEntity)
 	}
+
+	specified := app.Group("/api/game/specified")
+	{
+		specified.GET("/dashboard", api.GetSpecifiedDashboardInfo)
+		specified.GET("/start", api.StartSpecifiedGame)
+		specified.GET("/stop", api.StopSpecifiedGame)
+	}
+
 	loadStaticeFile(app)
+
 	return app
 }
