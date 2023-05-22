@@ -49,10 +49,9 @@ type ServerIni struct {
 	// [ACCOUNT]
 	EncodeUserPath bool `json:"encode_user_path"`
 
-	// // [STEAM]
-	// AuthenticationPort string `json:"authentication_port"`
-	// MasterServerPort   string `json:"master_server_port"`
-
+	// [STEAM]
+	AuthenticationPort string `json:"authentication_port"`
+	MasterServerPort   string `json:"master_server_port"`
 }
 
 func NewCluster() *Cluster {
@@ -68,7 +67,7 @@ func NewCluster() *Cluster {
 		ConsoleEnabled:   true,
 		MaxSnapshots:     6,
 		ShardEnabled:     true,
-		BindIp:           "127.0.0.1",
+		BindIp:           "0.0.0.0",
 		MasterIp:         "127.0.0.1",
 		MasterPort:       10888,
 		ClusterKey:       "",
@@ -90,13 +89,13 @@ func NewMasterServerIni() *ServerIni {
 
 func NewCavesServerIni() *ServerIni {
 	return &ServerIni{
-		ServerPort:     10998,
-		IsMaster:       false,
-		Name:           "Caves",
-		Id:             10010,
-		EncodeUserPath: true,
-		// AuthenticationPort: "8766",
-		// MasterServerPort:   "27016",
+		ServerPort:         10998,
+		IsMaster:           false,
+		Name:               "Caves",
+		Id:                 10010,
+		EncodeUserPath:     true,
+		AuthenticationPort: "8766",
+		MasterServerPort:   "27016",
 	}
 }
 
