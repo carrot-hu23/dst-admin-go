@@ -20,7 +20,7 @@ func getscreenKey(clusterName, level string) string {
 ps -ef | grep -v grep | grep MyDediServer | grep Master | sed -n '1P' | awk '{print $2}'
 */
 func GetSpecifiedLevelStatus(clusterName, level string) bool {
-	cmd := " ps -ef | grep -v grep |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
+	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
 	result, err := Shell(cmd)
 	if err != nil {
 		return false
@@ -49,7 +49,7 @@ func killSpecifiedLevel(clusterName, level string) {
 	if !GetSpecifiedLevelStatus(clusterName, level) {
 		return
 	}
-	cmd := " ps -ef | grep -v grep |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' |xargs kill -9"
+	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' |xargs kill -9"
 	_, err := Shell(cmd)
 	if err != nil {
 		log.Panicln("kill " + clusterName + " " + level + " error: " + err.Error())
@@ -244,7 +244,7 @@ func GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
  */
 func PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo := vo.NewDstPsVo()
-	cmd := "ps -aux | grep -v grep | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
+	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
 
 	info, err := Shell(cmd)
 	if err != nil {
