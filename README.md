@@ -5,19 +5,23 @@
 
 
 ## 部署
-注意目录必须要有读写权限。点击查看 [部署文档](./install.md)
+注意目录必须要有读写权限。
+
+点击查看 [部署文档](./doc/install.md)
+
+点击查看 [饥荒服务器多开](./doc/multiServer.md)
 
 ## 预览
 
 在线预览地址 http://1.12.223.51:8082/
 （admin 123456）
-![首页效果](./doc/登录.png)
-![首页效果](./doc/房间.png)
-![首页效果](./doc/mod.png)
-![首页效果](./doc/mod配置.png)
-![统计效果](./doc/统计.png)
-![面板效果](./doc/面板.png)
-![日志效果](./doc/日志.png)
+![首页效果](./doc/image/登录.png)
+![首页效果](./doc/image/房间.png)
+![首页效果](./doc/image/mod.png)
+![首页效果](./doc/image/mod配置.png)
+![统计效果](./doc/image/统计.png)
+![面板效果](./doc/image/面板.png)
+![日志效果](./doc/image/日志.png)
     
 
 ## 运行
