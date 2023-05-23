@@ -104,9 +104,9 @@ func main() {
 	base_log_path := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
 
 	go collect.Tailf_server_chat_log(base_log_path, "Master")
-	go collect.Tailf_server_log(base_log_path, "Master")
+	go collect.Tailf_server_log2(base_log_path, "Master")
 	go collect.Tailf_server_chat_log(base_log_path, "Caves")
-	go collect.Tailf_server_log(base_log_path, "Caves")
+	go collect.Tailf_server_log2(base_log_path, "Caves")
 
 	app := route.NewRoute()
 	app.Run(":" + configData.Port)
