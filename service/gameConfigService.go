@@ -18,7 +18,7 @@ import (
 const START_NEW_GAME uint8 = 1
 const SAVE_RESTART uint8 = 2
 
-var cluster_init_template = "./static/template/cluster.ini"
+var cluster_init_template = "./static/template/cluster2.ini"
 var master_server_init_template = "./static/template/master_server.ini"
 var caves_server_init_template = "./static/template/caves_server.ini"
 
