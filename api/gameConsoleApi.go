@@ -167,6 +167,18 @@ func Regenerateworld(ctx *gin.Context) {
 	})
 }
 
+func CleanWorld(ctx *gin.Context) {
+
+	log.Println("删除世界......")
+	service.CleanWorld()
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
 func MasterConsole(ctx *gin.Context) {
 	var body struct {
 		Command string `json:"command"`

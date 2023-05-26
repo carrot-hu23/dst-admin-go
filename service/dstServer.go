@@ -83,7 +83,7 @@ func GetCurrGameArchive() *vo.GameArchive {
 		if err != nil {
 			gameArchie.IpConnect = ""
 		} else {
-			gameArchie.IpConnect = ipv4 + ":" + strconv.Itoa(int(serverIni.ServerPort))
+			gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
 		}
 		wg.Done()
 	}()

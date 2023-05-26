@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"dst-admin-go/constant"
 	optype "dst-admin-go/constant/opType"
+	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
 	"os/exec"
+	"path"
 	"regexp"
 	"runtime"
 	"strings"
@@ -242,7 +245,9 @@ func DeleteCavesRecord() {
 
 func SentBroadcast(message string) {
 
-	broadcast := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_announce(\\\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	broadcast := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
 	broadcast += message
 	broadcast += "\\\")\\n\""
 
@@ -250,9 +255,10 @@ func SentBroadcast(message string) {
 }
 
 func KickPlayer(KuId string) {
+	cluster := dstConfigUtils.GetDstConfig().Cluster
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
@@ -260,8 +266,10 @@ func KickPlayer(KuId string) {
 
 func KillPlayer(KuId string) {
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
@@ -269,8 +277,10 @@ func KillPlayer(KuId string) {
 
 func RespawnPlayer(KuId string) {
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
@@ -280,29 +290,47 @@ func RollBack(dayNum int) {
 
 	days := fmt.Sprint(dayNum)
 	SentBroadcast(":pig 正在回档" + days + "天")
+	cluster := dstConfigUtils.GetDstConfig().Cluster
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
 }
 
+func CleanWorld() {
+	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
+
+	fileUtils.DeleteDir(path.Join(basePath, "Master", "backup"))
+	fileUtils.DeleteDir(path.Join(basePath, "Master", "save"))
+
+	fileUtils.DeleteDir(path.Join(basePath, "Caves", "backup"))
+	fileUtils.DeleteDir(path.Join(basePath, "Caves", "save"))
+}
+
 func Regenerateworld() {
 	SentBroadcast(":pig 即将重置世界！！！")
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
+	//TODO
+
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
 	Shell(masterCMD)
 	Shell(cavesCMD)
 }
 
 func MasterConsole(command string) {
-	cmd := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"" + command + "\\n\""
+
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+	cmd := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	Shell(cmd)
 }
 
 func CavesConsole(command string) {
-	cmd := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+	cmd := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	Shell(cmd)
 }
 
