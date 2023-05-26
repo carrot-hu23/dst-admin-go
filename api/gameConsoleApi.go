@@ -243,6 +243,6 @@ func GetGameArchive(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetGameArchive(),
+		Data: service.GetCurrGameArchive(),
 	})
 }
