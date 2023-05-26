@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
+	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -66,7 +67,7 @@ func GetCurrGameArchive() *vo.GameArchive {
 			if err != nil {
 				gameArchie.Meta = ""
 			} else {
-				gameArchie.Meta = meta
+				gameArchie.Meta = base64.StdEncoding.EncodeToString([]byte(meta))
 			}
 		}
 		wg.Done()
