@@ -30,8 +30,11 @@ func GetCurrGameArchive() *vo.GameArchive {
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
 		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
-
 		wg.Done()
+	}()
+
+	go func() {
+		gameArchie.Players = GetPlayerList()
 	}()
 
 	// 获取mod数量
