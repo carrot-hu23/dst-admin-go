@@ -78,8 +78,8 @@ func NewRoute() *gin.Engine {
 		game.GET("/respawn/player", api.RespawnPlayer)
 		game.GET("/rollback", api.RollBack)
 		game.GET("/regenerateworld", api.Regenerateworld)
-		game.GET("/master/console", api.MasterConsole)
-		game.GET("/caves/console", api.CavesConsole)
+		game.POST("/master/console", api.MasterConsole)
+		game.POST("/caves/console", api.CavesConsole)
 		game.GET("/operate/player", api.OperatePlayer)
 		game.GET("/backup/restore", api.RestoreBackup)
 
