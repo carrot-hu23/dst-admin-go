@@ -17,6 +17,7 @@ type DashboardVO struct {
 	DiskInfo     *systemUtils.DiskInfo `json:"disk"`
 	MemStates    uint64                `json:"memStates"`
 	MasterLog    string                `json:"masterLog"`
+	CavesLog     string                `json:"cavesLog"`
 	Version      string                `json:"version"`
 
 	MasterPs *DstPsVo `json:"masterPs"`
@@ -26,5 +27,6 @@ type DashboardVO struct {
 func NewDashboardVO() *DashboardVO {
 	return &DashboardVO{
 		MasterLog: filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster, "Master", "server_log.txt"),
+		CavesLog:  filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster, "Caves", "server_log.txt"),
 	}
 }

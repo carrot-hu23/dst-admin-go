@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/vo"
 	"encoding/base64"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -65,8 +66,8 @@ func GetCurrGameArchive() *vo.GameArchive {
 		if err != nil {
 			gameArchie.Meta = ""
 		} else {
-
 			meta, err := fileUtils.ReadFile(metaPath)
+			log.Println("meta path: ", metaPath)
 			if err != nil {
 				gameArchie.Meta = ""
 			} else {
