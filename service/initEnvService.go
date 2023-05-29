@@ -57,7 +57,7 @@ func InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
 	InitUserInfo(initDst.UserInfo)
 	InitDstConfig(initDst.DstConfig)
-	InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, initDst.ClusterToken)
+	InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, initDst.ClusterToken, false)
 
 	log.Println("创建完成")
 }
@@ -66,7 +66,7 @@ func InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {
 	dstConfigUtils.SaveDstConfig(dstConfig)
 }
 
-func InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string) {
+func InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string, exsitesNotInit bool) {
 	clusterName := dstConfig.Cluster
 	klei_path := ""
 	if runtime.GOOS == "windows" {
@@ -75,6 +75,12 @@ func InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string) 
 		klei_path = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
 	}
 	baseLevelPath := filepath.Join(klei_path, clusterName)
+
+	if exsitesNotInit {
+		if fileUtils.Exists(baseLevelPath) {
+			return
+		}
+	}
 
 	createDirIfNotExsists(baseLevelPath)
 	createDirIfNotExsists(dstConfig.Backup)

@@ -140,7 +140,7 @@ func RespawnPlayer(ctx *gin.Context) {
 }
 
 func RollBack(ctx *gin.Context) {
-	dayNums := ctx.Param("dayNums")
+	dayNums := ctx.Query("dayNums")
 	days, err := strconv.Atoi(dayNums)
 	if err != nil {
 		log.Panicln("参数解析错误：" + dayNums)

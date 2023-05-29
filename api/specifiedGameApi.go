@@ -49,3 +49,7 @@ func GetSpecifiedDashboardInfo(ctx *gin.Context) {
 		Data: service.GetSpecifiedClusterDashboard(cluster),
 	})
 }
+
+func CreateNewClusterHome() {
+
+}
