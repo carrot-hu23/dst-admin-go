@@ -222,19 +222,6 @@ func GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
 		dashboardVO.Version = GetDstVersion()
 	}()
 
-	// 获取直连ip
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Printf("Error reading caves file: %v\n", r)
-				dashboardVO.IpConnect = ""
-			}
-			wg.Done()
-		}()
-		ip, _ := GetPublicIP()
-		dashboardVO.IpConnect = ip
-	}()
-
 	// 获取master进程占用情况
 	go func() {
 		defer wg.Done()

@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -62,7 +63,7 @@ func GetCurrGameArchive() *vo.GameArchive {
 
 	// 获取天数和季节
 	go func() {
-		metaPath, err := FindLatestMetaFile(path.Join(basePath, "Master", "save", "session"))
+		metaPath, err := getLatestMetaFile2(path.Join(basePath, "Master", "save", "session"))
 		if err != nil {
 			gameArchie.Meta = ""
 		} else {
@@ -159,4 +160,31 @@ func FindLatestMetaFile(rootDir string) (string, error) {
 		return "", err
 	}
 	return latestFile, nil
+}
+
+func getLatestMetaFile2(rootDir string) (string, error) {
+	var latestMetaFilePath string
+	var latestModTime time.Time
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && path != rootDir && strings.Count(path, string(os.PathSeparator)) > 2 {
+			// 如果是子目录，则跳过
+			return filepath.SkipDir
+		}
+		if filepath.Ext(path) == ".meta" {
+			// 如果是 .meta 文件
+			if info.ModTime().After(latestModTime) {
+				// 更新最新的文件
+				latestModTime = info.ModTime()
+				latestMetaFilePath = path
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return latestMetaFilePath, nil
 }
