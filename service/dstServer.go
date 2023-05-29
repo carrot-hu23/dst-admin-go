@@ -20,7 +20,7 @@ import (
 func GetCurrGameArchive() *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(3)
 
 	gameArchie := vo.NewGameArchie()
 	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
@@ -35,9 +35,9 @@ func GetCurrGameArchive() *vo.GameArchive {
 		wg.Done()
 	}()
 
-	go func() {
-		gameArchie.Players = GetPlayerList()
-	}()
+	// go func() {
+	// 	gameArchie.Players = GetPlayerList()
+	// }()
 
 	// 获取mod数量
 	go func() {
@@ -63,7 +63,7 @@ func GetCurrGameArchive() *vo.GameArchive {
 
 	// 获取天数和季节
 	go func() {
-		metaPath, err := getLatestMetaFile2(path.Join(basePath, "Master", "save", "session"))
+		metaPath, err := FindLatestMetaFile(path.Join(basePath, "Master", "save", "session"))
 		if err != nil {
 			gameArchie.Meta = ""
 		} else {
@@ -141,6 +141,16 @@ func GetPublicIP() (string, error) {
 	return string(ip), nil
 }
 
+func getSubPathLevel(rootP, curPath string) int {
+	relPath, err := filepath.Rel(rootP, curPath)
+	if err != nil {
+		// 如果计算相对路径时出错，说明 curPath 不是 rootP 的子目录
+		return -1
+	}
+	// 计算相对路径中 ".." 的数量，即为层数
+	return strings.Count(relPath, "..")
+}
+
 func FindLatestMetaFile(rootDir string) (string, error) {
 	var latestFile string
 	var latestModTime time.Time
@@ -148,7 +158,7 @@ func FindLatestMetaFile(rootDir string) (string, error) {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && filepath.Ext(info.Name()) == ".meta" {
+		if !info.IsDir() && filepath.Ext(info.Name()) == ".meta" && getSubPathLevel(rootDir, path) == 2 {
 			if info.ModTime().After(latestModTime) {
 				latestFile = path
 				latestModTime = info.ModTime()
@@ -160,31 +170,4 @@ func FindLatestMetaFile(rootDir string) (string, error) {
 		return "", err
 	}
 	return latestFile, nil
-}
-
-func getLatestMetaFile2(rootDir string) (string, error) {
-	var latestMetaFilePath string
-	var latestModTime time.Time
-	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() && path != rootDir && strings.Count(path, string(os.PathSeparator)) > 2 {
-			// 如果是子目录，则跳过
-			return filepath.SkipDir
-		}
-		if filepath.Ext(path) == ".meta" {
-			// 如果是 .meta 文件
-			if info.ModTime().After(latestModTime) {
-				// 更新最新的文件
-				latestModTime = info.ModTime()
-				latestMetaFilePath = path
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return "", err
-	}
-	return latestMetaFilePath, nil
 }
