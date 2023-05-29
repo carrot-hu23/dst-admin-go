@@ -16,7 +16,7 @@ var (
 	wg sync.WaitGroup
 )
 
-const N = 10
+const N = 11
 
 func GetBashboard() vo.DashboardVO {
 	wg.Add(N)
@@ -96,6 +96,19 @@ func GetBashboard() vo.DashboardVO {
 	go func() {
 		defer wg.Done()
 		dashboardVO.CavesPs = DstPs("Caves")
+	}()
+
+	// 获取直连ip
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Error reading caves file: %v\n", r)
+				dashboardVO.IpConnect = ""
+			}
+			wg.Done()
+		}()
+		ip, _ := GetPublicIP()
+		dashboardVO.IpConnect = ip
 	}()
 
 	wg.Wait()

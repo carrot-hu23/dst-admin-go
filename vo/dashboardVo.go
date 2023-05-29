@@ -20,8 +20,9 @@ type DashboardVO struct {
 	CavesLog     string                `json:"cavesLog"`
 	Version      string                `json:"version"`
 
-	MasterPs *DstPsVo `json:"masterPs"`
-	CavesPs  *DstPsVo `json:"cavesPs"`
+	MasterPs  *DstPsVo `json:"masterPs"`
+	CavesPs   *DstPsVo `json:"cavesPs"`
+	IpConnect string   `json:"ipConnect"`
 }
 
 func NewDashboardVO() *DashboardVO {
