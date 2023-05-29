@@ -20,7 +20,7 @@ import (
 func GetCurrGameArchive() *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 
 	gameArchie := vo.NewGameArchie()
 	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()

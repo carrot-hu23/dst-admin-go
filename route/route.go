@@ -84,6 +84,7 @@ func NewRoute() *gin.Engine {
 		game.GET("/backup/restore", api.RestoreBackup)
 
 		game.GET("/archive", api.GetGameArchive)
+		game.GET("/clean", api.CleanWorld)
 	}
 
 	player := app.Group("/api/game/player")
