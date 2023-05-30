@@ -21,8 +21,12 @@ import (
 
 func UpdateGame() {
 	SentBroadcast(":pig 正在更新游戏......")
-	ElegantShutdownMaster()
-	ElegantShutdownCaves()
+	// ElegantShutdownMaster()
+	// ElegantShutdownCaves()
+	time.Sleep(5 * time.Second)
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+	stopSpecifiedMaster(cluster)
+	stopSpecifiedCaves(cluster)
 	updateGameCMd := constant.GET_UPDATE_GAME_CMD()
 	log.Println(updateGameCMd)
 	_, err := Shell(updateGameCMd)
