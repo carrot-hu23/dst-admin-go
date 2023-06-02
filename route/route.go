@@ -43,6 +43,7 @@ func NewRoute() *gin.Engine {
 
 	app.GET("/api/init", api.CheckIsFirst)
 	app.POST("/api/init", api.InitFirst)
+	app.GET("/api/install/steamcmd", api.InstallSteamCmd)
 
 	app.GET("/ws", api.HandlerWS)
 

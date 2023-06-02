@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 
@@ -26,38 +27,41 @@ const (
 )
 
 type InitDstData struct {
-	InstallDstEnv bool                      `json:"installDstEnv"`
-	ClusterToken  string                    `json:"clusterToken"`
-	DstConfig     *dstConfigUtils.DstConfig `json:"dstConfig"`
-	UserInfo      *vo.UserInfo              `json:"userInfo"`
+	// InstallDstEnv bool                      `json:"installDstEnv"`
+	// ClusterToken  string                    `json:"clusterToken"`
+	DstConfig *dstConfigUtils.DstConfig `json:"dstConfig"`
+	UserInfo  *vo.UserInfo              `json:"userInfo"`
 }
 
-func InstallSteamCmd() {
+func InstallSteamCmd() error {
 	cmd := exec.Command("./static/install.sh")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println("执行./static/install.sh脚本失败：", err)
-		return
+		return err
 	}
 	fmt.Println("./static/install.sh脚本输出：", string(output))
+	return err
+}
+
+func InstallSteamCmdAndDst() map[string]string {
+	//安装 steam cmd 和 dst
+	log.Println("installing steamcmd")
+	err := InstallSteamCmd()
+	if err != nil {
+		log.Panicln("安装失败")
+	}
+	steamcmdPath := path.Join(constant.HOME_PATH, "steamcmd")
+	dstPath := path.Join(constant.HOME_PATH, "dontstarve_dedicated_server")
+
+	return map[string]string{"steamcmdPath": steamcmdPath, "dstPath": dstPath}
 }
 
 func InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
-	isInstallDst := initDst.InstallDstEnv
-	if isInstallDst {
-		//安装 steam cmd 和 dst
-		log.Println("installing steamcmd")
-		InstallSteamCmd()
-		initDst.DstConfig.Steamcmd = "~/steamcmd"
-		initDst.DstConfig.Force_install_dir = "~/dontstarve_dedicated_server"
-		initDst.DstConfig.Backup = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
-		initDst.DstConfig.Mod_download_path = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", "mod_download")
-	}
-
 	InitUserInfo(initDst.UserInfo)
 	InitDstConfig(initDst.DstConfig)
-	InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, initDst.ClusterToken, false)
+	InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, "", false)
 
 	log.Println("创建完成")
 }

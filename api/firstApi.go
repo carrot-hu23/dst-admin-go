@@ -12,6 +12,20 @@ import (
 
 const first = "./first"
 
+func InstallSteamCmd(ctx *gin.Context) {
+
+	exist := fileUtils.Exists(first)
+	if exist {
+		log.Panicln("非法请求")
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: service.InstallSteamCmdAndDst(),
+	})
+}
+
 func InitFirst(ctx *gin.Context) {
 
 	exist := fileUtils.Exists(first)
@@ -20,7 +34,7 @@ func InitFirst(ctx *gin.Context) {
 	}
 
 	initData := &service.InitDstData{}
-	ctx.Bind(initData)
+	ctx.ShouldBind(initData)
 
 	service.InitDstEnv(initData, ctx)
 
