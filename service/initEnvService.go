@@ -71,7 +71,7 @@ func InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {
 	if dstConfig.Backup == "" {
 		dstConfig.Backup = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
 	}
-	if dstConfig.Backup == "" {
+	if dstConfig.Mod_download_path == "" {
 		dstConfig.Mod_download_path = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", "mod_download")
 		createDirIfNotExsists(dstConfig.Mod_download_path)
 	}
