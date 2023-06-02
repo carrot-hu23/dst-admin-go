@@ -12,7 +12,7 @@ func NewUserVO() *UserVO {
 
 type UserInfo struct {
 	Username     string `json:"username"`
-	DisplayeName string `json:"displayeName"`
+	DisplayeName string `json:"displayName"`
 	Password     string `json:"password"`
 	PhotoURL     string `json:"photoURL"`
 }
