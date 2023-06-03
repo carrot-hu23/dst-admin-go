@@ -4,11 +4,15 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/mod"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"encoding/json"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -108,5 +112,34 @@ func (m *ModApi) DeleteMod(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: moId,
+	})
+}
+
+func (m *ModApi) DeleteSetupWorkshop(ctx *gin.Context) {
+	dstPath := dstConfigUtils.GetDstConfig().Force_install_dir
+	modsPath := filepath.Join(dstPath, "mods")
+	// 删除所有workshop-xxx mod
+
+	directories, err := fileUtils.ListDirectories(modsPath)
+	if err != nil {
+		log.Panicln("delete dst workshop file error", err)
+	}
+	var workshopList []string
+	for _, directory := range directories {
+		if strings.Contains(directory, "workshop") {
+			workshopList = append(workshopList, directory)
+		}
+	}
+	for _, workshop := range workshopList {
+		err := fileUtils.DeleteDir(workshop)
+		if err != nil {
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
 	})
 }
