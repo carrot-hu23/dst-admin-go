@@ -19,7 +19,6 @@ type Collect struct {
 }
 
 func NewCollect(baseLogPath string) *Collect {
-
 	collect := &Collect{
 		state: make(chan int, 1),
 		stop:  make(chan bool, 4),
@@ -37,9 +36,17 @@ func NewCollect(baseLogPath string) *Collect {
 	return collect
 }
 
-func (c *Collect) ReCollect() {
+func (c *Collect) ReCollect(baseLogPath string) {
 	for i := 0; i < c.length; i++ {
 		c.stop <- true
+	}
+	c.severLogList = []string{
+		filepath.Join(baseLogPath, "Master", "server_log.txt"),
+		filepath.Join(baseLogPath, "Caves", "server_log.txt"),
+	}
+	c.serverChatLogList = []string{
+		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
+		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 	}
 	c.state <- 1
 }

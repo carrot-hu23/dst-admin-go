@@ -2,8 +2,10 @@ package dstConfigUtils
 
 import (
 	"dst-admin-go/config/global"
+	"dst-admin-go/constant"
 	"dst-admin-go/utils/fileUtils"
 	"log"
+	"path/filepath"
 	"strings"
 )
 
@@ -111,6 +113,6 @@ func SaveDstConfig(dstConfig *DstConfig) {
 	if err != nil {
 		log.Panicln("write dst_config error:", err)
 	}
-
-	global.Collect.ReCollect()
+	baseLogPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfig.Cluster)
+	global.Collect.ReCollect(baseLogPath)
 }
