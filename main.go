@@ -101,12 +101,16 @@ func main() {
 
 	fmt.Println(":pig, 你是好人")
 
-	base_log_path := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
+	baseLogPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
 
-	go collect.Tailf_server_chat_log(base_log_path, "Master")
-	go collect.Tailf_server_log2(base_log_path, "Master")
-	go collect.Tailf_server_chat_log(base_log_path, "Caves")
-	go collect.Tailf_server_log2(base_log_path, "Caves")
+	entity.Collect = collect.NewCollect([]string{
+		filepath.Join(baseLogPath, "Master", "server_log.txt"),
+		filepath.Join(baseLogPath, "Caves", "server_log.txt"),
+	}, []string{
+		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
+		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
+	})
+	entity.Collect.StartCollect()
 
 	app := route.NewRoute()
 	app.Run(":" + configData.Port)

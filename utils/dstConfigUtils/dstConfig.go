@@ -1,6 +1,7 @@
 package dstConfigUtils
 
 import (
+	"dst-admin-go/entity"
 	"dst-admin-go/utils/fileUtils"
 	"log"
 	"strings"
@@ -98,7 +99,7 @@ func GetDstConfig() DstConfig {
 func SaveDstConfig(dstConfig *DstConfig) {
 	log.Println(dstConfig)
 
-	error := fileUtils.WriterLnFile(dst_config_path, []string{
+	err := fileUtils.WriterLnFile(dst_config_path, []string{
 		"steamcmd=" + dstConfig.Steamcmd,
 		"force_install_dir=" + dstConfig.Force_install_dir,
 		"donot_starve_server_directory=" + dstConfig.DoNotStarveServerDirectory,
@@ -107,7 +108,9 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		"backup=" + dstConfig.Backup,
 		"mod_download_path=" + dstConfig.Mod_download_path,
 	})
-	if error != nil {
-		log.Panicln("write dst_config error:", error)
+	if err != nil {
+		log.Panicln("write dst_config error:", err)
 	}
+
+	entity.Collect.ReCollect()
 }
