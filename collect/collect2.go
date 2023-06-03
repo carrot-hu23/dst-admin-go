@@ -192,23 +192,23 @@ func (c *Collect) parseChatLog(text string) {
 	}()
 	//[00:00:55]: [Join Announcement] 猜猜我是谁
 	if strings.Contains(text, "[Join Announcement]") {
-		parseJoin(text)
+		c.parseJoin(text)
 	}
 	//[00:02:28]: [Leave Announcement] 猜猜我是谁
 	if strings.Contains(text, "[Leave Announcement]") {
-		parseLeave(text)
+		c.parseLeave(text)
 	}
 	//[00:02:17]: [Death Announcement] 猜猜我是谁 死于： 采摘的红蘑菇。她变成了可怕的鬼魂！
 	if strings.Contains(text, "[Death Announcement]") {
-		parseDeath(text)
+		c.parseDeath(text)
 	}
 	//[00:02:37]: [Resurrect Announcement] 猜猜我是谁 复活自： TMIP 控制台.
 	if strings.Contains(text, "[Resurrect Announcement]") {
-		parseResurrect(text)
+		c.parseResurrect(text)
 	}
 	//[00:03:16]: [Say] (KU_Mt-zrX8K) 猜猜我是谁: 你好啊
 	if strings.Contains(text, "[Say]") {
-		parseSay(text)
+		c.parseSay(text)
 	}
 }
 
@@ -229,8 +229,8 @@ func (c *Collect) parseSay(text string) {
 	}
 	actionDesc := rest
 
-	spawn := getSpawnRole(name)
-	connect := getConnectInfo(name)
+	spawn := c.getSpawnRole(name)
+	connect := c.getConnectInfo(name)
 
 	playerLog := entity.PlayerLog{
 		Name:       name,
@@ -246,7 +246,7 @@ func (c *Collect) parseSay(text string) {
 }
 
 func (c *Collect) parseResurrect(text string) {
-	parseDeath(text)
+	c.parseDeath(text)
 }
 
 func (c *Collect) parseDeath(text string) {
@@ -265,8 +265,8 @@ func (c *Collect) parseDeath(text string) {
 	actionDesc := rest
 
 	//获取最近的一条spwan记录和newComing
-	spawn := getSpawnRole(name)
-	connect := getConnectInfo(name)
+	spawn := c.getSpawnRole(name)
+	connect := c.getConnectInfo(name)
 	fmt.Println(connect)
 
 	playerLog := entity.PlayerLog{
@@ -285,7 +285,7 @@ func (c *Collect) parseDeath(text string) {
 }
 
 func (c *Collect) parseLeave(text string) {
-	parseJoin(text)
+	c.parseJoin(text)
 }
 
 func (c *Collect) parseJoin(text string) {
@@ -296,8 +296,8 @@ func (c *Collect) parseJoin(text string) {
 	action := arr[1] + arr[2]
 	name := arr[3]
 
-	spawn := getSpawnRole(name)
-	connect := getConnectInfo(name)
+	spawn := c.getSpawnRole(name)
+	connect := c.getConnectInfo(name)
 
 	playerLog := entity.PlayerLog{
 		Name:    name,
