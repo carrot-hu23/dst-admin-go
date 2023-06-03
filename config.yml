@@ -1,9 +1,4 @@
 #启动端口
 port: 8082
 #数据库
-db: dst-db
-#监听日志路径
-path: /root/.klei/DoNotStarveTogether/MyDediServer
-OPENAI_API_KEY: 
-prompt: 
-flag: '#'
+database: dst-db

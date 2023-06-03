@@ -153,9 +153,9 @@ func (i *InitService) InitBaseMaster(basePath string) {
 
 	fileUtils.CreateDirIfNotExists(filepath.Join(basePath, "Master"))
 
-	fileUtils.CreateDirIfNotExists(l_path)
-	fileUtils.CreateDirIfNotExists(m_path)
-	fileUtils.CreateDirIfNotExists(s_path)
+	fileUtils.CreateFileIfNotExists(l_path)
+	fileUtils.CreateFileIfNotExists(m_path)
+	fileUtils.CreateFileIfNotExists(s_path)
 
 	fileUtils.WriterTXT(l_path, leveldataoverride)
 	fileUtils.WriterTXT(m_path, modoverrides)
