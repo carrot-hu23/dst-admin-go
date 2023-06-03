@@ -3,6 +3,7 @@ package main
 import (
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
+	"dst-admin-go/config/global"
 	"dst-admin-go/constant"
 	"dst-admin-go/entity"
 	"dst-admin-go/route"
@@ -103,14 +104,14 @@ func main() {
 
 	baseLogPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
 
-	entity.Collect = collect.NewCollect([]string{
+	global.Collect = collect.NewCollect([]string{
 		filepath.Join(baseLogPath, "Master", "server_log.txt"),
 		filepath.Join(baseLogPath, "Caves", "server_log.txt"),
 	}, []string{
 		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 	})
-	entity.Collect.StartCollect()
+	global.Collect.StartCollect()
 
 	app := route.NewRoute()
 	app.Run(":" + configData.Port)
