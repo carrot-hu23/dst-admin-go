@@ -9,6 +9,7 @@ version
 dst-admin-go
 dst-admin-go.log
 dst-db
+password.txt
 
 /.pnp
 .pnp.js
@@ -34,4 +35,5 @@ yarn-error.log*
 /py-dst-cli/__pycache__
 /py-dst-cli/data
 
-password.txt
+
+/test

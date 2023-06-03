@@ -1,6 +1,9 @@
+#启动端口
 port: 8082
+#数据库
 db: dst-db
+#监听日志路径
 path: /root/.klei/DoNotStarveTogether/MyDediServer
 OPENAI_API_KEY: 
-prompt: 我希望你能扮演一个饥荒联机版wiki的角色, 尽快可能参考这个网站https://dontstarve.fandom.com/来回答我的问题
+prompt: 
 flag: '#'

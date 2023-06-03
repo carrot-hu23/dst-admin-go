@@ -6,6 +6,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 )
 
 func Exists(path string) bool {
@@ -203,4 +206,58 @@ func DeleteDir(path string) (err error) {
 func Rename(filePath, newName string) (err error) {
 	err = os.Rename(filePath, newName)
 	return
+}
+
+func FindWorldDirs(rootPath string) ([]string, error) {
+	var dirs []string
+
+	// 遍历目录并列出满足条件的目录
+	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 如果是目录且名称包含 master 或 caves（不区分大小写）
+		if info.IsDir() && (strings.Contains(strings.ToLower(info.Name()), "master") || strings.Contains(strings.ToLower(info.Name()), "caves")) {
+			dirs = append(dirs, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return dirs, nil
+}
+
+func ListDirectories(root string) ([]string, error) {
+	var dirs []string
+
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			dirs = append(dirs, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(dirs, func(i, j int) bool {
+		fi, err := os.Stat(dirs[i])
+		if err != nil {
+			return false
+		}
+		fj, err := os.Stat(dirs[j])
+		if err != nil {
+			return false
+		}
+		return fi.ModTime().Before(fj.ModTime())
+	})
+
+	return dirs, nil
 }

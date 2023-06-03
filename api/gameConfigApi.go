@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// setting/getConfig
 func GetConfig(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -18,7 +17,6 @@ func GetConfig(ctx *gin.Context) {
 	})
 }
 
-// setting/saveConfig
 func SaveConfig(ctx *gin.Context) {
 
 	gameConfig := vo.NewGameConfigVO()

@@ -231,15 +231,25 @@ func GET_START_MASTER_CMD() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
 	dst_install_dir := dstConfig.Force_install_dir
-	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
+	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
+	persistent_storage_root := dstConfig.Persistent_storage_root
+	if donot_starve_server_directory == "" {
+		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
+	}
 
+	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console  -persistent_storage_root " + persistent_storage_root + " -conf_dir " + donot_starve_server_directory + " -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
 }
 
 func GET_START_CAVES_CMD() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
 	dst_install_dir := dstConfig.Force_install_dir
-	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_CAVES + " ;"
+	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
+	persistent_storage_root := dstConfig.Persistent_storage_root
+	if donot_starve_server_directory == "" {
+		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_CAVES + " ;"
+	}
+	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -persistent_storage_root " + persistent_storage_root + "-conf_dir " + donot_starve_server_directory + " -cluster " + cluster + " -shard " + DST_CAVES + " ;"
 }
 
 func GET_UPDATE_GAME_CMD() string {
@@ -258,13 +268,23 @@ func GET_DST_MOD_SETTING_PATH() string {
 func GET_DST_ADMIN_LIST_PATH() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
-	return path.Join(HOME_PATH, ".klei", "DoNotStarveTogether", cluster, "adminlist.txt")
+	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
+	persistent_storage_root := dstConfig.Persistent_storage_root
+	if donot_starve_server_directory == "" {
+		return path.Join(HOME_PATH, ".klei", "DoNotStarveTogether", cluster, "adminlist.txt")
+	}
+	return path.Join(persistent_storage_root, donot_starve_server_directory, cluster, "adminlist.txt")
 }
 
 func GET_DST_BLOCKLIST_PATH() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
-	return path.Join(HOME_PATH, ".klei", "DoNotStarveTogether", cluster, "blocklist.txt")
+	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
+	persistent_storage_root := dstConfig.Persistent_storage_root
+	if donot_starve_server_directory == "" {
+		return path.Join(HOME_PATH, ".klei", "DoNotStarveTogether", cluster, "blocklist.txt")
+	}
+	return path.Join(persistent_storage_root, donot_starve_server_directory, cluster, "blocklist.txt")
 }
 
 // TODO 日志 命令
@@ -277,10 +297,17 @@ func GET_DST_CAVES_LOG_PATH() string {
 }
 
 func GET_DST_USER_GAME_CONFG_PATH() string {
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-	path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
-	// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + cluster + "/"
-	return path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
+	dstConfig := dstConfigUtils.GetDstConfig()
+	cluster := dstConfig.Cluster
+	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
+	persistent_storage_root := dstConfig.Persistent_storage_root
+	if donot_starve_server_directory == "" {
+		path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
+		// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + cluster + "/"
+		return path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
+	}
+
+	return path.Join(persistent_storage_root, donot_starve_server_directory, cluster)
 }
 
 func GET_CLUSTER_TOKEN_PATH() string {

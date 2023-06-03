@@ -43,6 +43,7 @@ func NewRoute() *gin.Engine {
 
 	app.GET("/api/init", api.CheckIsFirst)
 	app.POST("/api/init", api.InitFirst)
+	app.GET("/api/install/steamcmd", api.InstallSteamCmd)
 
 	app.GET("/ws", api.HandlerWS)
 
@@ -78,12 +79,13 @@ func NewRoute() *gin.Engine {
 		game.GET("/respawn/player", api.RespawnPlayer)
 		game.GET("/rollback", api.RollBack)
 		game.GET("/regenerateworld", api.Regenerateworld)
-		game.GET("/master/console", api.MasterConsole)
-		game.GET("/caves/console", api.CavesConsole)
+		game.POST("/master/console", api.MasterConsole)
+		game.POST("/caves/console", api.CavesConsole)
 		game.GET("/operate/player", api.OperatePlayer)
 		game.GET("/backup/restore", api.RestoreBackup)
 
 		game.GET("/archive", api.GetGameArchive)
+		game.GET("/clean", api.CleanWorld)
 	}
 
 	player := app.Group("/api/game/player")
@@ -101,6 +103,18 @@ func NewRoute() *gin.Engine {
 		dstConfig.POST("", api.SaveDstConfig)
 	}
 
+	clusterConfig := app.Group("/api/cluster/config")
+	{
+		clusterConfig.GET("", api.GetClusterConfig)
+		clusterConfig.POST("", api.SaveClusterConfig)
+	}
+
+	clusterGameConfig := app.Group("/api/cluster/game/config")
+	{
+		clusterGameConfig.GET("", api.GetGameConfog)
+		clusterGameConfig.POST("", api.SaveGameConfog)
+	}
+
 	backup := app.Group("/api/game/backup")
 	{
 		backup.GET("", api.GetBackupList)
@@ -110,8 +124,6 @@ func NewRoute() *gin.Engine {
 		backup.GET("/download", api.DownloadBackup)
 		backup.POST("/upload", api.UploadBackup)
 	}
-
-	loadStaticeFile(app)
 
 	//第三方api转发
 	app.GET("/api/dst/version", api.GetDstVersion)
@@ -150,6 +162,15 @@ func NewRoute() *gin.Engine {
 		proxyApp.PUT("", api.UpdateProxyEntity)
 		proxyApp.DELETE("", api.DeleteProxyEntity)
 	}
+
+	specified := app.Group("/api/game/specified")
+	{
+		specified.GET("/dashboard", api.GetSpecifiedDashboardInfo)
+		specified.GET("/start", api.StartSpecifiedGame)
+		specified.GET("/stop", api.StopSpecifiedGame)
+	}
+
+	loadStaticeFile(app)
 
 	return app
 }

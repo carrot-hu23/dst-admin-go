@@ -54,7 +54,7 @@ func checkIsInstallDst(path string) bool {
 	return fileUtils.Exists(dst_path)
 }
 
-var whilelist = []string{"/api/login", "/api/logout", "/ws", "/api/init"}
+var whilelist = []string{"/api/login", "/api/logout", "/ws", "/api/init", "/api/install/steamcmd"}
 
 func filter(s []string, str string) bool {
 	//开放不是 /api 开头接口

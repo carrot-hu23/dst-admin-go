@@ -2,9 +2,9 @@ package service
 
 import (
 	"dst-admin-go/constant"
-	archiveutils "dst-admin-go/utils/archiveUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/zip"
 	"dst-admin-go/vo"
 	"io/ioutil"
 	"log"
@@ -67,9 +67,15 @@ func DeleteBackup(fileNames []string) {
 
 // TODO: 恢复存档
 func RestoreBackup(backupName string) {
-	filePath := path.Join(backupPath(), backupName)
+
+	dstConfig := dstConfigUtils.GetDstConfig()
+	filePath := path.Join(dstConfig.Backup, backupName)
 	log.Println("filepath", filePath)
-	archiveutils.UnZip("C:\\Users\\xm\\Desktop\\backup\\backup\\unzip", filePath)
+
+	clusterPath := constant.GET_DST_USER_GAME_CONFG_PATH()
+	fileUtils.DeleteDir(clusterPath)
+	zip.Unzip(filePath, clusterPath)
+
 }
 
 func CreateBackup(backupName string) {
@@ -82,15 +88,15 @@ func CreateBackup(backupName string) {
 	if backupName == "" {
 		gameConfig := vo.NewGameConfigVO()
 		GetClusterIni(gameConfig)
-		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName
+		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName + ".zip"
 	}
 	dst := path.Join(backupPath, backupName)
 	log.Println("src", src, dst)
-	// err := archiveutils.Zip(dst, src)
-	// if err != nil {
-	// 	log.Panicln(err)
-	// }
-	archiveutils.Zip2(src, dst)
+	err := zip.Zip(src, dst)
+	if err != nil {
+		log.Panicln("create backup error", err)
+	}
+	log.Println("创建备份成功")
 }
 
 // TODO: 下载存档

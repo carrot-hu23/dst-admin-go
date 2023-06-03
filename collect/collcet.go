@@ -8,12 +8,19 @@ import (
 	"log"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hpcloud/tail"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 func CollectChatLog(text string) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("玩家行为日志解析异常:", err)
+		}
+	}()
 
 	//[00:00:55]: [Join Announcement] 猜猜我是谁
 	if strings.Contains(text, "[Join Announcement]") {
@@ -196,9 +203,9 @@ func ConvertByte2String(byte []byte, charset Charset) string {
 	return str
 }
 
-func Tailf_server_chat_log(path string) {
+func Tailf_server_chat_log(path string, level string) {
 	//fileName := "C:\\Users\\xm\\Documents\\Klei\\DoNotStarveTogether\\900587905\\Cluster_2\\Master\\server_chat_log.txt"
-	fileName := filepath.Join(path, "Master", "server_chat_log.txt")
+	fileName := filepath.Join(path, level, "server_chat_log.txt")
 	log.Println("开始采集 server_chat_log, path:", fileName)
 	config := tail.Config{
 		ReOpen:    true,                                 // 重新打开
@@ -225,9 +232,9 @@ func Tailf_server_chat_log(path string) {
 	}
 }
 
-func Tailf_server_log(path string) {
+func Tailf_server_log(path string, level string) {
 	//fileName := "C:\\Users\\xm\\Documents\\Klei\\DoNotStarveTogether\\900587905\\Cluster_2\\Master\\server_log.txt"
-	fileName := filepath.Join(path, "Master", "server_log.txt")
+	fileName := filepath.Join(path, level, "server_log.txt")
 	log.Println("开始采集 server_log, path:", fileName)
 	config := tail.Config{
 		ReOpen:    true,                                 // 重新打开
@@ -336,5 +343,107 @@ func Tailf_server_log(path string) {
 			}
 		}
 
+	}
+}
+
+func Tailf_server_log2(path string, level string) {
+	fileName := filepath.Join(path, level, "server_log.txt")
+	log.Println("开始采集 server_log, path:", fileName)
+	config := tail.Config{
+		ReOpen:    true,                                 // 重新打开
+		Follow:    true,                                 // 是否跟随
+		Location:  &tail.SeekInfo{Offset: 0, Whence: 2}, // 从文件的哪个地方开始读
+		MustExist: false,                                // 文件不存在不报错
+		Poll:      true,
+	}
+	tails, err := tail.TailFile(fileName, config)
+	if err != nil {
+		log.Println("文件监听失败", err)
+	}
+	var (
+		which        = 0
+		isNewConnect = false
+		connect      entity.Connect
+	)
+	for {
+		line, ok := <-tails.Lines
+		if !ok {
+			log.Println("文件读取失败", err)
+			time.Sleep(time.Second)
+		} else {
+			parseLog(line, &which, &isNewConnect, &connect)
+		}
+	}
+}
+
+func parseLog(line *tail.Line, which *int, isNewConnect *bool, connect *entity.Connect) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("玩家日志解析异常:", err)
+		}
+	}()
+
+	text := line.Text
+	if find := strings.Contains(text, "Spawn request"); find {
+		CollectSpawnRequestLog(text)
+	}
+	//New incoming connection
+	if find := strings.Contains(text, "New incoming connection"); find {
+		*isNewConnect = true
+		connect = &entity.Connect{}
+		*which = 0
+	}
+	if *isNewConnect {
+		if *which == 1 {
+			// 解析 ip
+			fmt.Println(1, text)
+			str := strings.Split(text, " ")
+			if len(str) < 5 {
+				log.Println("[EROOR] str 解析错误: ", str)
+				connect.Ip = ""
+			} else {
+				var ip string
+				if strings.Contains(text, "[LAN]") {
+					ip = str[5]
+				} else {
+					ip = str[4]
+				}
+				connect.Ip = ip
+				fmt.Println("ip", ip)
+			}
+
+		} else if *which == 3 {
+			fmt.Println(3, text)
+			// 解析 KU 和 用户名
+			str := strings.Split(text, " ")
+			if len(str) <= 4 {
+				log.Println("[EROOR] str 解析错误: ", str)
+			} else {
+				ku := str[3]
+				ku = ku[1 : len(ku)-1]
+				name := str[4]
+				connect.Name = name
+				connect.KuId = ku
+				fmt.Println("ku", ku, "name", name)
+			}
+		} else if *which == 4 {
+			fmt.Println(4, text)
+			// 解析 steamId
+			str := strings.Split(text, " ")
+			if len(str) < 4 {
+				log.Println("[EROOR] str 解析错误: ", str)
+			} else {
+				steamId := str[4]
+				steamId = steamId[1 : len(steamId)-1]
+				fmt.Println("steamId", steamId)
+
+				//记录
+				connect.SteamId = steamId
+				entity.DB.Create(&connect)
+			}
+		}
+
+		*which = *which + 1
 	}
 }

@@ -21,24 +21,13 @@ func GetUserInfo() map[string]interface{} {
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	// password := strings.TrimSpace(strings.Split(user[1], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
-	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
 
 	return map[string]interface{}{
 		"username":    username,
 		"displayName": displayName,
-		"email":       email,
 		"photoURL":    photoURL,
 	}
-}
-
-func Inituser(userVO *vo.UserVO) {
-	username := "username=" + userVO.Username
-	password := "password=" + userVO.Password
-	displayName := ""
-	email := ""
-	photoURL := ""
-	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password, displayName, photoURL, email})
 }
 
 func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
@@ -55,8 +44,7 @@ func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.R
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	password := strings.TrimSpace(strings.Split(user[1], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
-	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
 
 	if username != userVO.Username || password != userVO.Password {
 		log.Panicln("User authentication failed")
@@ -76,7 +64,6 @@ func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.R
 	response.Data = map[string]interface{}{
 		"username":    username,
 		"displayName": displayName,
-		"email":       email,
 		"photoURL":    photoURL,
 	}
 
@@ -93,14 +80,12 @@ func ChangeUser(username, password string) {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
-	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
 	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
 		"username = " + username,
 		"password = " + password,
 		"displayName=" + displayName,
 		"photoURL=" + photoURL,
-		"email=" + email,
 	})
 }
 
@@ -114,18 +99,24 @@ func ChangePassword(newPassword string) *vo.Response {
 	}
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
-	email := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	photoURL := strings.TrimSpace(strings.Split(user[4], "=")[1])
+	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
 	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
 		"username = " + username,
 		"password = " + newPassword,
 		"displayName=" + displayName,
 		"photoURL=" + photoURL,
-		"email=" + email,
 	})
 
 	response.Code = 200
 	response.Msg = "Update user new password success"
 
 	return response
+}
+
+func InitUserInfo(userInfo *vo.UserInfo) {
+	username := "username=" + userInfo.Username
+	password := "password=" + userInfo.Password
+	displayName := "displayName=" + userInfo.DisplayeName
+	photoURL := "photoURL=" + userInfo.PhotoURL
+	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password, displayName, photoURL})
 }

@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"dst-admin-go/constant"
 	optype "dst-admin-go/constant/opType"
+	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
 	"os/exec"
+	"path"
 	"regexp"
 	"runtime"
 	"strings"
@@ -18,10 +21,15 @@ import (
 
 func UpdateGame() {
 	SentBroadcast(":pig 正在更新游戏......")
-	ElegantShutdownMaster()
-	ElegantShutdownCaves()
-	log.Println(constant.GET_UPDATE_GAME_CMD())
-	_, err := Shell(constant.GET_UPDATE_GAME_CMD())
+	// ElegantShutdownMaster()
+	// ElegantShutdownCaves()
+	time.Sleep(5 * time.Second)
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+	stopSpecifiedMaster(cluster)
+	stopSpecifiedCaves(cluster)
+	updateGameCMd := constant.GET_UPDATE_GAME_CMD()
+	log.Println(updateGameCMd)
+	_, err := Shell(updateGameCMd)
 	if err != nil {
 		log.Panicln("update game error: " + err.Error())
 	}
@@ -29,7 +37,7 @@ func UpdateGame() {
 
 func StartGame(opType int) {
 
-	if opType == optype.START_MASTER {
+	if opType == optype.START_GAME {
 		SentBroadcast(":pig 正在重启游戏......")
 		stopMaster()
 		stopCaves()
@@ -86,7 +94,10 @@ func StartCaves() {
 const max_waitting = 10
 
 func ElegantShutdownMaster() {
-
+	SentBroadcast(":pig 正在关闭世界......")
+	SentBroadcast(":pig 正在关闭世界......")
+	SentBroadcast(":pig 正在关闭世界......")
+	ShutdownMaster()
 	if getMasterStatus() {
 		var i uint8 = 1
 		for {
@@ -100,15 +111,14 @@ func ElegantShutdownMaster() {
 			}
 		}
 	}
-	SentBroadcast(":pig 正在关闭世界......")
-	SentBroadcast(":pig 正在关闭世界......")
-	SentBroadcast(":pig 正在关闭世界......")
-	ShutdownMaster()
 	stopMaster()
 }
 
 func ElegantShutdownCaves() {
-
+	SentBroadcast(":pig 正在关闭洞穴......")
+	SentBroadcast(":pig 正在关闭洞穴......")
+	SentBroadcast(":pig 正在关闭洞穴......")
+	shutdownCaves()
 	if getCavesStatus() {
 		var i uint8 = 1
 		for {
@@ -122,14 +132,13 @@ func ElegantShutdownCaves() {
 			}
 		}
 	}
-	SentBroadcast(":pig 正在关闭洞穴......")
-	SentBroadcast(":pig 正在关闭洞穴......")
-	SentBroadcast(":pig 正在关闭洞穴......")
-	shutdownCaves()
 	stopCaves()
 }
 
 func ShutdownMaster() {
+	if !getMasterStatus() {
+		return
+	}
 	shell := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
 	_, err := Shell(shell)
 	if err != nil {
@@ -138,6 +147,9 @@ func ShutdownMaster() {
 }
 
 func shutdownCaves() {
+	if !getCavesStatus() {
+		return
+	}
 	shell := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
 	_, err := Shell(shell)
 	if err != nil {
@@ -146,7 +158,7 @@ func shutdownCaves() {
 }
 
 func stopMaster() {
-	//TODO 写入mod安装文件
+
 	check_cmd := "ps -ef | grep -v grep |grep '" + constant.DST_MASTER + "' |sed -n '1P'|awk '{print $2}'"
 	check, error := Shell(check_cmd)
 
@@ -155,7 +167,7 @@ func stopMaster() {
 	} else {
 		_, err := Shell(constant.STOP_MASTER_CMD)
 		if err != nil {
-			log.Panicln("shut down caves error: " + err.Error())
+			log.Panicln("shut down Master error: " + err.Error())
 		}
 	}
 }
@@ -183,7 +195,7 @@ func stopCaves() {
 
 }
 func startCaves() {
-	_, err := Shell(constant.START_CAVES_CMD)
+	_, err := Shell(constant.GET_START_CAVES_CMD())
 	if err != nil {
 		log.Panicln("start caves error: " + err.Error())
 	}
@@ -237,7 +249,9 @@ func DeleteCavesRecord() {
 
 func SentBroadcast(message string) {
 
-	broadcast := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_announce(\\\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	broadcast := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
 	broadcast += message
 	broadcast += "\\\")\\n\""
 
@@ -245,9 +259,10 @@ func SentBroadcast(message string) {
 }
 
 func KickPlayer(KuId string) {
+	cluster := dstConfigUtils.GetDstConfig().Cluster
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
@@ -255,8 +270,10 @@ func KickPlayer(KuId string) {
 
 func KillPlayer(KuId string) {
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
@@ -264,8 +281,10 @@ func KillPlayer(KuId string) {
 
 func RespawnPlayer(KuId string) {
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
@@ -275,29 +294,47 @@ func RollBack(dayNum int) {
 
 	days := fmt.Sprint(dayNum)
 	SentBroadcast(":pig 正在回档" + days + "天")
+	cluster := dstConfigUtils.GetDstConfig().Cluster
 
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
 
 	Shell(masterCMD)
 	Shell(cavesCMD)
 }
 
+func CleanWorld() {
+	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
+
+	fileUtils.DeleteDir(path.Join(basePath, "Master", "backup"))
+	fileUtils.DeleteDir(path.Join(basePath, "Master", "save"))
+
+	fileUtils.DeleteDir(path.Join(basePath, "Caves", "backup"))
+	fileUtils.DeleteDir(path.Join(basePath, "Caves", "save"))
+}
+
 func Regenerateworld() {
 	SentBroadcast(":pig 即将重置世界！！！")
-	masterCMD := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
-	cavesCMD := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
+	//TODO
+
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+
+	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
+	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
 	Shell(masterCMD)
 	Shell(cavesCMD)
 }
 
 func MasterConsole(command string) {
-	cmd := "screen -S \"" + constant.SCREEN_WORK_MASTER_NAME + "\" -p 0 -X stuff \"" + command + "\\n\""
+
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+	cmd := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	Shell(cmd)
 }
 
 func CavesConsole(command string) {
-	cmd := "screen -S \"" + constant.SCREEN_WORK_CAVES_NAME + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cluster := dstConfigUtils.GetDstConfig().Cluster
+	cmd := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	Shell(cmd)
 }
 

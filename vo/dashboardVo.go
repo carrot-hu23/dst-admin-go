@@ -2,7 +2,9 @@ package vo
 
 import (
 	"dst-admin-go/constant"
+	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
+	"path/filepath"
 )
 
 type DashboardVO struct {
@@ -15,14 +17,17 @@ type DashboardVO struct {
 	DiskInfo     *systemUtils.DiskInfo `json:"disk"`
 	MemStates    uint64                `json:"memStates"`
 	MasterLog    string                `json:"masterLog"`
+	CavesLog     string                `json:"cavesLog"`
 	Version      string                `json:"version"`
 
-	MasterPs *DstPsVo `json:"masterPs"`
-	CavesPs  *DstPsVo `json:"cavesPs"`
+	MasterPs  *DstPsVo `json:"masterPs"`
+	CavesPs   *DstPsVo `json:"cavesPs"`
+	IpConnect string   `json:"ipConnect"`
 }
 
 func NewDashboardVO() *DashboardVO {
 	return &DashboardVO{
-		MasterLog: constant.HOME_PATH + "/" + constant.DST_MASTER_SERVER_LOG_PATH,
+		MasterLog: filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster, "Master", "server_log.txt"),
+		CavesLog:  filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster, "Caves", "server_log.txt"),
 	}
 }

@@ -1,18 +1,20 @@
 package dstConfigUtils
 
 import (
+	"dst-admin-go/entity"
 	"dst-admin-go/utils/fileUtils"
 	"log"
 	"strings"
 )
 
 type DstConfig struct {
-	Steamcmd            string `json:"steamcmd"`
-	Force_install_dir   string `json:"force_install_dir"`
-	DoNotStarveTogether string `json:"doNotStarveTogether"`
-	Cluster             string `json:"cluster"`
-	Backup              string `json:"backup"`
-	Mod_download_path   string `json:"mod_download_path"`
+	Steamcmd                   string `json:"steamcmd"`
+	Force_install_dir          string `json:"force_install_dir"`
+	DoNotStarveServerDirectory string `json:"donot_starve_server_directory"`
+	Persistent_storage_root    string `json:"persistent_storage_root"`
+	Cluster                    string `json:"cluster"`
+	Backup                     string `json:"backup"`
+	Mod_download_path          string `json:"mod_download_path"`
 }
 
 const dst_config_path = "./dst_config"
@@ -54,11 +56,18 @@ func GetDstConfig() DstConfig {
 				dst_config.Force_install_dir = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "doNotStarveTogether") {
+		if strings.Contains(value, "donot_starve_server_directory") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.DoNotStarveTogether = strings.Replace(s, "\\n", "", -1)
+				dst_config.DoNotStarveServerDirectory = strings.Replace(s, "\\n", "", -1)
+			}
+		}
+		if strings.Contains(value, "persistent_storage_root") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				dst_config.Persistent_storage_root = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "cluster") {
@@ -90,15 +99,18 @@ func GetDstConfig() DstConfig {
 func SaveDstConfig(dstConfig *DstConfig) {
 	log.Println(dstConfig)
 
-	error := fileUtils.WriterLnFile(dst_config_path, []string{
+	err := fileUtils.WriterLnFile(dst_config_path, []string{
 		"steamcmd=" + dstConfig.Steamcmd,
 		"force_install_dir=" + dstConfig.Force_install_dir,
-		"doNotStarveTogether=" + dstConfig.DoNotStarveTogether,
+		"donot_starve_server_directory=" + dstConfig.DoNotStarveServerDirectory,
+		"persistent_storage_root=" + dstConfig.Persistent_storage_root,
 		"cluster=" + dstConfig.Cluster,
 		"backup=" + dstConfig.Backup,
 		"mod_download_path=" + dstConfig.Mod_download_path,
 	})
-	if error != nil {
-		log.Panicln("write dst_config error:", error)
+	if err != nil {
+		log.Panicln("write dst_config error:", err)
 	}
+
+	entity.Collect.ReCollect()
 }

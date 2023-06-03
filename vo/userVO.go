@@ -9,3 +9,10 @@ type UserVO struct {
 func NewUserVO() *UserVO {
 	return &UserVO{}
 }
+
+type UserInfo struct {
+	Username     string `json:"username"`
+	DisplayeName string `json:"displayName"`
+	Password     string `json:"password"`
+	PhotoURL     string `json:"photoURL"`
+}

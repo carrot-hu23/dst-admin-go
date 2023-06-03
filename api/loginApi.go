@@ -16,21 +16,6 @@ func GetUserInfo(ctx *gin.Context) {
 	})
 }
 
-func InitUser(ctx *gin.Context) {
-
-	userVO := vo.NewUserVO()
-	ctx.BindJSON(userVO)
-
-	service.Inituser(userVO)
-
-	userVO.Password = ""
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "Init user success",
-		Data: userVO,
-	})
-}
-
 func Login(ctx *gin.Context) {
 
 	userVO := vo.NewUserVO()

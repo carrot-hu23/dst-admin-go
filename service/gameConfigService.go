@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -17,7 +18,7 @@ import (
 const START_NEW_GAME uint8 = 1
 const SAVE_RESTART uint8 = 2
 
-var cluster_init_template = "./static/template/cluster.ini"
+var cluster_init_template = "./static/template/cluster2.ini"
 var master_server_init_template = "./static/template/master_server.ini"
 var caves_server_init_template = "./static/template/caves_server.ini"
 
@@ -80,6 +81,7 @@ func GetConfig() vo.GameConfigVO {
 }
 
 func getClusterToken() string {
+	createFileIfNotExsists(constant.GET_CLUSTER_TOKEN_PATH())
 	token, err := fileUtils.ReadFile(constant.GET_CLUSTER_TOKEN_PATH())
 	if err != nil {
 		panic("read cluster_token.txt file error: " + err.Error())
@@ -89,6 +91,10 @@ func getClusterToken() string {
 }
 
 func GetClusterIni(gameconfig *vo.GameConfigVO) {
+	if !fileUtils.Exists(constant.GET_CLUSTER_INI_PATH()) {
+		createFileIfNotExsists(constant.GET_CLUSTER_INI_PATH())
+		return
+	}
 	cluster_ini, err := fileUtils.ReadLnFile(constant.GET_CLUSTER_INI_PATH())
 	if err != nil {
 		panic("read cluster.ini file error: " + err.Error())
@@ -130,7 +136,7 @@ func GetClusterIni(gameconfig *vo.GameConfigVO) {
 				s := strings.TrimSpace(split[1])
 				b, err := strconv.ParseBool(s)
 				if err == nil {
-					gameconfig.Pvp = b
+					gameconfig.PauseWhenNobody = b
 				}
 			}
 		}
@@ -167,6 +173,13 @@ func GetClusterIni(gameconfig *vo.GameConfigVO) {
 }
 
 func getMasteLeveldataoverride() string {
+
+	filepath := constant.GET_MASTER_LEVELDATAOVERRIDE_PATH()
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	level, err := fileUtils.ReadFile(constant.GET_MASTER_LEVELDATAOVERRIDE_PATH())
 	if err != nil {
 		panic("read Master/leveldataoverride.lua file error: " + err.Error())
@@ -175,6 +188,13 @@ func getMasteLeveldataoverride() string {
 }
 
 func getCavesLeveldataoverride() string {
+
+	filepath := constant.GET_CAVES_LEVELDATAOVERRIDE_PATH()
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	level, err := fileUtils.ReadFile(constant.GET_CAVES_LEVELDATAOVERRIDE_PATH())
 	if err != nil {
 		panic("read Caves/leveldataoverride.lua file error: " + err.Error())
@@ -183,6 +203,13 @@ func getCavesLeveldataoverride() string {
 }
 
 func getModoverrides() string {
+
+	filepath := constant.GET_MASTER_MOD_PATH()
+	if !fileUtils.Exists(filepath) {
+		createFileIfNotExsists(filepath)
+		return "return {}"
+	}
+
 	level, err := fileUtils.ReadFile(constant.GET_MASTER_MOD_PATH())
 	if err != nil {
 		panic("read Master/modoverrides.lua file error: " + err.Error())
@@ -199,8 +226,8 @@ func SaveConfig(gameConfigVo vo.GameConfigVO) {
 	//创建token配置
 	createClusterToken(strings.TrimSpace(gameConfigVo.Token))
 	//创建地面和洞穴的ini配置文件
-	createMasterServerIni()
-	createCavesServerIni()
+	// createMasterServerIni()
+	// createCavesServerIni()
 	//创建地面世界设置
 	createMasteLeveldataoverride(gameConfigVo.MasterMapData)
 	//创建洞穴世界设置
@@ -218,7 +245,9 @@ func SaveConfig(gameConfigVo vo.GameConfigVO) {
 }
 
 func createMyDediServerDir() {
-	myDediServerPath := constant.HOME_PATH + constant.DST_USER_GAME_CONFG_PATH
+	dstConfig := dstConfigUtils.GetDstConfig()
+	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
+	myDediServerPath := path.Join(basePath, dstConfig.Cluster)
 	log.Println("生成 myDediServer 目录：" + myDediServerPath)
 	fileUtils.CreateDir(myDediServerPath)
 }
@@ -226,44 +255,18 @@ func createMyDediServerDir() {
 func createClusterIni(gameConfigVo vo.GameConfigVO) {
 
 	log.Println("生成游戏配置文件 cluster.ini文件: ", constant.GET_CLUSTER_INI_PATH())
+	oldCluster := ReadClusterIniFile()
 
-	// cluster_ini := ""
-	// cluster_ini += "[GAMEPLAY]\n"
-	// cluster_ini += "game_mode = " + gameConfigVo.GameMode + "\n"
-	// cluster_ini += "max_players = " + strconv.Itoa(int(gameConfigVo.MaxPlayers)) + "\n"
-	// cluster_ini += "pvp = " + strconv.FormatBool(gameConfigVo.Pvp) + "\n"
-	// cluster_ini += "pause_when_empty = " + strconv.FormatBool(gameConfigVo.PauseNobody) + "\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "[NETWORK]\n"
-	// cluster_ini += "lan_only_cluster = false\n"
-	// cluster_ini += "cluster_intention = " + gameConfigVo.ClusterIntention + "\n"
-	// password := gameConfigVo.ClusterPassword
-	// if password != "" {
-	// 	password = strings.TrimSpace(password)
-	// 	cluster_ini += "cluster_password = " + password + "\n"
-	// } else {
-	// 	cluster_ini += "cluster_password = \n"
-	// }
-	// cluster_ini += "cluster_description =  " + gameConfigVo.ClusterDescription + " \n"
-	// cluster_ini += "cluster_name =  " + gameConfigVo.ClusterName + " \n"
-	// cluster_ini += "offline_cluster = false \n"
+	oldCluster.ClusterName = gameConfigVo.ClusterName
+	oldCluster.ClusterDescription = gameConfigVo.ClusterDescription
+	oldCluster.GameMode = gameConfigVo.GameMode
+	oldCluster.MaxPlayers = uint(gameConfigVo.MaxPlayers)
+	oldCluster.Pvp = gameConfigVo.Pvp
+	oldCluster.VoteEnabled = gameConfigVo.VoteEnabled
+	oldCluster.PauseWhenNobody = gameConfigVo.PauseWhenNobody
+	oldCluster.ClusterPassword = gameConfigVo.ClusterPassword
 
-	// cluster_ini += "cluster_language =  zh\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "[MISC]\n"
-	// cluster_ini += "console_enabled = true\n"
-	// cluster_ini += "max_snapshots = 6 \n"
-	// cluster_ini += "\n"
-	// cluster_ini += "\n"
-	// cluster_ini += "[SHARD]\n"
-	// cluster_ini += "shard_enabled = true\n"
-	// cluster_ini += "bind_ip = 127.0.0.1\n"
-	// cluster_ini += "master_ip = 127.0.0.1\n"
-	// cluster_ini += "master_port = 10888\n"
-	// cluster_ini += "cluster_key = defaultPass\n"
-
-	cluster_ini := pareseTemplate(cluster_init_template, gameConfigVo)
+	cluster_ini := pareseTemplate(cluster_init_template, oldCluster)
 	fileUtils.WriterTXT(constant.GET_CLUSTER_INI_PATH(), cluster_ini)
 }
 
@@ -380,4 +383,16 @@ func createModoverrides(modConfig string) {
 		fileUtils.WriterTXT(constant.GET_MASTER_MOD_PATH(), "")
 		fileUtils.WriterTXT(constant.GET_CAVES_MOD_PATH(), "")
 	}
+}
+
+func UpdateDedicatedServerModsSetup(modConfig string) {
+	if modConfig != "" {
+		var serverModSetup = ""
+		workshopIds := WorkshopIds(modConfig)
+		for _, workshopId := range workshopIds {
+			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
+		}
+		fileUtils.WriterTXT(constant.GET_DST_MOD_SETUP_PATH(), serverModSetup)
+	}
+
 }

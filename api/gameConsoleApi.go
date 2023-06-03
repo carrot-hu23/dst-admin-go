@@ -140,7 +140,7 @@ func RespawnPlayer(ctx *gin.Context) {
 }
 
 func RollBack(ctx *gin.Context) {
-	dayNums := ctx.Param("dayNums")
+	dayNums := ctx.Query("dayNums")
 	days, err := strconv.Atoi(dayNums)
 	if err != nil {
 		log.Panicln("参数解析错误：" + dayNums)
@@ -159,6 +159,18 @@ func Regenerateworld(ctx *gin.Context) {
 
 	log.Println("重置世界......")
 	service.Regenerateworld()
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func CleanWorld(ctx *gin.Context) {
+
+	log.Println("删除世界......")
+	service.CleanWorld()
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -220,11 +232,6 @@ func OperatePlayer(ctx *gin.Context) {
 	})
 }
 
-// TODO GET /game/backup
-func Backup(ctx *gin.Context) {
-	ctx.String(200, "test")
-}
-
 // TODO GET /game/restore
 func RestoreBackup(ctx *gin.Context) {
 
@@ -248,6 +255,6 @@ func GetGameArchive(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetGameArchive(),
+		Data: service.GetCurrGameArchive(),
 	})
 }

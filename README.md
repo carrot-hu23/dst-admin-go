@@ -1,17 +1,29 @@
 # dst-admin-go
 > 饥荒联机版管理后台Go版本
 >
-> Date: 2022/12/18
+> Date: 2023/05/11
 
+
+## 部署
+注意目录必须要有读写权限。
+
+点击查看 [部署文档](./doc/install.md)
+
+点击查看 [饥荒服务器多开](./doc/multiServer.md)
 
 ## 预览
 
 在线预览地址 http://1.12.223.51:8082/
+（admin 123456）
+![首页效果](./doc/image/登录.png)
+![首页效果](./doc/image/房间.png)
+![首页效果](./doc/image/mod.png)
+![首页效果](./doc/image/mod配置.png)
+![统计效果](./doc/image/统计.png)
+![面板效果](./doc/image/面板.png)
+![日志效果](./doc/image/日志.png)
+    
 
-![首页效果](./doc/登录.png)
-![统计效果](./doc/统计.png)
-![面板效果](./doc/面板.png)
-![日志效果](./doc/日志.png)
 ## 运行
 
 **修改config.yml**
@@ -19,6 +31,8 @@
 #端口
 port: 8082
 db: dst-db
+#监听日志路径
+path: /root/.klei/DoNotStarveTogether/MyDediServer
 ```
 
 **修改dst_config**（也可以通过页面修改）
@@ -36,13 +50,24 @@ mod_download_path=/download_mod
 ```
 
 运行
+>由于window sqlite3 依赖gcc，请自行下载安装，更多详细点击查看 
+ [sqlite3](https://github.com/mattn/go-sqlite3#windows)
 ```
-./dst-admin-go
+go mod tidy
+go run main.go
 ```
 
 ## 打包
 
-window 下打包 Linux 二进制 （由于sqlite受操作系统影响，Linux二进制请在Linux环境build）
+### Linux 打包
+```sh
+go build
+```
+
+### window 打包
+
+window 下打包 Linux 二进制 
+
 ```
 打开 cmd
 set GOARCH=amd64

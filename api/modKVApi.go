@@ -9,6 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+*
+获取用户mod设置偏好
+
+目前不做这个
+*/
 func GetUserModKV(ctx *gin.Context) {
 
 	userId := ctx.Query("userId")
