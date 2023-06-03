@@ -9,6 +9,11 @@ import (
 	"dst-admin-go/route"
 	"dst-admin-go/utils/dstConfigUtils"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"gopkg.in/yaml.v2"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,12 +21,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-
-	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v2"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 const log_path = "./dst-admin-go.log"
@@ -104,13 +103,7 @@ func main() {
 
 	baseLogPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
 
-	global.Collect = collect.NewCollect([]string{
-		filepath.Join(baseLogPath, "Master", "server_log.txt"),
-		filepath.Join(baseLogPath, "Caves", "server_log.txt"),
-	}, []string{
-		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
-		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
-	})
+	global.Collect = collect.NewCollect(baseLogPath)
 	global.Collect.StartCollect()
 
 	app := route.NewRoute()

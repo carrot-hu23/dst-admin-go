@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hpcloud/tail"
 	"log"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -17,15 +18,20 @@ type Collect struct {
 	length            int
 }
 
-func NewCollect(severLogList, serverChatLogList []string) *Collect {
-	l1 := len(severLogList)
-	l2 := len(serverChatLogList)
+func NewCollect(baseLogPath string) *Collect {
+
 	collect := &Collect{
-		state:             make(chan int),
-		stop:              make(chan bool, l1+l2),
-		severLogList:      severLogList,
-		serverChatLogList: serverChatLogList,
-		length:            l1 + l2,
+		state: make(chan int, 1),
+		stop:  make(chan bool, 4),
+		severLogList: []string{
+			filepath.Join(baseLogPath, "Master", "server_log.txt"),
+			filepath.Join(baseLogPath, "Caves", "server_log.txt"),
+		},
+		serverChatLogList: []string{
+			filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
+			filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
+		},
+		length: 4,
 	}
 	collect.state <- 1
 	return collect
