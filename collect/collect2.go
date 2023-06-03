@@ -87,13 +87,13 @@ func (c *Collect) parseRegenerateLog(text string) {
 func (c *Collect) parseNewIncomingLog(lines []string) {
 
 	connect := model.Connect{}
+	log.Println("len:", len(lines), lines)
 	for i, line := range lines {
-		fmt.Println(i, line)
 		if i == 1 {
 			// 解析 ip
 			str := strings.Split(line, " ")
 			if len(str) < 5 {
-				log.Println("[EROOR] str 解析错误: ", str)
+				log.Println("ip 解析错误: ", line)
 				connect.Ip = ""
 			} else {
 				var ip string
@@ -113,7 +113,7 @@ func (c *Collect) parseNewIncomingLog(lines []string) {
 			// 解析 KuId 和 用户名
 			str := strings.Split(line, " ")
 			if len(str) <= 4 {
-				log.Println("[EROOR] str 解析错误: ", str)
+				log.Println("kuid 解析错误: ", line)
 			} else {
 				ku := str[3]
 				ku = ku[1 : len(ku)-1]
@@ -127,7 +127,7 @@ func (c *Collect) parseNewIncomingLog(lines []string) {
 			// 解析 steamId
 			str := strings.Split(line, " ")
 			if len(str) < 4 {
-				log.Println("[EROOR] str 解析错误: ", str)
+				log.Println("steamid 解析错误: ", line)
 			} else {
 				steamId := str[4]
 				steamId = steamId[1 : len(steamId)-1]
@@ -156,7 +156,7 @@ func (c *Collect) tailServeLog(fileName string) {
 	var (
 		which        = 0
 		isNewConnect = false
-		incoming     = make([]string, 4)
+		incoming     []string
 	)
 	for {
 		select {
@@ -175,13 +175,13 @@ func (c *Collect) tailServeLog(fileName string) {
 				}
 				// 获取接下来的五条数据
 				if isNewConnect {
-
 					incoming = append(incoming, text)
 					which++
 					if which > 4 {
 						isNewConnect = false
+						which = 0
 						c.parseNewIncomingLog(incoming)
-						incoming = make([]string, 4)
+						incoming = make([]string, 5)
 					}
 				}
 			}
