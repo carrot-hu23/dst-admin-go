@@ -1,7 +1,7 @@
 package dstConfigUtils
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/global"
 	"dst-admin-go/utils/fileUtils"
 	"log"
 	"strings"
@@ -112,5 +112,5 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		log.Panicln("write dst_config error:", err)
 	}
 
-	entity.Collect.ReCollect()
+	global.Collect.ReCollect()
 }

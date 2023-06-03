@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"net/http/httputil"
 	"net/url"
@@ -19,5 +18,3 @@ type Route struct {
 var RoutingTable = make(map[string]*Route)
 
 var Config *config.Config
-
-var Collect *collect.Collect
