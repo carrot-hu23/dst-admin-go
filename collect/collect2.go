@@ -22,16 +22,14 @@ type Collect struct {
 func NewCollect(baseLogPath string) *Collect {
 	collect := &Collect{
 		state: make(chan int, 1),
-		stop:  make(chan bool, 4),
 		severLogList: []string{
 			filepath.Join(baseLogPath, "Master", "server_log.txt"),
-			filepath.Join(baseLogPath, "Caves", "server_log.txt"),
 		},
 		serverChatLogList: []string{
 			filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
-			filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 		},
-		length: 4,
+		stop:   make(chan bool, 2),
+		length: 2,
 	}
 	collect.state <- 1
 	return collect
@@ -43,10 +41,8 @@ func (c *Collect) ReCollect(baseLogPath string) {
 	}
 	c.severLogList = []string{
 		filepath.Join(baseLogPath, "Master", "server_log.txt"),
-		filepath.Join(baseLogPath, "Caves", "server_log.txt"),
 	}
 	c.serverChatLogList = []string{
-		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 	}
 	c.state <- 1
@@ -179,12 +175,13 @@ func (c *Collect) tailServeLog(fileName string) {
 				}
 				// 获取接下来的五条数据
 				if isNewConnect {
+
 					incoming = append(incoming, text)
 					which++
 					if which > 4 {
 						isNewConnect = false
-						incoming = make([]string, 4)
 						c.parseNewIncomingLog(incoming)
+						incoming = make([]string, 4)
 					}
 				}
 			}
