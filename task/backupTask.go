@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-func BackupSchedule(sourceDir, targetZip string, hour, minute int) {
+type BackupSchedule struct {
+}
+
+func (b *BackupSchedule) TimingBackup(sourceDir, targetZip string, hour, minute int) {
 	for {
 		now := time.Now()
 		year, month, day := now.Date()

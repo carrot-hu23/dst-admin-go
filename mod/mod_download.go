@@ -1,7 +1,8 @@
 package mod
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/database"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/dstConfigUtils"
 	"encoding/json"
 	"fmt"
@@ -328,7 +329,7 @@ func SearchModList(text string, page int, num int) (map[string]interface{}, erro
 	}, nil
 }
 
-func GetModInfo(modID string) entity.ModInfo {
+func GetModInfo(modID string) model.ModInfo {
 	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
 	data := url.Values{}
 	data.Set("key", steamAPIKey)
@@ -339,14 +340,14 @@ func GetModInfo(modID string) entity.ModInfo {
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
 		fmt.Println(err)
-		return entity.ModInfo{}
+		return model.ModInfo{}
 	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return entity.ModInfo{}
+		return model.ModInfo{}
 	}
 	defer resp.Body.Close()
 
@@ -354,13 +355,13 @@ func GetModInfo(modID string) entity.ModInfo {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		fmt.Println(err)
-		return entity.ModInfo{}
+		return model.ModInfo{}
 	}
 
 	dataList, ok := result["response"].(map[string]interface{})["publishedfiledetails"].([]interface{})
 	if !ok || len(dataList) == 0 {
 		fmt.Println("get mod error")
-		return entity.ModInfo{}
+		return model.ModInfo{}
 	}
 
 	data2 := dataList[0].(map[string]interface{})
@@ -417,7 +418,7 @@ func GetModInfo(modID string) entity.ModInfo {
 	}
 
 	// modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
-	newModInfo := entity.ModInfo{
+	newModInfo := model.ModInfo{
 		Auth:          auth,
 		ConsumerAppid: consumer_appid,
 		CreatorAppid:  creator_appid,
@@ -432,14 +433,14 @@ func GetModInfo(modID string) entity.ModInfo {
 		ModConfig: modConfig,
 	}
 
-	db := entity.DB
+	db := database.DB
 	db.Create(&newModInfo)
 	return newModInfo
 }
 
-func getModInfoConfig(modid string, lastTime float64) (entity.ModInfo, bool) {
-	db := entity.DB
-	modInfo := entity.ModInfo{}
+func getModInfoConfig(modid string, lastTime float64) (model.ModInfo, bool) {
+	db := database.DB
+	modInfo := model.ModInfo{}
 	db.Where("modid = ? and last_time = ?", modid, lastTime).First(&modInfo)
 
 	if modInfo.Modid == "" {

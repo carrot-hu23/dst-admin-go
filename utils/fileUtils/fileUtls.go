@@ -261,3 +261,41 @@ func ListDirectories(root string) ([]string, error) {
 
 	return dirs, nil
 }
+
+func CreateFileIfNotExists(path string) error {
+
+	// 检查文件是否存在
+	_, err := os.Stat(path)
+	if err == nil {
+		// 文件已经存在，直接返回
+		return nil
+	}
+	if !os.IsNotExist(err) {
+		// 其他错误，返回错误信息
+		return err
+	}
+
+	// 创建文件所在的目录
+	dir := filepath.Dir(path)
+	err = os.MkdirAll(dir, 0755)
+	if err != nil {
+		// 创建目录失败，返回错误信息
+		return err
+	}
+
+	// 创建文件
+	_, err = os.Create(path)
+	if err != nil {
+		// 创建文件失败，返回错误信息
+		return err
+	}
+
+	// 创建成功，返回 nil
+	return nil
+}
+
+func CreateDirIfNotExists(filepath string) {
+	if !Exists(filepath) {
+		CreateDir(filepath)
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"log"
 	"strconv"
@@ -11,18 +12,19 @@ import (
 	"time"
 )
 
-func GetPlayerList() []vo.PlayerVO {
+type PlayerService struct {
+}
+
+func (p *PlayerService) GetPlayerList() []vo.PlayerVO {
 	id := strconv.FormatInt(time.Now().Unix(), 10)
 
 	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
-	//command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
-
 	clsuerName := dstConfigUtils.GetDstConfig().Cluster
 	screenKey := getscreenKey(clsuerName, "Master")
 
 	playerCMD := "screen -S \"" + screenKey + "\" -p 0 -X stuff \"" + command + "\\n\""
 
-	Shell(playerCMD)
+	shellUtils.Shell(playerCMD)
 
 	time.Sleep(time.Duration(1) * time.Second)
 
@@ -40,41 +42,9 @@ func GetPlayerList() []vo.PlayerVO {
 	}
 
 	return playerVOList
-	// str = line.split(' ')
-	// data = {'key': str[2], 'day': str[3], 'ku': str[4], 'name': str[5], 'role': str[6]}
-	// return []vo.PlayerVO{
-	// 	{
-	// 		Key:  "111",
-	// 		Day:  "12",
-	// 		Name: "猜猜我是谁",
-	// 		KuId: "Ku_xsklado",
-	// 		Role: "wendy",
-	// 	},
-	// 	{
-	// 		Key:  "111",
-	// 		Day:  "12",
-	// 		Name: "猜猜我是谁",
-	// 		KuId: "Ku_xsklado",
-	// 		Role: "wendy",
-	// 	},
-	// 	{
-	// 		Key:  "111",
-	// 		Day:  "12",
-	// 		Name: "猜猜我是谁",
-	// 		KuId: "Ku_xsklado",
-	// 		Role: "wendy",
-	// 	},
-	// 	{
-	// 		Key:  "111",
-	// 		Day:  "12",
-	// 		Name: "猜猜我是谁",
-	// 		KuId: "Ku_xsklado",
-	// 		Role: "wendy",
-	// 	},
-	// }
 }
 
-func GetDstAdminList() (str []string) {
+func (p *PlayerService) GetDstAdminList() (str []string) {
 	path := constant.GET_DST_ADMIN_LIST_PATH()
 	if !fileUtils.Exists(path) {
 		log.Println("路径不存在", path)
@@ -88,7 +58,7 @@ func GetDstAdminList() (str []string) {
 	return
 }
 
-func GetDstBlcaklistPlayerList() (str []string) {
+func (p *PlayerService) GetDstBlcaklistPlayerList() (str []string) {
 	path := constant.GET_DST_BLOCKLIST_PATH()
 	if !fileUtils.Exists(path) {
 		log.Println("路径不存在", path)
@@ -102,7 +72,7 @@ func GetDstBlcaklistPlayerList() (str []string) {
 	return
 }
 
-func SaveDstAdminList(adminlist []string) {
+func (p *PlayerService) SaveDstAdminList(adminlist []string) {
 
 	path := constant.GET_DST_ADMIN_LIST_PATH()
 
@@ -112,7 +82,7 @@ func SaveDstAdminList(adminlist []string) {
 	}
 }
 
-func SaveDstBlacklistPlayerList(blacklist []string) {
+func (p *PlayerService) SaveDstBlacklistPlayerList(blacklist []string) {
 
 	path := constant.GET_DST_BLOCKLIST_PATH()
 

@@ -2,7 +2,7 @@ package collect
 
 //import (
 //	"dst-admin-go/chatgpt"
-//	"dst-admin-go/entity"
+//	"dst-admin-go/model"
 //	"dst-admin-go/service"
 //	"fmt"
 //	"log"
@@ -64,7 +64,7 @@ package collect
 //	spawn := getSpawnRole(name)
 //	connect := getConnectInfo(name)
 //
-//	playerLog := entity.PlayerLog{
+//	playerLog := model.PlayerLog{
 //		Name:       name,
 //		Role:       spawn.Role,
 //		Action:     action,
@@ -76,12 +76,12 @@ package collect
 //	}
 //	//fmt.Println("time", time, "action:", action, "name:", "kuId:", kuId, name, "op:", actionDesc)
 //	//获取最近的一条spwan记录和newComing
-//	//playerLog := entity.PlayerLog{Name: name, Role: spawn.Role, KuId: kuId, Action: action, ActionDesc: actionDesc, Time: time}
+//	//playerLog := model.PlayerLog{Name: name, Role: spawn.Role, KuId: kuId, Action: action, ActionDesc: actionDesc, Time: time}
 //
-//	entity.DB.Create(&playerLog)
+//	model.DB.Create(&playerLog)
 //
-//	if strings.Contains(text, entity.Config.Flag) {
-//		arr := strings.Split(text, entity.Config.Flag)
+//	if strings.Contains(text, model.Config.Flag) {
+//		arr := strings.Split(text, model.Config.Flag)
 //		s := arr[1]
 //		chatgpt.ChatGpt(kuId, s, service.SentBroadcast)
 //	}
@@ -112,7 +112,7 @@ package collect
 //	connect := getConnectInfo(name)
 //	fmt.Println(connect)
 //
-//	playerLog := entity.PlayerLog{
+//	playerLog := model.PlayerLog{
 //		Name:       name,
 //		Role:       spawn.Role,
 //		Action:     action,
@@ -123,7 +123,7 @@ package collect
 //		SteamId:    connect.SteamId,
 //	}
 //
-//	entity.DB.Create(&playerLog)
+//	model.DB.Create(&playerLog)
 //
 //}
 //
@@ -142,7 +142,7 @@ package collect
 //	spawn := getSpawnRole(name)
 //	connect := getConnectInfo(name)
 //
-//	playerLog := entity.PlayerLog{
+//	playerLog := model.PlayerLog{
 //		Name:    name,
 //		Role:    spawn.Role,
 //		Action:  action,
@@ -152,8 +152,8 @@ package collect
 //		SteamId: connect.SteamId,
 //	}
 //	//获取最近的一条spwan记录和newComing
-//	//playerLog := entity.PlayerLog{Name: name, Role: spawn.Role, Action: action, ActionDesc: "", Time: time}
-//	entity.DB.Create(&playerLog)
+//	//playerLog := model.PlayerLog{Name: name, Role: spawn.Role, Action: action, ActionDesc: "", Time: time}
+//	model.DB.Create(&playerLog)
 //}
 //
 //func CollectSpawnRequestLog(text string) {
@@ -164,20 +164,20 @@ package collect
 //	role := strings.Replace(arr[3], " ", "", -1)
 //	name := strings.Replace(arr[5], "\n", "", -1)
 //
-//	spawn := entity.Spawn{Name: name, Role: role, Time: time}
-//	entity.DB.Create(&spawn)
+//	spawn := model.Spawn{Name: name, Role: role, Time: time}
+//	model.DB.Create(&spawn)
 //
 //}
 //
-//func getSpawnRole(name string) *entity.Spawn {
-//	spawn := new(entity.Spawn)
-//	entity.DB.Where("name LIKE ?", "%"+name+"%").Last(spawn)
+//func getSpawnRole(name string) *model.Spawn {
+//	spawn := new(model.Spawn)
+//	model.DB.Where("name LIKE ?", "%"+name+"%").Last(spawn)
 //	return spawn
 //}
 //
-//func getConnectInfo(name string) *entity.Connect {
-//	connect := new(entity.Connect)
-//	entity.DB.Where("name LIKE ?", "%"+name+"%").Last(connect)
+//func getConnectInfo(name string) *model.Connect {
+//	connect := new(model.Connect)
+//	model.DB.Where("name LIKE ?", "%"+name+"%").Last(connect)
 //	return connect
 //}
 //
@@ -256,7 +256,7 @@ package collect
 //	first := true
 //	connection := false
 //	i := 0
-//	var connect entity.Connect
+//	var connect model.Connect
 //	for {
 //		line, ok = <-tails.Lines
 //		if !ok {
@@ -283,7 +283,7 @@ package collect
 //		//New incoming connection
 //		if find := strings.Contains(text, "New incoming connection"); find {
 //			connection = true
-//			connect = entity.Connect{}
+//			connect = model.Connect{}
 //		}
 //		if connection {
 //			if i > 5 {
@@ -336,7 +336,7 @@ package collect
 //
 //						//记录
 //						connect.SteamId = steamId
-//						entity.DB.Create(&connect)
+//						model.DB.Create(&connect)
 //					}
 //				}
 //				i++
@@ -363,7 +363,7 @@ package collect
 //	var (
 //		which        = 0
 //		isNewConnect = false
-//		connect      entity.Connect
+//		connect      model.Connect
 //	)
 //	for {
 //		line, ok := <-tails.Lines
@@ -376,7 +376,7 @@ package collect
 //	}
 //}
 //
-//func parseLog(line *tail.Line, which *int, isNewConnect *bool, connect *entity.Connect) {
+//func parseLog(line *tail.Line, which *int, isNewConnect *bool, connect *model.Connect) {
 //
 //	defer func() {
 //		if err := recover(); err != nil {
@@ -391,7 +391,7 @@ package collect
 //	//New incoming connection
 //	if find := strings.Contains(text, "New incoming connection"); find {
 //		*isNewConnect = true
-//		connect = &entity.Connect{}
+//		connect = &model.Connect{}
 //		*which = 0
 //	}
 //	if *isNewConnect {
@@ -440,7 +440,7 @@ package collect
 //
 //				//记录
 //				connect.SteamId = steamId
-//				entity.DB.Create(&connect)
+//				model.DB.Create(&connect)
 //			}
 //		}
 //

@@ -9,20 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetConfig(ctx *gin.Context) {
+type GameConfigApi struct {
+}
+
+var gameConfigService = service.GameConfigService{}
+
+func (g *GameConfigApi) GetConfig(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetConfig(),
+		Data: gameConfigService.GetConfig(),
 	})
 }
 
-func SaveConfig(ctx *gin.Context) {
+func (g *GameConfigApi) SaveConfig(ctx *gin.Context) {
 
 	gameConfig := vo.NewGameConfigVO()
 	ctx.ShouldBind(gameConfig)
 	log.Println(gameConfig)
-	service.SaveConfig(*gameConfig)
+	gameConfigService.SaveConfig(*gameConfig)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

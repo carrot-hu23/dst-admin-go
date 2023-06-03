@@ -3,12 +3,14 @@ package service
 import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -16,12 +18,12 @@ func getscreenKey(clusterName, level string) string {
 	return "DST_" + level + "_" + clusterName
 }
 
-/*
-ps -ef | grep -v grep | grep MyDediServer | grep Master | sed -n '1P' | awk '{print $2}'
-*/
-func GetSpecifiedLevelStatus(clusterName, level string) bool {
+type SpecifiedGameService struct {
+}
+
+func (s *SpecifiedGameService) GetSpecifiedLevelStatus(clusterName, level string) bool {
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
-	result, err := Shell(cmd)
+	result, err := shellUtils.Shell(cmd)
 	if err != nil {
 		return false
 	}
@@ -29,13 +31,13 @@ func GetSpecifiedLevelStatus(clusterName, level string) bool {
 	return res != ""
 }
 
-func shutdownSpecifiedLevel(clusterName, level string) {
-	if !GetSpecifiedLevelStatus(clusterName, level) {
+func (s *SpecifiedGameService) shutdownSpecifiedLevel(clusterName, level string) {
+	if !s.GetSpecifiedLevelStatus(clusterName, level) {
 		return
 	}
 	screenKey := getscreenKey(clusterName, level)
 	shell := "screen -S \"" + screenKey + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
-	_, err := Shell(shell)
+	_, err := shellUtils.Shell(shell)
 	if err != nil {
 		log.Panicln("shut down " + clusterName + " " + level + " error: " + err.Error())
 	}
@@ -44,19 +46,19 @@ func shutdownSpecifiedLevel(clusterName, level string) {
 /*
 STOP_CAVES_CMD = "ps -ef | grep -v grep |grep '" + DST_CAVES + "' |sed -n '1P'|awk '{print $2}' |xargs kill -9"
 */
-func killSpecifiedLevel(clusterName, level string) {
+func (s *SpecifiedGameService) killSpecifiedLevel(clusterName, level string) {
 
-	if !GetSpecifiedLevelStatus(clusterName, level) {
+	if !s.GetSpecifiedLevelStatus(clusterName, level) {
 		return
 	}
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' |xargs kill -9"
-	_, err := Shell(cmd)
+	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		log.Panicln("kill " + clusterName + " " + level + " error: " + err.Error())
 	}
 }
 
-func launchSpecifiedLevel(clusterName, level string) {
+func (s *SpecifiedGameService) launchSpecifiedLevel(clusterName, level string) {
 
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
@@ -66,33 +68,33 @@ func launchSpecifiedLevel(clusterName, level string) {
 
 	cmd := "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + screenKey + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + level + "  ;"
 
-	_, err := Shell(cmd)
+	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		log.Panicln("launch " + cluster + " " + level + " error: " + err.Error())
 	}
 
 }
 
-func stopSpecifiedMaster(clusterName string) {
+func (s *SpecifiedGameService) stopSpecifiedMaster(clusterName string) {
 	level := "Master"
-	stopSpecifiedLevel(clusterName, level)
+	s.stopSpecifiedLevel(clusterName, level)
 }
 
-func stopSpecifiedCaves(clusterName string) {
+func (s *SpecifiedGameService) stopSpecifiedCaves(clusterName string) {
 
 	level := "Caves"
-	stopSpecifiedLevel(clusterName, level)
+	s.stopSpecifiedLevel(clusterName, level)
 }
 
-func stopSpecifiedLevel(clusterName, level string) {
-	shutdownSpecifiedLevel(clusterName, level)
+func (s *SpecifiedGameService) stopSpecifiedLevel(clusterName, level string) {
+	s.shutdownSpecifiedLevel(clusterName, level)
 
 	time.Sleep(3 * time.Second)
 
-	if GetSpecifiedLevelStatus(clusterName, level) {
+	if s.GetSpecifiedLevelStatus(clusterName, level) {
 		var i uint8 = 1
 		for {
-			if GetSpecifiedLevelStatus(clusterName, level) {
+			if s.GetSpecifiedLevelStatus(clusterName, level) {
 				break
 			}
 			time.Sleep(1 * time.Second)
@@ -102,65 +104,67 @@ func stopSpecifiedLevel(clusterName, level string) {
 			}
 		}
 	}
-	killSpecifiedLevel(clusterName, level)
+	s.killSpecifiedLevel(clusterName, level)
 }
 
-func StopSpecifiedGame(clusterName string, opType int) {
+func (s *SpecifiedGameService) StopSpecifiedGame(clusterName string, opType int) {
 	if opType == dst.START_GAME {
-		stopSpecifiedMaster(clusterName)
-		stopSpecifiedCaves(clusterName)
+		s.stopSpecifiedMaster(clusterName)
+		s.stopSpecifiedCaves(clusterName)
 	}
 
 	if opType == dst.START_MASTER {
-		stopSpecifiedMaster(clusterName)
+		s.stopSpecifiedMaster(clusterName)
 	}
 
 	if opType == dst.START_CAVES {
-		stopSpecifiedCaves(clusterName)
+		s.stopSpecifiedCaves(clusterName)
 	}
 }
 
-func launchSpecifiedMaster(clusterName string) {
+func (s *SpecifiedGameService) launchSpecifiedMaster(clusterName string) {
 	level := "Master"
-	launchSpecifiedLevel(clusterName, level)
+	s.launchSpecifiedLevel(clusterName, level)
 }
 
-func launchSpecifiedCaves(clusterName string) {
+func (s *SpecifiedGameService) launchSpecifiedCaves(clusterName string) {
 	level := "Caves"
-	launchSpecifiedLevel(clusterName, level)
+	s.launchSpecifiedLevel(clusterName, level)
 }
 
-func StartSpecifiedGame(clusterName string, opType int) {
+func (s *SpecifiedGameService) StartSpecifiedGame(clusterName string, opType int) {
 	if opType == dst.START_GAME {
 
-		stopSpecifiedMaster(clusterName)
-		stopSpecifiedCaves(clusterName)
+		s.stopSpecifiedMaster(clusterName)
+		s.stopSpecifiedCaves(clusterName)
 
-		launchSpecifiedMaster(clusterName)
-		launchSpecifiedCaves(clusterName)
+		s.launchSpecifiedMaster(clusterName)
+		s.launchSpecifiedCaves(clusterName)
 	}
 
 	if opType == dst.START_MASTER {
-		stopSpecifiedMaster(clusterName)
-		launchSpecifiedMaster(clusterName)
+		s.stopSpecifiedMaster(clusterName)
+		s.launchSpecifiedMaster(clusterName)
 	}
 
 	if opType == dst.START_CAVES {
-		stopSpecifiedCaves(clusterName)
-		launchSpecifiedCaves(clusterName)
+		s.stopSpecifiedCaves(clusterName)
+		s.launchSpecifiedCaves(clusterName)
 	}
 
 	ClearScreen()
 }
 
-func GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
-	wg.Add(N)
+func (s *SpecifiedGameService) GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
+	var wg sync.WaitGroup
+	wg.Add(10)
+
 	dashboardVO := vo.NewDashboardVO()
 	start := time.Now()
 	go func() {
 		defer wg.Done()
 		s1 := time.Now()
-		dashboardVO.MasterStatus = GetSpecifiedLevelStatus(clusterName, "Master")
+		dashboardVO.MasterStatus = s.GetSpecifiedLevelStatus(clusterName, "Master")
 		elapsed := time.Since(s1)
 		fmt.Println("master =", elapsed)
 	}()
@@ -168,7 +172,7 @@ func GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
 	go func() {
 		defer wg.Done()
 		s1 := time.Now()
-		dashboardVO.CavesStatus = GetSpecifiedLevelStatus(clusterName, "Caves")
+		dashboardVO.CavesStatus = s.GetSpecifiedLevelStatus(clusterName, "Caves")
 		elapsed := time.Since(s1)
 		fmt.Println("cave =", elapsed)
 	}()
@@ -219,18 +223,18 @@ func GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
 
 	go func() {
 		defer wg.Done()
-		dashboardVO.Version = GetDstVersion()
+		dashboardVO.Version = ""
 	}()
 
 	// 获取master进程占用情况
 	go func() {
 		defer wg.Done()
-		dashboardVO.MasterPs = PsAuxSpecified(clusterName, "Master")
+		dashboardVO.MasterPs = s.PsAuxSpecified(clusterName, "Master")
 	}()
 	// 获取caves进程占用情况
 	go func() {
 		defer wg.Done()
-		dashboardVO.CavesPs = PsAuxSpecified(clusterName, "Caves")
+		dashboardVO.CavesPs = s.PsAuxSpecified(clusterName, "Caves")
 	}()
 
 	wg.Wait()
@@ -240,13 +244,11 @@ func GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
 	return *dashboardVO
 }
 
-/*
- */
-func PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
+func (s *SpecifiedGameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
 
-	info, err := Shell(cmd)
+	info, err := shellUtils.Shell(cmd)
 	if err != nil {
 		log.Println(cmd + " error: " + err.Error())
 		return dstPsVo

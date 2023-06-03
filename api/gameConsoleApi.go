@@ -10,9 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UpdateGame(ctx *gin.Context) {
+type GameConsoleApi struct {
+}
 
-	service.UpdateGame()
+var gameService = service.GameService{}
+var dstService = service.DstService{}
+
+func (g *GameConsoleApi) UpdateGame(ctx *gin.Context) {
+
+	gameService.UpdateGame()
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -21,77 +27,7 @@ func UpdateGame(ctx *gin.Context) {
 	})
 }
 
-func StartGame(ctx *gin.Context) {
-
-	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
-	log.Println("正在启动游戏服务 type:", opType)
-	service.StartGame(opType)
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "start game success",
-		Data: nil,
-	})
-}
-
-func StoptGame(ctx *gin.Context) {
-
-	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
-	log.Println("正在停止游戏服务 type:", opType)
-	service.StopGame(opType)
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "stop game success",
-		Data: nil,
-	})
-}
-
-func StartMaster(ctx *gin.Context) {
-
-	service.StartMaster()
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "start master success",
-		Data: nil,
-	})
-}
-
-func StopMaster(ctx *gin.Context) {
-
-	service.ElegantShutdownMaster()
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "stop master success",
-		Data: nil,
-	})
-}
-
-func StartCaves(ctx *gin.Context) {
-
-	service.ElegantShutdownCaves()
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "start caves success",
-		Data: nil,
-	})
-}
-
-func StopCaves(ctx *gin.Context) {
-
-	service.ElegantShutdownCaves()
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "stop caves success",
-		Data: nil,
-	})
-}
-
-func SentBroadcast(ctx *gin.Context) {
+func (g *GameConsoleApi) SentBroadcast(ctx *gin.Context) {
 	message := ctx.Query("message")
 	log.Println("发送公告信息：" + message)
 	service.SentBroadcast(message)
@@ -103,7 +39,7 @@ func SentBroadcast(ctx *gin.Context) {
 	})
 }
 
-func KickPlayer(ctx *gin.Context) {
+func (g *GameConsoleApi) KickPlayer(ctx *gin.Context) {
 	kuId := ctx.Query("kuId")
 	log.Println("踢出玩家：" + kuId)
 	service.KickPlayer(kuId)
@@ -115,7 +51,7 @@ func KickPlayer(ctx *gin.Context) {
 	})
 }
 
-func KillPlayer(ctx *gin.Context) {
+func (g *GameConsoleApi) KillPlayer(ctx *gin.Context) {
 	kuId := ctx.Query("kuId")
 	log.Println("kill玩家：" + kuId)
 	service.KillPlayer(kuId)
@@ -127,7 +63,7 @@ func KillPlayer(ctx *gin.Context) {
 	})
 }
 
-func RespawnPlayer(ctx *gin.Context) {
+func (g *GameConsoleApi) RespawnPlayer(ctx *gin.Context) {
 	kuId := ctx.Query("kuId")
 	log.Println("复活玩家：" + kuId)
 	service.RespawnPlayer(kuId)
@@ -139,7 +75,7 @@ func RespawnPlayer(ctx *gin.Context) {
 	})
 }
 
-func RollBack(ctx *gin.Context) {
+func (g *GameConsoleApi) RollBack(ctx *gin.Context) {
 	dayNums := ctx.Query("dayNums")
 	days, err := strconv.Atoi(dayNums)
 	if err != nil {
@@ -155,7 +91,7 @@ func RollBack(ctx *gin.Context) {
 	})
 }
 
-func Regenerateworld(ctx *gin.Context) {
+func (g *GameConsoleApi) Regenerateworld(ctx *gin.Context) {
 
 	log.Println("重置世界......")
 	service.Regenerateworld()
@@ -167,7 +103,7 @@ func Regenerateworld(ctx *gin.Context) {
 	})
 }
 
-func CleanWorld(ctx *gin.Context) {
+func (g *GameConsoleApi) CleanWorld(ctx *gin.Context) {
 
 	log.Println("删除世界......")
 	service.CleanWorld()
@@ -179,7 +115,7 @@ func CleanWorld(ctx *gin.Context) {
 	})
 }
 
-func MasterConsole(ctx *gin.Context) {
+func (g *GameConsoleApi) MasterConsole(ctx *gin.Context) {
 	var body struct {
 		Command string `json:"command"`
 	}
@@ -198,7 +134,7 @@ func MasterConsole(ctx *gin.Context) {
 	})
 }
 
-func CavesConsole(ctx *gin.Context) {
+func (g *GameConsoleApi) CavesConsole(ctx *gin.Context) {
 	var body struct {
 		Command string `json:"command"`
 	}
@@ -217,7 +153,7 @@ func CavesConsole(ctx *gin.Context) {
 	})
 }
 
-func OperatePlayer(ctx *gin.Context) {
+func (g *GameConsoleApi) OperatePlayer(ctx *gin.Context) {
 
 	otype := ctx.Param("type")
 	kuId := ctx.Param("kuId")
@@ -233,11 +169,11 @@ func OperatePlayer(ctx *gin.Context) {
 }
 
 // TODO GET /game/restore
-func RestoreBackup(ctx *gin.Context) {
+func (g *GameConsoleApi) RestoreBackup(ctx *gin.Context) {
 
 	backupName := ctx.Query("backupName")
 
-	service.RestoreBackup(backupName)
+	backupService.RestoreBackup(backupName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -250,11 +186,11 @@ func DeleteGame() {
 
 }
 
-func GetGameArchive(ctx *gin.Context) {
+func (g *GameConsoleApi) GetGameArchive(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetCurrGameArchive(),
+		Data: dstService.GetCurrGameArchive(),
 	})
 }

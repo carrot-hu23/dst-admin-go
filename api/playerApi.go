@@ -8,38 +8,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetDstPlayerList(ctx *gin.Context) {
+type PlayerApi struct {
+}
+
+var playerService = service.PlayerService{}
+
+func (p *PlayerApi) GetDstPlayerList(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetPlayerList(),
+		Data: playerService.GetPlayerList(),
 	})
 }
 
-func GetDstAdminList(ctx *gin.Context) {
+func (p *PlayerApi) GetDstAdminList(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetDstAdminList(),
+		Data: playerService.GetDstAdminList(),
 	})
 }
 
-func GetDstBlcaklistPlayerList(ctx *gin.Context) {
+func (p *PlayerApi) GetDstBlcaklistPlayerList(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetDstBlcaklistPlayerList(),
+		Data: playerService.GetDstBlcaklistPlayerList(),
 	})
 }
 
-func SaveDstAdminList(ctx *gin.Context) {
+func (p *PlayerApi) SaveDstAdminList(ctx *gin.Context) {
 
 	adminListVO := vo.NewAdminListVO()
 	ctx.BindJSON(adminListVO)
-	service.SaveDstAdminList(adminListVO.AdminList)
+	playerService.SaveDstAdminList(adminListVO.AdminList)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -47,11 +52,11 @@ func SaveDstAdminList(ctx *gin.Context) {
 	})
 }
 
-func SaveDstBlacklistPlayerList(ctx *gin.Context) {
+func (p *PlayerApi) SaveDstBlacklistPlayerList(ctx *gin.Context) {
 
 	blacklistVO := vo.NewBlacklistVO()
 	ctx.BindJSON(blacklistVO)
-	service.SaveDstBlacklistPlayerList(blacklistVO.Blacklist)
+	playerService.SaveDstBlacklistPlayerList(blacklistVO.Blacklist)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

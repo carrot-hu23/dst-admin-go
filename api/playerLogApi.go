@@ -1,7 +1,8 @@
 package api
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/database"
+	"dst-admin-go/model"
 	"dst-admin-go/vo"
 	"fmt"
 	"net/http"
@@ -10,7 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PlayerLogQueryPage(ctx *gin.Context) {
+type PlayerLogApi struct {
+}
+
+func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 
 	//获取查询参数
 	name := ctx.Query("name")
@@ -27,7 +31,7 @@ func PlayerLogQueryPage(ctx *gin.Context) {
 		size = 10
 	}
 
-	db := entity.DB
+	db := database.DB
 
 	if name, isExist := ctx.GetQuery("name"); isExist {
 		db = db.Where("name LIKE ?", "%"+name+"%")
@@ -41,7 +45,7 @@ func PlayerLogQueryPage(ctx *gin.Context) {
 
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 
-	playerLogs := make([]entity.PlayerLog, 0)
+	playerLogs := make([]model.PlayerLog, 0)
 
 	if err := db.Find(&playerLogs).Error; err != nil {
 		fmt.Println(err.Error())
@@ -49,11 +53,11 @@ func PlayerLogQueryPage(ctx *gin.Context) {
 
 	fmt.Println("name:", name, "kuId", kuId, "steamId", steamId)
 	var total int64
-	db2 := entity.DB
+	db2 := database.DB
 	if name != "" {
-		db2.Model(&entity.PlayerLog{}).Where("name like ?", "%"+name+"%").Count(&total)
+		db2.Model(&model.PlayerLog{}).Where("name like ?", "%"+name+"%").Count(&total)
 	} else {
-		db2.Model(&entity.PlayerLog{}).Count(&total)
+		db2.Model(&model.PlayerLog{}).Count(&total)
 	}
 	totalPages := total / int64(size)
 	if total%int64(size) != 0 {

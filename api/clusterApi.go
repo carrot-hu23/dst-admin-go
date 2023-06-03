@@ -10,16 +10,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetClusterConfig(ctx *gin.Context) {
+type ClusterApi struct{}
+
+var clusterService = service.ClusterService{}
+
+func (c *ClusterApi) GetClusterConfig(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetmultiLevelWorldConfig(),
+		Data: clusterService.GetMultiLevelWorldConfig(),
 	})
 }
 
-func SaveClusterConfig(ctx *gin.Context) {
+func (c *ClusterApi) SaveClusterConfig(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -28,20 +32,20 @@ func SaveClusterConfig(ctx *gin.Context) {
 	})
 }
 
-func GetGameConfog(ctx *gin.Context) {
+func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetGameConfog(),
+		Data: clusterService.GetGameConfog(),
 	})
 }
 
-func SaveGameConfog(ctx *gin.Context) {
+func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
 
 	gameConfig := cluster.GameConfig{}
 	ctx.ShouldBind(&gameConfig)
 	fmt.Printf("%v", gameConfig.Caves.ServerIni)
-	service.SaveGameConfig(&gameConfig)
+	clusterService.SaveGameConfig(&gameConfig)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

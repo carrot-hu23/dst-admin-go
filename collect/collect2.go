@@ -1,7 +1,8 @@
 package collect
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/database"
+	"dst-admin-go/model"
 	"fmt"
 	"github.com/hpcloud/tail"
 	"log"
@@ -52,21 +53,23 @@ func (c *Collect) ReCollect(baseLogPath string) {
 }
 
 func (c *Collect) StartCollect() {
-	for {
-		select {
-		case <-c.state:
-			// 采集
-			for _, s := range c.severLogList {
-				go c.tailServeLog(s)
+	go func() {
+		for {
+			select {
+			case <-c.state:
+				// 采集
+				for _, s := range c.severLogList {
+					go c.tailServeLog(s)
+				}
+				for _, s := range c.serverChatLogList {
+					go c.tailServerChatLog(s)
+				}
+			default:
+				time.Sleep(5 * time.Second)
+				continue
 			}
-			for _, s := range c.serverChatLogList {
-				go c.tailServerChatLog(s)
-			}
-		default:
-			time.Sleep(5 * time.Second)
-			continue
 		}
-	}
+	}()
 }
 
 func (c *Collect) parseSpawnRequestLog(text string) {
@@ -77,8 +80,8 @@ func (c *Collect) parseSpawnRequestLog(text string) {
 	role := strings.Replace(arr[3], " ", "", -1)
 	name := strings.Replace(arr[5], "\n", "", -1)
 
-	spawn := entity.Spawn{Name: name, Role: role, Time: t}
-	entity.DB.Create(&spawn)
+	spawn := model.Spawn{Name: name, Role: role, Time: t}
+	database.DB.Create(&spawn)
 }
 
 func (c *Collect) parseRegenerateLog(text string) {
@@ -87,7 +90,7 @@ func (c *Collect) parseRegenerateLog(text string) {
 
 func (c *Collect) parseNewIncomingLog(lines []string) {
 
-	connect := entity.Connect{}
+	connect := model.Connect{}
 	for i, line := range lines {
 		fmt.Println(i, line)
 		if i == 1 {
@@ -137,7 +140,7 @@ func (c *Collect) parseNewIncomingLog(lines []string) {
 			}
 		}
 	}
-	entity.DB.Create(&connect)
+	database.DB.Create(&connect)
 }
 
 func (c *Collect) tailServeLog(fileName string) {
@@ -245,7 +248,7 @@ func (c *Collect) parseSay(text string) {
 	spawn := c.getSpawnRole(name)
 	connect := c.getConnectInfo(name)
 
-	playerLog := entity.PlayerLog{
+	playerLog := model.PlayerLog{
 		Name:       name,
 		Role:       spawn.Role,
 		Action:     action,
@@ -255,7 +258,7 @@ func (c *Collect) parseSay(text string) {
 		KuId:       kuId,
 		SteamId:    connect.SteamId,
 	}
-	entity.DB.Create(&playerLog)
+	database.DB.Create(&playerLog)
 }
 
 func (c *Collect) parseResurrect(text string) {
@@ -282,7 +285,7 @@ func (c *Collect) parseDeath(text string) {
 	connect := c.getConnectInfo(name)
 	fmt.Println(connect)
 
-	playerLog := entity.PlayerLog{
+	playerLog := model.PlayerLog{
 		Name:       name,
 		Role:       spawn.Role,
 		Action:     action,
@@ -293,7 +296,7 @@ func (c *Collect) parseDeath(text string) {
 		SteamId:    connect.SteamId,
 	}
 
-	entity.DB.Create(&playerLog)
+	database.DB.Create(&playerLog)
 
 }
 
@@ -312,7 +315,7 @@ func (c *Collect) parseJoin(text string) {
 	spawn := c.getSpawnRole(name)
 	connect := c.getConnectInfo(name)
 
-	playerLog := entity.PlayerLog{
+	playerLog := model.PlayerLog{
 		Name:    name,
 		Role:    spawn.Role,
 		Action:  action,
@@ -321,7 +324,7 @@ func (c *Collect) parseJoin(text string) {
 		KuId:    connect.KuId,
 		SteamId: connect.SteamId,
 	}
-	entity.DB.Create(&playerLog)
+	database.DB.Create(&playerLog)
 }
 
 func (c *Collect) tailServerChatLog(fileName string) {
@@ -359,14 +362,14 @@ func (c *Collect) tailServerChatLog(fileName string) {
 	}
 }
 
-func (c *Collect) getSpawnRole(name string) *entity.Spawn {
-	spawn := new(entity.Spawn)
-	entity.DB.Where("name LIKE ?", "%"+name+"%").Last(spawn)
+func (c *Collect) getSpawnRole(name string) *model.Spawn {
+	spawn := new(model.Spawn)
+	database.DB.Where("name LIKE ?", "%"+name+"%").Last(spawn)
 	return spawn
 }
 
-func (c *Collect) getConnectInfo(name string) *entity.Connect {
-	connect := new(entity.Connect)
-	entity.DB.Where("name LIKE ?", "%"+name+"%").Last(connect)
+func (c *Collect) getConnectInfo(name string) *model.Connect {
+	connect := new(model.Connect)
+	database.DB.Where("name LIKE ?", "%"+name+"%").Last(connect)
 	return connect
 }

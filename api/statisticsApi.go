@@ -1,7 +1,7 @@
 package api
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/database"
 	"dst-admin-go/utils"
 	"dst-admin-go/vo"
 	"fmt"
@@ -10,6 +10,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+type StatisticsApi struct {
+}
 
 type UserStatistics struct {
 	Count int       `json:"y"`
@@ -42,18 +45,18 @@ func find_stamp(stamp int64, data []UserStatistics) *UserStatistics {
 	return nil
 }
 
-func CountActiveUser(ctx *gin.Context) {
+func (s *StatisticsApi) CountActiveUser(ctx *gin.Context) {
 
 	unit := ctx.Query("unit")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
 	fmt.Println("unit", unit, "startTime", startDate, "endTime", endDate)
 
-	db := entity.DB
+	db := database.DB
 	var data1 []UserStatistics
 	var data2 []UserStatistics
 	var stamps []int64
-	//db.Raw("select count(distinct name), day(create_at) from player_logs  where create_at between ? and ? group by month(create_at), day(create_at)", "2023-02-25T16:24:33.2960449+08:00", "2023-02-25T15:59:15.5348647+08:00").Scan(&data)
+	//database.Raw("select count(distinct name), day(create_at) from player_logs  where create_at between ? and ? group by month(create_at), day(create_at)", "2023-02-25T16:24:33.2960449+08:00", "2023-02-25T15:59:15.5348647+08:00").Scan(&data)
 	if unit == "MONTH" {
 		db.Raw("select count(distinct name) as count,created_at as date from player_logs where created_at between ? and ? group by strftime('%Y',created_at),strftime('%m',created_at)", startDate, endDate).Scan(&data1)
 		db.Raw("select count(name) as count,created_at as date from player_logs where created_at between ? and ? and action like '[JoinAnnouncement]' group by strftime('%Y',created_at),strftime('%m',created_at)", startDate, endDate).Scan(&data2)
@@ -76,8 +79,8 @@ func CountActiveUser(ctx *gin.Context) {
 		db.Raw(sql1, startDate, endDate).Scan(&data1)
 		db.Raw(sql2, startDate, endDate).Scan(&data2)
 
-		// db.Raw("select count(distinct name) as count,created_at as date from player_logs where action like '[JoinAnnouncement]' group by strftime('%m',created_at),strftime('%d',created_at)").Scan(&data1)
-		// db.Raw("select count(name) as count,created_at as date from player_logs where action like '[JoinAnnouncement]' group by strftime('%m',created_at),strftime('%d',created_at)").Scan(&data2)
+		// database.Raw("select count(distinct name) as count,created_at as date from player_logs where action like '[JoinAnnouncement]' group by strftime('%m',created_at),strftime('%d',created_at)").Scan(&data1)
+		// database.Raw("select count(name) as count,created_at as date from player_logs where action like '[JoinAnnouncement]' group by strftime('%m',created_at),strftime('%d',created_at)").Scan(&data2)
 
 		stamps = utils.Get_stamp_day(startDate, endDate)
 	}
@@ -113,14 +116,14 @@ func CountActiveUser(ctx *gin.Context) {
 	})
 }
 
-func CountLoginUser(ctx *gin.Context) {
+func (s *StatisticsApi) CountLoginUser(ctx *gin.Context) {
 
 	unit := ctx.Query("unit")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
 	fmt.Println("unit", unit, "startTime", startDate, "endTime", endDate)
 
-	db := entity.DB
+	db := database.DB
 	var data []UserStatistics
 	if unit == "MONTH" {
 		db.Raw("select count(name) as count,created_at as date from player_logs where created_at between ? and ? group by strftime('%Y',created_at),strftime('%m',created_at)", startDate, endDate).Scan(&data)
@@ -136,11 +139,11 @@ func CountLoginUser(ctx *gin.Context) {
 	})
 }
 
-func TopUserGameTime() {
+func (s *StatisticsApi) TopUserGameTime() {
 
 }
 
-func TopUserActiveTimes(ctx *gin.Context) {
+func (s *StatisticsApi) TopUserActiveTimes(ctx *gin.Context) {
 	N := ctx.Query("N")
 
 	// startTime, _ := time.Parse("2006-01-02T15:04:05.000Z", startDate)
@@ -151,7 +154,7 @@ func TopUserActiveTimes(ctx *gin.Context) {
 
 	fmt.Println("N", N, "startTime", startDate, "endTime", endDate)
 
-	db := entity.DB
+	db := database.DB
 
 	//本天，本周，本月
 	var data []TopStatistics
@@ -171,14 +174,14 @@ func TopUserActiveTimes(ctx *gin.Context) {
 	})
 }
 
-func TopUserLoginimes(ctx *gin.Context) {
+func (s *StatisticsApi) TopUserLoginimes(ctx *gin.Context) {
 	N := ctx.Query("N")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
 
 	fmt.Println("N", N, "startDate", startDate, "endDate", endDate)
 
-	db := entity.DB
+	db := database.DB
 
 	//本天，本周，本月
 	var data []TopStatistics
@@ -199,7 +202,7 @@ func TopUserLoginimes(ctx *gin.Context) {
 	})
 }
 
-func TopDeaths(ctx *gin.Context) {
+func (s *StatisticsApi) TopDeaths(ctx *gin.Context) {
 
 	N := ctx.Query("N")
 	startDate := startDate(ctx)
@@ -207,7 +210,7 @@ func TopDeaths(ctx *gin.Context) {
 
 	fmt.Println("N", N, "startDate", startDate, "endDate", endDate)
 
-	db := entity.DB
+	db := database.DB
 
 	//本天，本周，本月
 	var data []TopStatistics
@@ -227,11 +230,11 @@ func TopDeaths(ctx *gin.Context) {
 	})
 }
 
-func CountRoleRate(ctx *gin.Context) {
+func (s *StatisticsApi) CountRoleRate(ctx *gin.Context) {
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
 
-	db := entity.DB
+	db := database.DB
 
 	//本天，本周，本月
 	var data []RoleRateStatistics

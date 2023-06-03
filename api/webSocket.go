@@ -14,6 +14,9 @@ import (
 	"github.com/hpcloud/tail"
 )
 
+type WebSocketApi struct {
+}
+
 const (
 	// Time allowed to write the file to the client.
 	writeWait = 10 * time.Second
@@ -39,7 +42,7 @@ var (
 	}
 )
 
-func HandlerWS(ctx *gin.Context) {
+func (ws *WebSocketApi) HandlerWS(ctx *gin.Context) {
 	w := ctx.Writer
 	r := ctx.Request
 	wsTail(w, r)

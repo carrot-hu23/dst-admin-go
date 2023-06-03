@@ -10,8 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ThirdPartyApi struct {
+}
+
 // 获取饥荒的版本号
-func GetDstVersion(c *gin.Context) {
+func (t *ThirdPartyApi) GetDstVersion(c *gin.Context) {
 
 	url := "http://ver.tugos.cn/getLocalVersion"
 	response, err := http.Get(url)
@@ -32,7 +35,7 @@ func GetDstVersion(c *gin.Context) {
 }
 
 // 获取第三方饥荒服务器
-func GetDstHomeServerList(c *gin.Context) {
+func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 
 	// response, err := http.Get("https://dst.liuyh.com/index/serverlist/getserverlist.html")
 	// if err != nil || response.StatusCode != http.StatusOK {
@@ -75,7 +78,7 @@ func GetDstHomeServerList(c *gin.Context) {
 }
 
 // 获取第三方饥荒服务器详情
-func GetDstHomeDetailList(c *gin.Context) {
+func (t *ThirdPartyApi) GetDstHomeDetailList(c *gin.Context) {
 
 	param := third.NewDstHomeDetailParam()
 	c.Bind(param)

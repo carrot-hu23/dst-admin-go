@@ -1,4 +1,4 @@
-package handler
+package middleware
 
 import (
 	"dst-admin-go/api"

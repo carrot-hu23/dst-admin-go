@@ -15,7 +15,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetBackupList() []vo.BackupVo {
+type BackupService struct {
+	GameConfigService
+}
+
+func (b *BackupService) GetBackupList() []vo.BackupVo {
 	var backupPath = dstConfigUtils.GetDstConfig().Backup
 	var backupList []vo.BackupVo
 
@@ -48,37 +52,49 @@ func GetBackupList() []vo.BackupVo {
 
 }
 
-func RenameBackup(fileName, newName string) {
-	backupPath := backupPath()
-	fileUtils.Rename(path.Join(backupPath, fileName), path.Join(backupPath, newName))
+func (b *BackupService) RenameBackup(fileName, newName string) {
+	backupPath := b.backupPath()
+	err := fileUtils.Rename(path.Join(backupPath, fileName), path.Join(backupPath, newName))
+	if err != nil {
+		return
+	}
 }
 
-func DeleteBackup(fileNames []string) {
-	backupPath := backupPath()
+func (b *BackupService) DeleteBackup(fileNames []string) {
+	backupPath := b.backupPath()
 	for _, fileName := range fileNames {
 		filePath := path.Join(backupPath, fileName)
 		if !fileUtils.Exists(filePath) {
 			continue
 		}
-		fileUtils.DeleteFile(filePath)
+		err := fileUtils.DeleteFile(filePath)
+		if err != nil {
+			return
+		}
 	}
 
 }
 
 // TODO: 恢复存档
-func RestoreBackup(backupName string) {
+func (b *BackupService) RestoreBackup(backupName string) {
 
 	dstConfig := dstConfigUtils.GetDstConfig()
 	filePath := path.Join(dstConfig.Backup, backupName)
 	log.Println("filepath", filePath)
 
 	clusterPath := constant.GET_DST_USER_GAME_CONFG_PATH()
-	fileUtils.DeleteDir(clusterPath)
-	zip.Unzip(filePath, clusterPath)
+	err := fileUtils.DeleteDir(clusterPath)
+	if err != nil {
+		return
+	}
+	err = zip.Unzip(filePath, clusterPath)
+	if err != nil {
+		return
+	}
 
 }
 
-func CreateBackup(backupName string) {
+func (b *BackupService) CreateBackup(backupName string) {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	backupPath := dstConfig.Backup
 	src := constant.GET_DST_USER_GAME_CONFG_PATH()
@@ -87,7 +103,7 @@ func CreateBackup(backupName string) {
 	}
 	if backupName == "" {
 		gameConfig := vo.NewGameConfigVO()
-		GetClusterIni(gameConfig)
+		b.GetClusterIni(gameConfig)
 		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName + ".zip"
 	}
 	dst := path.Join(backupPath, backupName)
@@ -99,11 +115,10 @@ func CreateBackup(backupName string) {
 	log.Println("创建备份成功")
 }
 
-// TODO: 下载存档
-func DownloadBackup(c *gin.Context) {
+func (b *BackupService) DownloadBackup(c *gin.Context) {
 	fileName := c.Query("fileName")
 
-	filePath := path.Join(backupPath(), fileName)
+	filePath := path.Join(b.backupPath(), fileName)
 	//打开文件
 	_, err := os.Open(filePath)
 	//非空处理
@@ -117,25 +132,28 @@ func DownloadBackup(c *gin.Context) {
 	c.File(filePath)
 }
 
-func UploadBackup(c *gin.Context) {
+func (b *BackupService) UploadBackup(c *gin.Context) {
 	// 单文件
 	file, _ := c.FormFile("file")
 	log.Println(file.Filename)
 
-	dst := path.Join(backupPath(), file.Filename)
+	dst := path.Join(b.backupPath(), file.Filename)
 
 	if fileUtils.Exists(dst) {
 		log.Panicln("backup is existed")
 	}
 
 	// 上传文件至指定的完整文件路径
-	c.SaveUploadedFile(file, dst)
+	err := c.SaveUploadedFile(file, dst)
+	if err != nil {
+		return
+	}
 
 	// c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 
 }
 
-func backupPath() string {
+func (b *BackupService) backupPath() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	backupPath := dstConfig.Backup
 	if !fileUtils.Exists(backupPath) {

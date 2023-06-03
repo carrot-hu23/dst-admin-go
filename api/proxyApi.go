@@ -1,7 +1,9 @@
 package api
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/database"
+	"dst-admin-go/config/global"
+	"dst-admin-go/model"
 	"dst-admin-go/vo"
 	"fmt"
 	"net/http"
@@ -10,11 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewProxy(ctx *gin.Context) {
+type ProxyApi struct {
+}
+
+func (p *ProxyApi) NewProxy(ctx *gin.Context) {
 
 	app := ctx.Param("name")
 
-	route := entity.RoutingTable[app]
+	route := global.RoutingTable[app]
 
 	url := ctx.Request.URL.Path
 	url = strings.TrimPrefix(url, "/app/"+app)
@@ -30,46 +35,46 @@ func NewProxy(ctx *gin.Context) {
 
 }
 
-func GetProxyEntity(ctx *gin.Context) {
+func (p *ProxyApi) GetProxyEntity(ctx *gin.Context) {
 
-	proxyEntities := make([]entity.Proxy, 0)
+	proxyEntities := make([]model.Proxy, 0)
 
-	db := entity.DB
+	db := database.DB
 	db.Find(&proxyEntities)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
-		Msg:  "Get proxy entity success",
+		Msg:  "Get proxy model success",
 		Data: proxyEntities,
 	})
 
 }
 
-func CreateProxyEntity(ctx *gin.Context) {
+func (p *ProxyApi) CreateProxyEntity(ctx *gin.Context) {
 
-	proxyEntity := entity.Proxy{}
+	proxyEntity := model.Proxy{}
 
 	ctx.Bind(&proxyEntity)
 
-	db := entity.DB
+	db := database.DB
 	db.Create(&proxyEntity)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
-		Msg:  "create proxy entity success",
+		Msg:  "create proxy model success",
 	})
 
 }
 
-func UpdateProxyEntity(ctx *gin.Context) {
+func (p *ProxyApi) UpdateProxyEntity(ctx *gin.Context) {
 
 	proxyParam := vo.ProxyParam{}
 
-	proxyEntity := entity.Proxy{}
+	proxyEntity := model.Proxy{}
 
 	ctx.Bind(&proxyParam)
 	fmt.Println(proxyParam)
 
-	db := entity.DB
+	db := database.DB
 
 	db.Where("id=?", proxyParam.Id).First(&proxyEntity)
 
@@ -82,23 +87,23 @@ func UpdateProxyEntity(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
-		Msg:  "update proxy entity success",
+		Msg:  "update proxy model success",
 	})
 
 }
 
-func DeleteProxyEntity(ctx *gin.Context) {
+func (p *ProxyApi) DeleteProxyEntity(ctx *gin.Context) {
 
 	id := ctx.Query("id")
 
-	proxyEntity := entity.Proxy{}
-	db := entity.DB
+	proxyEntity := model.Proxy{}
+	db := database.DB
 	db.Where("id=?", id).Take(&proxyEntity)
 	db.Delete(&proxyEntity)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
-		Msg:  "delete proxy entity success",
+		Msg:  "delete proxy model success",
 	})
 
 }

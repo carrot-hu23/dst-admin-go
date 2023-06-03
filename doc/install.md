@@ -47,7 +47,7 @@ cd ~
     **参考配置**
     ```yml
     port: 8082
-    db: dst-db
+    db: dst-database
     ```
 ## 3. 启动
 

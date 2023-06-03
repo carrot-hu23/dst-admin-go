@@ -9,7 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetDstConfig(ctx *gin.Context) {
+type DstConfigApi struct {
+}
+
+var initEvnService = service.InitService{}
+
+func (d *DstConfigApi) GetDstConfig(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -18,11 +23,11 @@ func GetDstConfig(ctx *gin.Context) {
 	})
 }
 
-func SaveDstConfig(ctx *gin.Context) {
+func (d *DstConfigApi) SaveDstConfig(ctx *gin.Context) {
 	dstConfig := dstConfigUtils.NewDstConfig()
 	ctx.Bind(dstConfig)
 	dstConfigUtils.SaveDstConfig(dstConfig)
-	service.InitBaseLevel(dstConfig, "test", "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw=", true)
+	initEvnService.InitBaseLevel(dstConfig, "test", "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw=", true)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "save dst_config success",

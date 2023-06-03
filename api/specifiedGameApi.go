@@ -11,12 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func StartSpecifiedGame(ctx *gin.Context) {
+type SpecifiedGameApi struct {
+}
+
+var specifiedGameService = service.SpecifiedGameService{}
+
+func (s *SpecifiedGameApi) StartSpecifiedGame(ctx *gin.Context) {
 
 	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
 	cluster := dstConfigUtils.GetDstConfig().Cluster
 	log.Println("正在启动指定游戏服务 type:", cluster, opType)
-	service.StartSpecifiedGame(cluster, opType)
+	specifiedGameService.StartSpecifiedGame(cluster, opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -25,13 +30,13 @@ func StartSpecifiedGame(ctx *gin.Context) {
 	})
 }
 
-func StopSpecifiedGame(ctx *gin.Context) {
+func (s *SpecifiedGameApi) StopSpecifiedGame(ctx *gin.Context) {
 
 	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
 	cluster := dstConfigUtils.GetDstConfig().Cluster
 	log.Println("正在停止指定游戏服务 type:", cluster, opType)
 
-	service.StopSpecifiedGame(cluster, opType)
+	specifiedGameService.StopSpecifiedGame(cluster, opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -40,13 +45,13 @@ func StopSpecifiedGame(ctx *gin.Context) {
 	})
 }
 
-func GetSpecifiedDashboardInfo(ctx *gin.Context) {
+func (s *SpecifiedGameApi) GetSpecifiedDashboardInfo(ctx *gin.Context) {
 
 	cluster := dstConfigUtils.GetDstConfig().Cluster
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: service.GetSpecifiedClusterDashboard(cluster),
+		Data: specifiedGameService.GetSpecifiedClusterDashboard(cluster),
 	})
 }
 

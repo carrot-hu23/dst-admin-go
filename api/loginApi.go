@@ -8,32 +8,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetUserInfo(ctx *gin.Context) {
+type LoginApi struct {
+}
+
+var loginService = service.LoginService{}
+
+func (l *LoginApi) GetUserInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "Init user success",
-		Data: service.GetUserInfo(),
+		Data: loginService.GetUserInfo(),
 	})
 }
 
-func Login(ctx *gin.Context) {
+func (l *LoginApi) Login(ctx *gin.Context) {
 
 	userVO := vo.NewUserVO()
 	ctx.BindJSON(userVO)
 
-	response := service.Login(userVO, ctx, sessions)
+	response := loginService.Login(userVO, ctx, sessions)
 	ctx.JSON(http.StatusOK, response)
 }
 
-func Logout(ctx *gin.Context) {
-	service.Logout(ctx, sessions)
+func (l *LoginApi) Logout(ctx *gin.Context) {
+	loginService.Logout(ctx, sessions)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "Logout success",
 	})
 }
 
-func ChangePassword(ctx *gin.Context) {
+func (l *LoginApi) ChangePassword(ctx *gin.Context) {
 
 	var body struct {
 		NewPassword string `json:"newPassword"`
@@ -42,7 +47,7 @@ func ChangePassword(ctx *gin.Context) {
 		return
 	}
 	newPassword := body.NewPassword
-	response := service.ChangePassword(newPassword)
+	response := loginService.ChangePassword(newPassword)
 
 	ctx.JSON(http.StatusOK, response)
 }

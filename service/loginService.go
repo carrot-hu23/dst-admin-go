@@ -11,7 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetUserInfo() map[string]interface{} {
+type LoginService struct {
+}
+
+func (l *LoginService) GetUserInfo() map[string]interface{} {
 	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
 
 	if err != nil {
@@ -30,7 +33,7 @@ func GetUserInfo() map[string]interface{} {
 	}
 }
 
-func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
+func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
 
 	response := &vo.Response{}
 
@@ -70,11 +73,11 @@ func Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.R
 	return response
 }
 
-func Logout(ctx *gin.Context, sessions *session.Manager) {
+func (l *LoginService) Logout(ctx *gin.Context, sessions *session.Manager) {
 	sessions.Destroy(ctx.Writer, ctx.Request)
 }
 
-func ChangeUser(username, password string) {
+func (l *LoginService) ChangeUser(username, password string) {
 	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
@@ -89,7 +92,7 @@ func ChangeUser(username, password string) {
 	})
 }
 
-func ChangePassword(newPassword string) *vo.Response {
+func (l *LoginService) ChangePassword(newPassword string) *vo.Response {
 
 	response := &vo.Response{}
 	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
@@ -113,7 +116,7 @@ func ChangePassword(newPassword string) *vo.Response {
 	return response
 }
 
-func InitUserInfo(userInfo *vo.UserInfo) {
+func (l *LoginService) InitUserInfo(userInfo *vo.UserInfo) {
 	username := "username=" + userInfo.Username
 	password := "password=" + userInfo.Password
 	displayName := "displayName=" + userInfo.DisplayeName

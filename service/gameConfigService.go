@@ -1,14 +1,10 @@
 package service
 
 import (
-	"bytes"
 	"dst-admin-go/constant"
-	optype "dst-admin-go/constant/opType"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"fmt"
-	"html/template"
 	"log"
 	"path"
 	"strconv"
@@ -22,66 +18,24 @@ var cluster_init_template = "./static/template/cluster2.ini"
 var master_server_init_template = "./static/template/master_server.ini"
 var caves_server_init_template = "./static/template/caves_server.ini"
 
-func Dst_user_game_confg_path() string {
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-	var path = constant.HOME_PATH + "/.klei/DoNotStarveTogether/" + cluster + "/"
-	return path
+type GameConfigService struct {
+	ClusterService
 }
 
-func GetClusterTokenPath() string {
-	return Dst_user_game_confg_path() + constant.DST_USER_CLUSTER_TOKEN
-}
-
-func GetClusterIniPath() string {
-	return Dst_user_game_confg_path() + constant.DST_USER_CLUSTER_INI_NAME
-}
-
-func GetMasterDirPath() string {
-	return Dst_user_game_confg_path() + constant.DST_MASTER
-}
-
-func GetMasterDirServerIniPath() string {
-	return GetMasterDirPath() + constant.SINGLE_SLASH + constant.DST_USER_SERVER_INI_NAME
-}
-
-func GetCavesDirPath() string {
-	return Dst_user_game_confg_path() + constant.DST_CAVES
-}
-
-func GetCavesDirServerIniPath() string {
-	return GetCavesDirPath() + constant.SINGLE_SLASH + constant.DST_USER_SERVER_INI_NAME
-}
-
-func GetMasteLeveldataoverridePath() string {
-	return Dst_user_game_confg_path() + "/" + constant.DST_MASTER + "/leveldataoverride.lua"
-}
-
-func GetCavesLeveldataoverridePath() string {
-	return Dst_user_game_confg_path() + "/" + constant.DST_CAVES + "/leveldataoverride.lua"
-}
-
-func GetMasterModPath() string {
-	return Dst_user_game_confg_path() + "/" + constant.DST_MASTER + "/modoverrides.lua"
-}
-
-func GetCavesModPath() string {
-	return Dst_user_game_confg_path() + "/" + constant.DST_CAVES + "/modoverrides.lua"
-}
-
-func GetConfig() vo.GameConfigVO {
+func (c *GameConfigService) GetConfig() vo.GameConfigVO {
 	gameConfig := vo.NewGameConfigVO()
 
-	gameConfig.Token = getClusterToken()
-	GetClusterIni(gameConfig)
-	gameConfig.MasterMapData = getMasteLeveldataoverride()
-	gameConfig.CavesMapData = getCavesLeveldataoverride()
-	gameConfig.ModData = getModoverrides()
+	gameConfig.Token = c.getClusterToken()
+	c.GetClusterIni(gameConfig)
+	gameConfig.MasterMapData = c.getMasteLeveldataoverride()
+	gameConfig.CavesMapData = c.getCavesLeveldataoverride()
+	gameConfig.ModData = c.getModoverrides()
 
 	return *gameConfig
 }
 
-func getClusterToken() string {
-	createFileIfNotExsists(constant.GET_CLUSTER_TOKEN_PATH())
+func (c *GameConfigService) getClusterToken() string {
+	fileUtils.CreateFileIfNotExists(constant.GET_CLUSTER_TOKEN_PATH())
 	token, err := fileUtils.ReadFile(constant.GET_CLUSTER_TOKEN_PATH())
 	if err != nil {
 		panic("read cluster_token.txt file error: " + err.Error())
@@ -90,16 +44,16 @@ func getClusterToken() string {
 	return token
 }
 
-func GetClusterIni(gameconfig *vo.GameConfigVO) {
+func (c *GameConfigService) GetClusterIni(gameconfig *vo.GameConfigVO) {
 	if !fileUtils.Exists(constant.GET_CLUSTER_INI_PATH()) {
-		createFileIfNotExsists(constant.GET_CLUSTER_INI_PATH())
+		fileUtils.CreateFileIfNotExists(constant.GET_CLUSTER_INI_PATH())
 		return
 	}
-	cluster_ini, err := fileUtils.ReadLnFile(constant.GET_CLUSTER_INI_PATH())
+	clusterIni, err := fileUtils.ReadLnFile(constant.GET_CLUSTER_INI_PATH())
 	if err != nil {
 		panic("read cluster.ini file error: " + err.Error())
 	}
-	for _, value := range cluster_ini {
+	for _, value := range clusterIni {
 		if value == "" {
 			continue
 		}
@@ -172,11 +126,11 @@ func GetClusterIni(gameconfig *vo.GameConfigVO) {
 	}
 }
 
-func getMasteLeveldataoverride() string {
+func (c *GameConfigService) getMasteLeveldataoverride() string {
 
 	filepath := constant.GET_MASTER_LEVELDATAOVERRIDE_PATH()
 	if !fileUtils.Exists(filepath) {
-		createFileIfNotExsists(filepath)
+		fileUtils.CreateFileIfNotExists(filepath)
 		return "return {}"
 	}
 
@@ -187,11 +141,11 @@ func getMasteLeveldataoverride() string {
 	return level
 }
 
-func getCavesLeveldataoverride() string {
+func (c *GameConfigService) getCavesLeveldataoverride() string {
 
 	filepath := constant.GET_CAVES_LEVELDATAOVERRIDE_PATH()
 	if !fileUtils.Exists(filepath) {
-		createFileIfNotExsists(filepath)
+		fileUtils.CreateFileIfNotExists(filepath)
 		return "return {}"
 	}
 
@@ -202,11 +156,11 @@ func getCavesLeveldataoverride() string {
 	return level
 }
 
-func getModoverrides() string {
+func (c *GameConfigService) getModoverrides() string {
 
 	filepath := constant.GET_MASTER_MOD_PATH()
 	if !fileUtils.Exists(filepath) {
-		createFileIfNotExsists(filepath)
+		fileUtils.CreateFileIfNotExists(filepath)
 		return "return {}"
 	}
 
@@ -217,34 +171,28 @@ func getModoverrides() string {
 	return level
 }
 
-func SaveConfig(gameConfigVo vo.GameConfigVO) {
+func (c *GameConfigService) SaveConfig(gameConfigVo vo.GameConfigVO) {
 
 	//创建存档目录
-	createMyDediServerDir()
+	c.createMyDediServerDir()
 	//创建房间配置
-	createClusterIni(gameConfigVo)
+	c.createClusterIni(gameConfigVo)
 	//创建token配置
-	createClusterToken(strings.TrimSpace(gameConfigVo.Token))
+	c.createClusterToken(strings.TrimSpace(gameConfigVo.Token))
 	//创建地面和洞穴的ini配置文件
 	// createMasterServerIni()
 	// createCavesServerIni()
 	//创建地面世界设置
-	createMasteLeveldataoverride(gameConfigVo.MasterMapData)
+	c.createMasteLeveldataoverride(gameConfigVo.MasterMapData)
 	//创建洞穴世界设置
-	createCavesLeveldataoverride(gameConfigVo.CavesMapData)
+	c.createCavesLeveldataoverride(gameConfigVo.CavesMapData)
 	//创建mod设置
-	createModoverrides(gameConfigVo.ModData)
+	c.createModoverrides(gameConfigVo.ModData)
 	//TODO dedicated_server_mods_setup
-	otype := gameConfigVo.Otype
-	if otype == START_NEW_GAME {
-		DeleteGameRecord()
-		StartGame(optype.START_GAME)
-	} else if otype == SAVE_RESTART {
-		StartGame(optype.START_GAME)
-	}
+
 }
 
-func createMyDediServerDir() {
+func (c *GameConfigService) createMyDediServerDir() {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
 	myDediServerPath := path.Join(basePath, dstConfig.Cluster)
@@ -252,10 +200,10 @@ func createMyDediServerDir() {
 	fileUtils.CreateDir(myDediServerPath)
 }
 
-func createClusterIni(gameConfigVo vo.GameConfigVO) {
+func (c *GameConfigService) createClusterIni(gameConfigVo vo.GameConfigVO) {
 
 	log.Println("生成游戏配置文件 cluster.ini文件: ", constant.GET_CLUSTER_INI_PATH())
-	oldCluster := ReadClusterIniFile()
+	oldCluster := c.ReadClusterIniFile()
 
 	oldCluster.ClusterName = gameConfigVo.ClusterName
 	oldCluster.ClusterDescription = gameConfigVo.ClusterDescription
@@ -266,84 +214,16 @@ func createClusterIni(gameConfigVo vo.GameConfigVO) {
 	oldCluster.PauseWhenNobody = gameConfigVo.PauseWhenNobody
 	oldCluster.ClusterPassword = gameConfigVo.ClusterPassword
 
-	cluster_ini := pareseTemplate(cluster_init_template, oldCluster)
-	fileUtils.WriterTXT(constant.GET_CLUSTER_INI_PATH(), cluster_ini)
+	clusterIni := c.ParseTemplate(cluster_init_template, oldCluster)
+	fileUtils.WriterTXT(constant.GET_CLUSTER_INI_PATH(), clusterIni)
 }
 
-func createClusterToken(token string) {
+func (c *GameConfigService) createClusterToken(token string) {
 	log.Println("生成cluster_token.txt 文件 ", constant.GET_CLUSTER_TOKEN_PATH())
 	fileUtils.WriterTXT(constant.GET_CLUSTER_TOKEN_PATH(), token)
 }
 
-func createMasterServerIni() {
-
-	fileUtils.CreateDir(constant.GET_MASTER_DIR_PATH())
-	log.Println("生成 Master 目录: " + constant.GET_MASTER_DIR_PATH())
-
-	log.Println("生成世界 Master server.ini文件: ", constant.GET_MASTER_DIR_SERVER_INI_PATH())
-
-	// server_ini := ""
-	// server_ini += "[NETWORK] \n"
-	// server_ini += "server_port = " + "10999" + " \n"
-	// server_ini += "\n"
-	// server_ini += "\n"
-	// server_ini += "[SHARD] \n"
-	// server_ini += "is_master = true \n"
-	// server_ini += "name = Master \n"
-	// server_ini += "id = 10000 \n"
-	// server_ini += "\n"
-	// server_ini += "\n"
-	// server_ini += "[ACCOUNT] \n"
-	// server_ini += "encode_user_path = true"
-
-	server_ini := pareseTemplate(master_server_init_template, nil)
-	fileUtils.WriterTXT(constant.GET_MASTER_DIR_SERVER_INI_PATH(), server_ini)
-}
-
-func createCavesServerIni() {
-
-	//创建洞穴设置的文件夹
-	fileUtils.CreateDir(constant.GET_CAVE_DIR_PATH())
-	log.Println("生成 Caves 目录: " + constant.GET_CAVE_DIR_PATH())
-
-	log.Println("生成洞穴 Caves server.ini文件: ", constant.GET_CAVES_DIR_SERVER_INI_PATH())
-
-	// caves_ini := ""
-	// caves_ini += "[NETWORK] \n"
-	// caves_ini += "server_port = 10998 \n"
-	// caves_ini += "\n"
-	// caves_ini += "\n"
-	// caves_ini += "[SHARD]\n"
-	// caves_ini += "is_master = false\n"
-	// caves_ini += "name = Caves\n"
-	// caves_ini += "id = 10010\n"
-	// caves_ini += "\n"
-	// caves_ini += "\n"
-	// caves_ini += "[ACCOUNT]\n"
-	// caves_ini += "encode_user_path = true\n"
-	// caves_ini += "\n"
-	// caves_ini += "\n"
-	// caves_ini += "[STEAM]\n"
-	// caves_ini += "authentication_port = 8766\n"
-	// caves_ini += "master_server_port = 27016\n"
-
-	caves_ini := pareseTemplate(caves_server_init_template, nil)
-	fileUtils.WriterTXT(constant.GET_CAVES_DIR_SERVER_INI_PATH(), caves_ini)
-}
-
-func pareseTemplate(tempaltePath string, data interface{}) string {
-	tmpl, err := template.ParseFiles(tempaltePath)
-	if err != nil {
-		panic(err)
-	}
-	buf := new(bytes.Buffer)
-	tmpl.Execute(buf, data)
-	fmt.Println("解析文本模板")
-	fmt.Printf("buf.String():\n%v\n", buf.String())
-	return buf.String()
-}
-
-func createMasteLeveldataoverride(mapConfig string) {
+func (c *GameConfigService) createMasteLeveldataoverride(mapConfig string) {
 
 	log.Println("生成master_leveldataoverride.txt 文件 ", constant.GET_MASTER_LEVELDATAOVERRIDE_PATH())
 	if mapConfig != "" {
@@ -353,7 +233,7 @@ func createMasteLeveldataoverride(mapConfig string) {
 		fileUtils.WriterTXT(constant.GET_MASTER_LEVELDATAOVERRIDE_PATH(), "")
 	}
 }
-func createCavesLeveldataoverride(mapConfig string) {
+func (c *GameConfigService) createCavesLeveldataoverride(mapConfig string) {
 
 	log.Println("生成caves_leveldataoverride.lua 文件 ", constant.GET_CAVES_LEVELDATAOVERRIDE_PATH())
 	if mapConfig != "" {
@@ -363,7 +243,7 @@ func createCavesLeveldataoverride(mapConfig string) {
 		fileUtils.WriterTXT(constant.GET_CAVES_LEVELDATAOVERRIDE_PATH(), "")
 	}
 }
-func createModoverrides(modConfig string) {
+func (c *GameConfigService) createModoverrides(modConfig string) {
 
 	log.Println("生成master_modoverrides.lua 文件 ", constant.GET_MASTER_MOD_PATH())
 	log.Println("生成caves_modoverrides.lua 文件 ", constant.GET_CAVES_MOD_PATH())
@@ -385,7 +265,7 @@ func createModoverrides(modConfig string) {
 	}
 }
 
-func UpdateDedicatedServerModsSetup(modConfig string) {
+func (c *GameConfigService) UpdateDedicatedServerModsSetup(modConfig string) {
 	if modConfig != "" {
 		var serverModSetup = ""
 		workshopIds := WorkshopIds(modConfig)

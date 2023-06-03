@@ -26,6 +26,11 @@ const (
 	// caves_template   = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\Caves"
 )
 
+type InitService struct {
+	GameConfigService
+	LoginService
+}
+
 type InitDstData struct {
 	// InstallDstEnv bool                      `json:"installDstEnv"`
 	// ClusterToken  string                    `json:"clusterToken"`
@@ -33,7 +38,7 @@ type InitDstData struct {
 	UserInfo  *vo.UserInfo              `json:"userInfo"`
 }
 
-func InstallSteamCmd() error {
+func (i *InitService) InstallSteamCmd() error {
 	cmd := exec.Command("./static/install.sh")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -44,10 +49,10 @@ func InstallSteamCmd() error {
 	return err
 }
 
-func InstallSteamCmdAndDst() map[string]string {
+func (i *InitService) InstallSteamCmdAndDst() map[string]string {
 	//安装 steam cmd 和 dst
 	log.Println("installing steamcmd")
-	err := InstallSteamCmd()
+	err := i.InstallSteamCmd()
 	if err != nil {
 		log.Panicln("安装失败")
 	}
@@ -57,28 +62,28 @@ func InstallSteamCmdAndDst() map[string]string {
 	return map[string]string{"steamcmdPath": steamcmdPath, "dstPath": dstPath}
 }
 
-func InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
+func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
-	InitUserInfo(initDst.UserInfo)
-	InitDstConfig(initDst.DstConfig)
-	InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, "", false)
+	i.InitUserInfo(initDst.UserInfo)
+	i.InitDstConfig(initDst.DstConfig)
+	i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, "", false)
 
 	log.Println("创建完成")
 }
 
-func InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {
+func (i *InitService) InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {
 
 	if dstConfig.Backup == "" {
 		dstConfig.Backup = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
 	}
 	if dstConfig.Mod_download_path == "" {
 		dstConfig.Mod_download_path = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", "mod_download")
-		createDirIfNotExsists(dstConfig.Mod_download_path)
+		fileUtils.CreateDirIfNotExists(dstConfig.Mod_download_path)
 	}
 	dstConfigUtils.SaveDstConfig(dstConfig)
 }
 
-func InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string, exsitesNotInit bool) {
+func (i *InitService) InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string, exsitesNotInit bool) {
 	clusterName := dstConfig.Cluster
 	klei_path := ""
 	if runtime.GOOS == "windows" {
@@ -94,21 +99,21 @@ func InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string, 
 		}
 	}
 
-	createDirIfNotExsists(baseLevelPath)
-	createDirIfNotExsists(dstConfig.Backup)
-	createDirIfNotExsists(dstConfig.Mod_download_path)
+	fileUtils.CreateDirIfNotExists(baseLevelPath)
+	fileUtils.CreateDirIfNotExists(dstConfig.Backup)
+	fileUtils.CreateDirIfNotExists(dstConfig.Mod_download_path)
 
 	log.Println(baseLevelPath)
 
-	InitClusterIni(baseLevelPath, username)
-	InitClusterToken(baseLevelPath, token)
-	InitBaseMaster(baseLevelPath)
-	InitBaseCaves(baseLevelPath)
+	i.InitClusterIni(baseLevelPath, username)
+	i.InitClusterToken(baseLevelPath, token)
+	i.InitBaseMaster(baseLevelPath)
+	i.InitBaseCaves(baseLevelPath)
 }
 
-func InitClusterIni(basePath string, username string) {
+func (i *InitService) InitClusterIni(basePath string, username string) {
 	cluster_ini_path := filepath.Join(basePath, "cluster.ini")
-	createFileIfNotExsists(cluster_ini_path)
+	fileUtils.CreateFileIfNotExists(cluster_ini_path)
 	clusterIni := cluster.NewCluster()
 	clusterName := ""
 	if username != "" {
@@ -118,16 +123,16 @@ func InitClusterIni(basePath string, username string) {
 	}
 	clusterIni.ClusterName = clusterName
 	clusterIni.MaxPlayers = 8
-	fileUtils.WriterTXT(cluster_ini_path, pareseTemplate(cluster_template, clusterIni))
+	fileUtils.WriterTXT(cluster_ini_path, i.ParseTemplate(cluster_template, clusterIni))
 }
 
-func InitClusterToken(basePath string, token string) {
+func (i *InitService) InitClusterToken(basePath string, token string) {
 	cluster_token_path := filepath.Join(basePath, "cluster_token.txt")
-	createFileIfNotExsists(cluster_token_path)
-	fileUtils.WriterTXT(token, cluster_token_path)
+	fileUtils.CreateFileIfNotExists(cluster_token_path)
+	fileUtils.WriterTXT(cluster_token_path, token)
 }
 
-func InitBaseMaster(basePath string) {
+func (i *InitService) InitBaseMaster(basePath string) {
 
 	leveldataoverride, err := fileUtils.ReadFile(filepath.Join(master_template, "leveldataoverride.lua"))
 	if err != nil {
@@ -146,18 +151,18 @@ func InitBaseMaster(basePath string) {
 	m_path := filepath.Join(basePath, "Master", "modoverrides.lua")
 	s_path := filepath.Join(basePath, "Master", "server.ini")
 
-	createDirIfNotExsists(filepath.Join(basePath, "Master"))
+	fileUtils.CreateDirIfNotExists(filepath.Join(basePath, "Master"))
 
-	createFileIfNotExsists(l_path)
-	createFileIfNotExsists(m_path)
-	createFileIfNotExsists(s_path)
+	fileUtils.CreateDirIfNotExists(l_path)
+	fileUtils.CreateDirIfNotExists(m_path)
+	fileUtils.CreateDirIfNotExists(s_path)
 
 	fileUtils.WriterTXT(l_path, leveldataoverride)
 	fileUtils.WriterTXT(m_path, modoverrides)
 	fileUtils.WriterTXT(s_path, server_ini)
 }
 
-func InitBaseCaves(basePath string) {
+func (i *InitService) InitBaseCaves(basePath string) {
 
 	leveldataoverride, err := fileUtils.ReadFile(filepath.Join(caves_template, "leveldataoverride.lua"))
 	if err != nil {
@@ -176,11 +181,11 @@ func InitBaseCaves(basePath string) {
 	m_path := filepath.Join(basePath, "Caves", "modoverrides.lua")
 	s_path := filepath.Join(basePath, "Caves", "server.ini")
 
-	createDirIfNotExsists(filepath.Join(basePath, "Caves"))
+	fileUtils.CreateDirIfNotExists(filepath.Join(basePath, "Caves"))
 
-	createFileIfNotExsists(l_path)
-	createFileIfNotExsists(m_path)
-	createFileIfNotExsists(s_path)
+	fileUtils.CreateFileIfNotExists(l_path)
+	fileUtils.CreateFileIfNotExists(m_path)
+	fileUtils.CreateFileIfNotExists(s_path)
 
 	fileUtils.WriterTXT(l_path, leveldataoverride)
 	fileUtils.WriterTXT(m_path, modoverrides)

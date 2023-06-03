@@ -8,14 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DeleteBackup(ctx *gin.Context) {
+type GameBackUpApi struct {
+}
+
+var backupService = service.BackupService{}
+
+func (g *GameBackUpApi) DeleteBackup(ctx *gin.Context) {
 	var body struct {
 		FileNames []string `json:"fileNames"`
 	}
 	if err := ctx.BindJSON(&body); err != nil {
 		return
 	}
-	service.DeleteBackup(body.FileNames)
+	backupService.DeleteBackup(body.FileNames)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "delete backups success",
@@ -23,20 +28,20 @@ func DeleteBackup(ctx *gin.Context) {
 	})
 }
 
-func DownloadBackup(ctx *gin.Context) {
-	service.DownloadBackup(ctx)
+func (g *GameBackUpApi) DownloadBackup(ctx *gin.Context) {
+	backupService.DownloadBackup(ctx)
 }
 
-func GetBackupList(ctx *gin.Context) {
+func (g *GameBackUpApi) GetBackupList(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "get backup list success",
-		Data: service.GetBackupList(),
+		Data: backupService.GetBackupList(),
 	})
 }
 
-func RenameBackup(ctx *gin.Context) {
+func (g *GameBackUpApi) RenameBackup(ctx *gin.Context) {
 
 	var body struct {
 		FileName string `json:"fileName"`
@@ -45,7 +50,7 @@ func RenameBackup(ctx *gin.Context) {
 	if err := ctx.BindJSON(&body); err != nil {
 		return
 	}
-	service.RenameBackup(body.FileName, body.NewName)
+	backupService.RenameBackup(body.FileName, body.NewName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -54,10 +59,10 @@ func RenameBackup(ctx *gin.Context) {
 	})
 }
 
-//TODO untest
-func UploadBackup(ctx *gin.Context) {
+// UploadBackup TODO test
+func (g *GameBackUpApi) UploadBackup(ctx *gin.Context) {
 
-	service.UploadBackup(ctx)
+	backupService.UploadBackup(ctx)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -66,14 +71,14 @@ func UploadBackup(ctx *gin.Context) {
 	})
 }
 
-func CreateBackup(ctx *gin.Context) {
+func (g *GameBackUpApi) CreateBackup(ctx *gin.Context) {
 	var body struct {
 		BackupName string `json:"backupName"`
 	}
 	if err := ctx.ShouldBind(&body); err != nil {
 		body.BackupName = ""
 	}
-	service.CreateBackup(body.BackupName)
+	backupService.CreateBackup(body.BackupName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

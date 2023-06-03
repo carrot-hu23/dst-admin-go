@@ -1,8 +1,9 @@
 package api
 
 import (
-	"dst-admin-go/entity"
+	"dst-admin-go/config/database"
 	"dst-admin-go/mod"
+	"dst-admin-go/model"
 	"dst-admin-go/vo"
 	"encoding/json"
 	"log"
@@ -12,7 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SearchModList(ctx *gin.Context) {
+type ModApi struct {
+}
+
+func (m *ModApi) SearchModList(ctx *gin.Context) {
 
 	//获取查询参数
 	text := ctx.Query("text")
@@ -31,7 +35,7 @@ func SearchModList(ctx *gin.Context) {
 	})
 }
 
-func GetModInfo(ctx *gin.Context) {
+func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
 	modinfo := mod.GetModInfo(moId)
@@ -58,10 +62,10 @@ func GetModInfo(ctx *gin.Context) {
 	})
 }
 
-func GetMyModList(ctx *gin.Context) {
+func (m *ModApi) GetMyModList(ctx *gin.Context) {
 
-	modInfos := []entity.ModInfo{}
-	db := entity.DB
+	var modInfos []model.ModInfo
+	db := database.DB
 
 	db.Find(&modInfos)
 
@@ -93,12 +97,12 @@ func GetMyModList(ctx *gin.Context) {
 
 }
 
-func DeleteMod(ctx *gin.Context) {
+func (m *ModApi) DeleteMod(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
-	db := entity.DB
+	db := database.DB
 
-	db.Where("modid = ?", moId).Delete(&entity.ModInfo{})
+	db.Where("modid = ?", moId).Delete(&model.ModInfo{})
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

@@ -2,7 +2,7 @@ package chatgpt
 
 import (
 	"container/list"
-	"dst-admin-go/entity"
+	"dst-admin-go/config/global"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -48,7 +48,7 @@ func ChatGpt(user, text string, f func(message string)) {
 	// message := ChatMessage{Role: "user", Content: text}
 	// messages := History.AddMessage(user, message)
 	// chatMessages := []ChatMessage{
-	// 	{Role: "system", Content: entity.Config.Prompt},
+	// 	{Role: "system", Content: model.Config.Prompt},
 	// 	{Role: "user", Content: text},
 	// }
 	response := Post(messages)
@@ -73,7 +73,7 @@ func ChatGpt(user, text string, f func(message string)) {
 }
 
 func randApikey() string {
-	s := entity.Config.OPENAI_API_KEY
+	s := global.Config.OPENAI_API_KEY
 	availableAPIKeys := strings.Split(s, ",")
 	key := availableAPIKeys[rand.Intn(len(availableAPIKeys))]
 	return key

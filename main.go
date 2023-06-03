@@ -3,15 +3,16 @@ package main
 import (
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
+	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
 	"dst-admin-go/constant"
-	"dst-admin-go/entity"
-	"dst-admin-go/route"
+	"dst-admin-go/model"
+	"dst-admin-go/router"
 	"dst-admin-go/utils/dstConfigUtils"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"gopkg.in/yaml.v2"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"io"
@@ -41,7 +42,7 @@ func InitConfig() {
 		fmt.Println(err.Error())
 	}
 	configData = _config
-	entity.Config = configData
+	global.Config = configData
 }
 
 func iniiDB() {
@@ -51,10 +52,10 @@ func iniiDB() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	entity.DB = db
-	entity.DB.AutoMigrate(&entity.Spawn{}, &entity.PlayerLog{}, &entity.Connect{}, &entity.Proxy{}, &entity.ModInfo{})
+	database.DB = db
+	database.DB.AutoMigrate(&model.Spawn{}, &model.PlayerLog{}, &model.Connect{}, &model.Proxy{}, &model.ModInfo{})
 
-	proxyEntities := []entity.Proxy{}
+	proxyEntities := []model.Proxy{}
 	db.Find(&proxyEntities)
 
 	if len(proxyEntities) > 0 {
@@ -64,7 +65,7 @@ func iniiDB() {
 				panic(e)
 			}
 			p := httputil.NewSingleHostReverseProxy(r)
-			entity.RoutingTable[proxyEntity.Name] = &entity.Route{Proxy: p, Url: r}
+			global.RoutingTable[proxyEntity.Name] = &global.Route{Proxy: p, Url: r}
 		}
 	}
 
@@ -106,7 +107,7 @@ func main() {
 	global.Collect = collect.NewCollect(baseLogPath)
 	global.Collect.StartCollect()
 
-	app := route.NewRoute()
+	app := router.NewRoute()
 	app.Run(":" + configData.Port)
 
 }
