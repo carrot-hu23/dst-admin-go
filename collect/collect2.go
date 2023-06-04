@@ -175,7 +175,7 @@ func (c *Collect) tailServeLog(fileName string) {
 				if find := strings.Contains(text, "Spawn request"); find {
 					c.parseSpawnRequestLog(text)
 				} else if find := strings.Contains(text, "regenerate"); find {
-					c.parseSpawnRequestLog(text)
+					c.parseRegenerateLog(text)
 				} else if find := strings.Contains(text, "New incoming connection"); find {
 					isNewConnect = true
 				}
