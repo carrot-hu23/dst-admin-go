@@ -181,7 +181,7 @@ func (c *Collect) tailServeLog(fileName string) {
 						isNewConnect = false
 						which = 0
 						c.parseNewIncomingLog(incoming)
-						incoming = make([]string, 5)
+						incoming = []string{}
 					}
 				}
 			}
