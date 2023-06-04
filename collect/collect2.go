@@ -69,6 +69,12 @@ func (c *Collect) StartCollect() {
 }
 
 func (c *Collect) parseSpawnRequestLog(text string) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(text)
+			log.Println("玩家角色日志解析异常:", err)
+		}
+	}()
 	// Spawn request: wurt from 猜猜我是谁
 	arr := strings.Split(text, " ")
 	temp := strings.Replace(arr[0], " ", "", -1)
