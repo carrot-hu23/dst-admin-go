@@ -42,11 +42,6 @@ func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx)
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: nil,
-	})
 }
 
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
