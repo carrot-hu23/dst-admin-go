@@ -45,7 +45,7 @@ func (b *BaseLevelService) CreateBaseLevel(baseLevel *cluster.BaseLevel) {
 
 }
 
-func (b *BaseLevelService) SaveBaseClusterIni(cluster *cluster.Cluster, clusterIniPath string) {
+func (b *BaseLevelService) SaveBaseClusterIni(cluster *cluster.ClusterIni, clusterIniPath string) {
 	fileUtils.CreateFileIfNotExists(clusterIniPath)
 	fileUtils.WriterTXT(clusterIniPath, b.ParseTemplate(CLUSTER_INI_TEMPLATE, cluster))
 }

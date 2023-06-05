@@ -1,11 +1,14 @@
 package api
 
 import (
+	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/cluster"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,30 +16,13 @@ import (
 type ClusterApi struct{}
 
 var clusterService = service.ClusterService{}
-
-func (c *ClusterApi) GetClusterConfig(ctx *gin.Context) {
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: clusterService.GetMultiLevelWorldConfig(),
-	})
-}
-
-func (c *ClusterApi) SaveClusterConfig(ctx *gin.Context) {
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: nil,
-	})
-}
+var clusterManager = service.ClusterManager{}
 
 func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: clusterService.GetGameConfog(),
+		Data: clusterService.GetGameConfig(),
 	})
 }
 
@@ -46,6 +32,65 @@ func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
 	ctx.ShouldBind(&gameConfig)
 	fmt.Printf("%v", gameConfig.Caves.ServerIni)
 	clusterService.SaveGameConfig(&gameConfig)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
+	clusterManager.QueryCluster(ctx)
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
+
+	clusterModel := model.Cluster{}
+	ctx.ShouldBind(&clusterModel)
+	fmt.Printf("%v", clusterModel)
+
+	clusterManager.CreateCluster(&clusterModel)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+
+}
+
+func (c *ClusterApi) UpdateCluster(ctx *gin.Context) {
+	clusterModel := model.Cluster{}
+	ctx.ShouldBind(&clusterModel)
+	fmt.Printf("%v", clusterModel)
+	clusterManager.UpdateCluster(&clusterModel)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+
+}
+
+func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
+
+	var id int
+
+	if idParam, isExist := ctx.GetQuery("id"); isExist {
+		id, _ = strconv.Atoi(idParam)
+	}
+
+	err := clusterManager.DeleteCluster(uint(id))
+	if err != nil {
+		log.Panicln("delete cluster error", err)
+	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

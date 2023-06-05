@@ -1,6 +1,6 @@
 package cluster
 
-type Cluster struct {
+type ClusterIni struct {
 	// [GAEMPLAY]
 	GameMode        string `json:"game_mode"`
 	MaxPlayers      uint   `json:"max_players"`
@@ -54,8 +54,8 @@ type ServerIni struct {
 	MasterServerPort   string `json:"master_server_port"`
 }
 
-func NewCluster() *Cluster {
-	return &Cluster{
+func NewCluster() *ClusterIni {
+	return &ClusterIni{
 		Pvp:              false,
 		PauseWhenNobody:  true,
 		VoteEnabled:      true,
@@ -107,29 +107,21 @@ type World struct {
 	ServerIni         *ServerIni `json:"server_ini"`
 }
 
-type MultiLevelWorldConfig struct {
-	Cluster      *Cluster `json:"cluster"`
-	ClusterToken string   `json:"cluster_token"`
-	Adminlist    []string `json:"adminlist"`
-	Blocklist    []string `json:"blocklist"`
-	Worlds       []World  `json:"worlds"`
-}
-
 type GameConfig struct {
-	Cluster      *Cluster `json:"cluster"`
-	ClusterToken string   `json:"cluster_token"`
-	Adminlist    []string `json:"adminlist"`
-	Blocklist    []string `json:"blocklist"`
-	Master       *World   `json:"master"`
-	Caves        *World   `json:"caves"`
+	ClusterIni   *ClusterIni `json:"cluster"`
+	ClusterToken string      `json:"cluster_token"`
+	Adminlist    []string    `json:"adminlist"`
+	Blocklist    []string    `json:"blocklist"`
+	Master       *World      `json:"master"`
+	Caves        *World      `json:"caves"`
 }
 
 type BaseLevel struct {
-	ClusterName  string   `json:"ClusterName"`
-	Cluster      *Cluster `json:"cluster"`
-	ClusterToken string   `json:"cluster_token"`
-	Adminlist    []string `json:"adminlist"`
-	Blocklist    []string `json:"blocklist"`
-	Master       *World   `json:"master"`
-	Caves        *World   `json:"caves"`
+	ClusterName  string      `json:"ClusterName"`
+	Cluster      *ClusterIni `json:"cluster"`
+	ClusterToken string      `json:"cluster_token"`
+	Adminlist    []string    `json:"adminlist"`
+	Blocklist    []string    `json:"blocklist"`
+	Master       *World      `json:"master"`
+	Caves        *World      `json:"caves"`
 }

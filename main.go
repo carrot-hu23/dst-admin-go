@@ -53,7 +53,7 @@ func iniiDB() {
 		panic("failed to connect database")
 	}
 	database.DB = db
-	database.DB.AutoMigrate(&model.Spawn{}, &model.PlayerLog{}, &model.Connect{}, &model.Proxy{}, &model.ModInfo{})
+	database.DB.AutoMigrate(&model.Spawn{}, &model.PlayerLog{}, &model.Connect{}, &model.Proxy{}, &model.ModInfo{}, &model.Cluster{})
 
 	proxyEntities := []model.Proxy{}
 	db.Find(&proxyEntities)

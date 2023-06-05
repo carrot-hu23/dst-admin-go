@@ -4,14 +4,10 @@ import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo/cluster"
+	"github.com/go-ini/ini"
 	"log"
-	"path"
-	"path/filepath"
 	"strings"
 	"sync"
-	"sync/atomic"
-
-	"github.com/go-ini/ini"
 )
 
 type ClusterService struct {
@@ -24,7 +20,7 @@ const (
 	CAVES_SERVER_INI_TEMPLATE  = "./static/template/caves_server.ini"
 )
 
-func (c *ClusterService) ReadClusterIniFile() *cluster.Cluster {
+func (c *ClusterService) ReadClusterIniFile() *cluster.ClusterIni {
 	newCluster := cluster.NewCluster()
 	// 加载 INI 文件
 	clusterIniPath := constant.GET_CLUSTER_INI_PATH()
@@ -192,59 +188,13 @@ func (c *ClusterService) isMaster(filePath string) bool {
 	return strings.Contains(filePath, "Master") || strings.Contains(filePath, "master")
 }
 
-func (c *ClusterService) GetMultiLevelWorldConfig() *cluster.MultiLevelWorldConfig {
-	multiLevelWorldConfig := &cluster.MultiLevelWorldConfig{}
-
-	clusterPath := constant.GET_DST_USER_GAME_CONFG_PATH()
-	worldDirs, err := fileUtils.FindWorldDirs(clusterPath)
-	if err != nil {
-		log.Panicln("路径查找失败", err)
-	}
-	size := len(worldDirs)
-	worlds := make([]cluster.World, size)
-	var wg sync.WaitGroup
-	wg.Add(size + 4)
-	for i, worldPath := range worldDirs {
-		//查找
-		go func(i int, worldPath string) {
-			worlds[i].WorldName = filepath.Base(worldPath)
-			worlds[i].Leveldataoverride = c.ReadLeveldataoverrideFile(path.Join(worldPath, "leveldataoverride.lua"))
-			worlds[i].Modoverrides = c.ReadModoverridesFile(path.Join(worldPath, "modoverrides.lua"))
-			worlds[i].IsMaster = c.isMaster(worldPath)
-			worlds[i].ServerIni = c.ReadServerIniFile(path.Join(worldPath, "server.ini"), c.isMaster(worldPath))
-			wg.Done()
-		}(i, worldPath)
-	}
-
-	go func() {
-		multiLevelWorldConfig.ClusterToken = c.ReadClusterTokenFile()
-		wg.Done()
-	}()
-	go func() {
-		multiLevelWorldConfig.Cluster = c.ReadClusterIniFile()
-		wg.Done()
-	}()
-	go func() {
-		multiLevelWorldConfig.Adminlist = c.ReadAdminlistFile()
-		wg.Done()
-	}()
-	go func() {
-		multiLevelWorldConfig.Blocklist = c.ReadBlocklistFile()
-		wg.Done()
-	}()
-
-	multiLevelWorldConfig.Worlds = worlds
-	wg.Wait()
-	return multiLevelWorldConfig
-}
-
 func (c *ClusterService) SaveClusterToken(token string) {
 	clusterTokenPath := constant.GET_CLUSTER_TOKEN_PATH()
 	fileUtils.CreateFileIfNotExists(clusterTokenPath)
 	fileUtils.WriterTXT(clusterTokenPath, token)
 }
 
-func (c *ClusterService) SaveClusterIni(cluster *cluster.Cluster) {
+func (c *ClusterService) SaveClusterIni(cluster *cluster.ClusterIni) {
 	clusterIniPath := constant.GET_CLUSTER_INI_PATH()
 	fileUtils.CreateFileIfNotExists(clusterIniPath)
 	fileUtils.WriterTXT(clusterIniPath, c.ParseTemplate(CLUSTER_INI_TEMPLATE, cluster))
@@ -260,86 +210,6 @@ func (c *ClusterService) SaveBlocklist(str []string) {
 	blocklistPath := constant.GET_DST_BLOCKLIST_PATH()
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	fileUtils.WriterLnFile(blocklistPath, str)
-}
-
-func (c *ClusterService) handleWorldDir(basePath string, world *cluster.World) {
-
-	fileUtils.CreateDir(basePath)
-	leveldataoverridePath := path.Join(basePath, "leveldataoverride.lua")
-	modoverridesPath := path.Join(basePath, "modoverrides.lua")
-	serverIniPath := path.Join(basePath, "server.ini")
-
-	fileUtils.CreateFileIfNotExists(leveldataoverridePath)
-	fileUtils.CreateFileIfNotExists(modoverridesPath)
-	fileUtils.CreateFileIfNotExists(serverIniPath)
-
-	fileUtils.WriterTXT(leveldataoverridePath, world.Leveldataoverride)
-	fileUtils.WriterTXT(modoverridesPath, world.Modoverrides)
-
-	// TODO 写入 constant.DST_MOD_SETTING_PATH
-
-	serverIniBuf := ""
-	if world.IsMaster {
-		serverIniBuf = c.ParseTemplate(MASTER_SERVER_INI_TEMPLATE, world.ServerIni)
-	} else {
-		serverIniBuf = c.ParseTemplate(CAVES_SERVER_INI_TEMPLATE, world.ServerIni)
-	}
-
-	fileUtils.WriterTXT(serverIniPath, serverIniBuf)
-}
-
-func (c *ClusterService) SaveWorlds(worlds []cluster.World) {
-	var wg sync.WaitGroup
-	wg.Add(len(worlds))
-	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
-	for _, world := range worlds {
-		go func(world *cluster.World) {
-			// 判断文件是否存在，如果不存在则创建
-			filePath := path.Join(basePath, world.WorldName)
-			c.handleWorldDir(filePath, world)
-			wg.Done()
-		}(&world)
-	}
-	wg.Wait()
-}
-
-func (c *ClusterService) SaveMultiLevelWorldConfig(multiLevelWorldConfig *cluster.MultiLevelWorldConfig) {
-
-	var wg sync.WaitGroup
-	wg.Add(5)
-	var size int32
-	go func() {
-		c.SaveClusterToken(multiLevelWorldConfig.ClusterToken)
-		wg.Done()
-		atomic.AddInt32(&size, 1)
-	}()
-
-	go func() {
-		c.SaveClusterIni(multiLevelWorldConfig.Cluster)
-		wg.Done()
-		atomic.AddInt32(&size, 1)
-	}()
-
-	go func() {
-		c.SaveAdminlist(multiLevelWorldConfig.Adminlist)
-		wg.Done()
-		atomic.AddInt32(&size, 1)
-	}()
-	go func() {
-		c.SaveBlocklist(multiLevelWorldConfig.Blocklist)
-		wg.Done()
-		atomic.AddInt32(&size, 1)
-	}()
-	go func() {
-		c.SaveWorlds(multiLevelWorldConfig.Worlds)
-		wg.Done()
-		atomic.AddInt32(&size, 1)
-	}()
-
-	wg.Wait()
-	if size != 5 {
-		// 设置失败
-	}
 }
 
 func (c *ClusterService) ReadMaster() *cluster.World {
@@ -404,7 +274,7 @@ func (c *ClusterService) SaveCaves(world *cluster.World) {
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
 
-func (c *ClusterService) GetGameConfog() *cluster.GameConfig {
+func (c *ClusterService) GetGameConfig() *cluster.GameConfig {
 	gameConfig := cluster.GameConfig{}
 	var wg sync.WaitGroup
 	wg.Add(6)
@@ -414,7 +284,7 @@ func (c *ClusterService) GetGameConfog() *cluster.GameConfig {
 		wg.Done()
 	}()
 	go func() {
-		gameConfig.Cluster = c.ReadClusterIniFile()
+		gameConfig.ClusterIni = c.ReadClusterIniFile()
 		wg.Done()
 	}()
 	go func() {
@@ -448,7 +318,7 @@ func (c *ClusterService) SaveGameConfig(gameConfig *cluster.GameConfig) {
 	}()
 
 	go func() {
-		c.SaveClusterIni(gameConfig.Cluster)
+		c.SaveClusterIni(gameConfig.ClusterIni)
 		wg.Done()
 	}()
 

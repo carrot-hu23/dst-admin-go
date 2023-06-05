@@ -1,7 +1,9 @@
 package service
 
 import (
+	"dst-admin-go/config/global"
 	"dst-admin-go/constant"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -66,7 +68,7 @@ func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
 	i.InitUserInfo(initDst.UserInfo)
 	i.InitDstConfig(initDst.DstConfig)
-	i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, "", false)
+	i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, global.CLUSTER_TOKEN, false)
 
 	log.Println("创建完成")
 }
@@ -190,4 +192,23 @@ func (i *InitService) InitBaseCaves(basePath string) {
 	fileUtils.WriterTXT(l_path, leveldataoverride)
 	fileUtils.WriterTXT(m_path, modoverrides)
 	fileUtils.WriterTXT(s_path, server_ini)
+}
+
+func (i *InitService) InitCluster(cluster *model.Cluster, token string) {
+
+	kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+	baseLevelPath := filepath.Join(kleiPath, cluster.Uuid)
+	if fileUtils.Exists(baseLevelPath) {
+		return
+	}
+
+	fileUtils.CreateDirIfNotExists(baseLevelPath)
+	fileUtils.CreateDirIfNotExists(cluster.Backup)
+	fileUtils.CreateDirIfNotExists(cluster.ModDownloadPath)
+
+	info := i.GetUserInfo()
+	i.InitClusterIni(baseLevelPath, info["displayName"].(string))
+	i.InitClusterToken(baseLevelPath, token)
+	i.InitBaseMaster(baseLevelPath)
+	i.InitBaseCaves(baseLevelPath)
 }
