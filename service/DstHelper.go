@@ -2,7 +2,7 @@ package service
 
 import (
 	"bytes"
-	"dst-admin-go/constant"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/fileUtils"
 	"fmt"
 	"html/template"
@@ -23,14 +23,14 @@ func (dst *DstHelper) ParseTemplate(templatePath string, data interface{}) strin
 	return buf.String()
 }
 
-func (dst *DstHelper) DedicatedServerModsSetup(modConfig string) {
+func (d *DstHelper) DedicatedServerModsSetup(clusterName string, modConfig string) {
 	if modConfig != "" {
 		var serverModSetup = ""
 		workshopIds := WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
-		fileUtils.WriterTXT(constant.GET_DST_MOD_SETUP_PATH(), serverModSetup)
+		fileUtils.WriterTXT(dst.GetModSetup(clusterName), serverModSetup)
 	}
 
 }

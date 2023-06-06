@@ -1,10 +1,11 @@
 package service
 
 import (
-	"dst-admin-go/constant"
 	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo/cluster"
+	"github.com/gin-gonic/gin"
 	"github.com/go-ini/ini"
 	"log"
 	"strings"
@@ -85,13 +86,8 @@ func (c *ClusterService) ReadClusterIniFile(clusterName string) *cluster.Cluster
 	return newCluster
 }
 
-func (c *ClusterService) ReadClusterTokenFile() string {
-	clusterTokenPath := constant.GET_CLUSTER_TOKEN_PATH()
-	if !fileUtils.Exists(clusterTokenPath) {
-		fileUtils.CreateFileIfNotExists(clusterTokenPath)
-		return ""
-	}
-
+func (c *ClusterService) ReadClusterTokenFile(clusterName string) string {
+	clusterTokenPath := dst.GetClusterTokenPath(clusterName)
 	token, err := fileUtils.ReadFile(clusterTokenPath)
 	if err != nil {
 		panic("read cluster_token.txt file error: " + err.Error())
@@ -99,8 +95,9 @@ func (c *ClusterService) ReadClusterTokenFile() string {
 	return token
 }
 
-func (c *ClusterService) ReadAdminlistFile() (str []string) {
-	adminListPath := constant.GET_DST_ADMIN_LIST_PATH()
+func (c *ClusterService) ReadAdminlistFile(clusterName string) (str []string) {
+
+	adminListPath := dst.GetAdminlistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(adminListPath)
 	str, err := fileUtils.ReadLnFile(adminListPath)
 	log.Println("str:", str)
@@ -110,8 +107,8 @@ func (c *ClusterService) ReadAdminlistFile() (str []string) {
 	return
 }
 
-func (c *ClusterService) ReadBlocklistFile() (str []string) {
-	blocklistPath := constant.GET_DST_BLOCKLIST_PATH()
+func (c *ClusterService) ReadBlocklistFile(clusterName string) (str []string) {
+	blocklistPath := dst.GetBlocklistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	str, err := fileUtils.ReadLnFile(blocklistPath)
 	log.Println("str:", str)
@@ -192,61 +189,59 @@ func (c *ClusterService) isMaster(filePath string) bool {
 	return strings.Contains(filePath, "Master") || strings.Contains(filePath, "master")
 }
 
-func (c *ClusterService) SaveClusterToken(token string) {
-	clusterTokenPath := constant.GET_CLUSTER_TOKEN_PATH()
-	fileUtils.CreateFileIfNotExists(clusterTokenPath)
+func (c *ClusterService) SaveClusterToken(clusterName, token string) {
+	clusterTokenPath := dst.GetClusterTokenPath(clusterName)
 	fileUtils.WriterTXT(clusterTokenPath, token)
 }
 
-func (c *ClusterService) SaveClusterIni(cluster *cluster.ClusterIni) {
-	clusterIniPath := constant.GET_CLUSTER_INI_PATH()
-	fileUtils.CreateFileIfNotExists(clusterIniPath)
+func (c *ClusterService) SaveClusterIni(clusterName string, cluster *cluster.ClusterIni) {
+	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	fileUtils.WriterTXT(clusterIniPath, c.ParseTemplate(CLUSTER_INI_TEMPLATE, cluster))
 }
 
-func (c *ClusterService) SaveAdminlist(str []string) {
-	adminlistPath := constant.GET_DST_ADMIN_LIST_PATH()
+func (c *ClusterService) SaveAdminlist(clusterName string, str []string) {
+	adminlistPath := dst.GetAdminlistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(adminlistPath)
 	fileUtils.WriterLnFile(adminlistPath, str)
 }
 
-func (c *ClusterService) SaveBlocklist(str []string) {
-	blocklistPath := constant.GET_DST_BLOCKLIST_PATH()
+func (c *ClusterService) SaveBlocklist(clusterName string, str []string) {
+	blocklistPath := dst.GetBlocklistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	fileUtils.WriterLnFile(blocklistPath, str)
 }
 
-func (c *ClusterService) ReadMaster() *cluster.World {
+func (c *ClusterService) ReadMaster(clusterName string) *cluster.World {
 	master := cluster.World{}
 
 	master.WorldName = "Master"
 	master.IsMaster = true
 
-	master.Leveldataoverride = c.ReadLeveldataoverrideFile(constant.GET_MASTER_LEVELDATAOVERRIDE_PATH())
-	master.Modoverrides = c.ReadModoverridesFile(constant.GET_MASTER_MOD_PATH())
-	master.ServerIni = c.ReadServerIniFile(constant.GET_MASTER_DIR_SERVER_INI_PATH(), true)
+	master.Leveldataoverride = c.ReadLeveldataoverrideFile(dst.GetMasterLeveldataoverridePath(clusterName))
+	master.Modoverrides = c.ReadModoverridesFile(dst.GetMasterModoverridesPath(clusterName))
+	master.ServerIni = c.ReadServerIniFile(dst.GetMasterServerIniPath(clusterName), true)
 
 	return &master
 }
 
-func (c *ClusterService) ReadCaves() *cluster.World {
+func (c *ClusterService) ReadCaves(clusterName string) *cluster.World {
 	caves := cluster.World{}
 
 	caves.WorldName = "Caves"
 	caves.IsMaster = false
 
-	caves.Leveldataoverride = c.ReadLeveldataoverrideFile(constant.GET_CAVES_LEVELDATAOVERRIDE_PATH())
-	caves.Modoverrides = c.ReadModoverridesFile(constant.GET_CAVES_MOD_PATH())
-	caves.ServerIni = c.ReadServerIniFile(constant.GET_CAVES_DIR_SERVER_INI_PATH(), false)
+	caves.Leveldataoverride = c.ReadLeveldataoverrideFile(dst.GetCavesLeveldataoverridePath(clusterName))
+	caves.Modoverrides = c.ReadModoverridesFile(dst.GetCavesModoverridesPath(clusterName))
+	caves.ServerIni = c.ReadServerIniFile(dst.GetCavesServerIniPath(clusterName), false)
 
 	return &caves
 }
 
-func (c *ClusterService) SaveMaster(world *cluster.World) {
+func (c *ClusterService) SaveMaster(clusterName string, world *cluster.World) {
 
-	lPath := constant.GET_MASTER_LEVELDATAOVERRIDE_PATH()
-	mPath := constant.GET_MASTER_MOD_PATH()
-	sPath := constant.GET_MASTER_DIR_SERVER_INI_PATH()
+	lPath := dst.GetMasterLeveldataoverridePath(clusterName)
+	mPath := dst.GetMasterModoverridesPath(clusterName)
+	sPath := dst.GetMasterServerIniPath(clusterName)
 
 	fileUtils.CreateFileIfNotExists(lPath)
 	fileUtils.CreateFileIfNotExists(mPath)
@@ -260,11 +255,11 @@ func (c *ClusterService) SaveMaster(world *cluster.World) {
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
 
-func (c *ClusterService) SaveCaves(world *cluster.World) {
+func (c *ClusterService) SaveCaves(clusterName string, world *cluster.World) {
 
-	lPath := constant.GET_CAVES_LEVELDATAOVERRIDE_PATH()
-	mPath := constant.GET_CAVES_MOD_PATH()
-	sPath := constant.GET_CAVES_DIR_SERVER_INI_PATH()
+	lPath := dst.GetCavesLeveldataoverridePath(clusterName)
+	mPath := dst.GetCavesModoverridesPath(clusterName)
+	sPath := dst.GetCavesServerIniPath(clusterName)
 
 	fileUtils.CreateFileIfNotExists(lPath)
 	fileUtils.CreateFileIfNotExists(mPath)
@@ -278,51 +273,53 @@ func (c *ClusterService) SaveCaves(world *cluster.World) {
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
 
-func (c *ClusterService) GetGameConfig() *cluster.GameConfig {
+func (c *ClusterService) GetGameConfig(ctx *gin.Context) *cluster.GameConfig {
 	gameConfig := cluster.GameConfig{}
 	var wg sync.WaitGroup
 	wg.Add(6)
-
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
 	go func() {
-		gameConfig.ClusterToken = c.ReadClusterTokenFile()
+		gameConfig.ClusterToken = c.ReadClusterTokenFile(clusterName)
 		wg.Done()
 	}()
 	go func() {
-		gameConfig.ClusterIni = c.ReadClusterIniFile()
+		gameConfig.ClusterIni = c.ReadClusterIniFile(clusterName)
 		wg.Done()
 	}()
 	go func() {
-		gameConfig.Adminlist = c.ReadAdminlistFile()
+		gameConfig.Adminlist = c.ReadAdminlistFile(clusterName)
 		wg.Done()
 	}()
 	go func() {
-		gameConfig.Blocklist = c.ReadBlocklistFile()
+		gameConfig.Blocklist = c.ReadBlocklistFile(clusterName)
 		wg.Done()
 	}()
 	go func() {
-		gameConfig.Master = c.ReadMaster()
+		gameConfig.Master = c.ReadMaster(clusterName)
 		wg.Done()
 	}()
 	go func() {
-		gameConfig.Caves = c.ReadCaves()
+		gameConfig.Caves = c.ReadCaves(clusterName)
 		wg.Done()
 	}()
 	wg.Wait()
 	return &gameConfig
 }
 
-func (c *ClusterService) SaveGameConfig(gameConfig *cluster.GameConfig) {
+func (c *ClusterService) SaveGameConfig(ctx *gin.Context, gameConfig *cluster.GameConfig) {
 
 	var wg sync.WaitGroup
 	wg.Add(6)
-
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
 	go func() {
-		c.SaveClusterToken(gameConfig.ClusterToken)
+		c.SaveClusterToken(clusterName, gameConfig.ClusterToken)
 		wg.Done()
 	}()
 
 	go func() {
-		c.SaveClusterIni(gameConfig.ClusterIni)
+		c.SaveClusterIni(clusterName, gameConfig.ClusterIni)
 		wg.Done()
 	}()
 
@@ -337,13 +334,13 @@ func (c *ClusterService) SaveGameConfig(gameConfig *cluster.GameConfig) {
 	}()
 
 	go func() {
-		c.SaveMaster(gameConfig.Master)
-		c.DedicatedServerModsSetup(gameConfig.Master.Modoverrides)
+		c.SaveMaster(clusterName, gameConfig.Master)
+		c.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
 		wg.Done()
 	}()
 
 	go func() {
-		c.SaveCaves(gameConfig.Caves)
+		c.SaveCaves(clusterName, gameConfig.Caves)
 		wg.Done()
 	}()
 

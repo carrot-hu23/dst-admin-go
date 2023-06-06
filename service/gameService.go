@@ -3,12 +3,10 @@ package service
 import (
 	"dst-admin-go/constant"
 	"dst-admin-go/constant/dst"
-	"dst-admin-go/utils/clusterUtils"
-	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/constant/screenKey"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"path"
 	"regexp"
@@ -20,15 +18,14 @@ type GameService struct {
 	specifiedGameService SpecifiedGameService
 }
 
-func (s *GameService) UpdateGame(ctx *gin.Context) {
+func (s *GameService) UpdateGame(clusterName string) {
 
-	SentBroadcast(":pig 正在更新游戏......")
+	SentBroadcast(clusterName, ":pig 正在更新游戏......")
 	time.Sleep(3 * time.Second)
 
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	s.specifiedGameService.stopSpecifiedMaster(cluster.ClusterName)
-	s.specifiedGameService.stopSpecifiedCaves(cluster.ClusterName)
-	updateGameCMd := dst.GetDstUpdateCmd(cluster.ClusterName)
+	s.specifiedGameService.stopSpecifiedMaster(clusterName)
+	s.specifiedGameService.stopSpecifiedCaves(clusterName)
+	updateGameCMd := dst.GetDstUpdateCmd(clusterName)
 	log.Println(updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
@@ -45,64 +42,55 @@ func ClearScreen() bool {
 	return res != ""
 }
 
-func SentBroadcast(message string) {
+func SentBroadcast(clusterName string, message string) {
 
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-
-	broadcast := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
+	broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
 	broadcast += message
 	broadcast += "\\\")\\n\""
 
 	shellUtils.Shell(broadcast)
 }
 
-func KickPlayer(KuId string) {
-	cluster := dstConfigUtils.GetDstConfig().Cluster
+func KickPlayer(clusterName, KuId string) {
 
-	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
-	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
-
-	shellUtils.Shell(masterCMD)
-	shellUtils.Shell(cavesCMD)
-}
-
-func KillPlayer(KuId string) {
-
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-
-	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
-	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
+	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
 
 	shellUtils.Shell(masterCMD)
 	shellUtils.Shell(cavesCMD)
 }
 
-func RespawnPlayer(KuId string) {
-
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-
-	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
-	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+func KillPlayer(clusterName, KuId string) {
+	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
+	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
 
 	shellUtils.Shell(masterCMD)
 	shellUtils.Shell(cavesCMD)
 }
 
-func RollBack(dayNum int) {
+func RespawnPlayer(clusterName string, KuId string) {
 
+	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
+
+	shellUtils.Shell(masterCMD)
+	shellUtils.Shell(cavesCMD)
+}
+
+func RollBack(clusterName string, dayNum int) {
 	days := fmt.Sprint(dayNum)
-	SentBroadcast(":pig 正在回档" + days + "天")
-	cluster := dstConfigUtils.GetDstConfig().Cluster
+	SentBroadcast(clusterName, ":pig 正在回档"+days+"天")
 
-	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
-	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
+	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
+	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"c_rollback(" + days + ")\\n\""
 
 	shellUtils.Shell(masterCMD)
 	shellUtils.Shell(cavesCMD)
 }
 
-func CleanWorld() {
-	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
+func CleanWorld(clusterName string) {
+
+	basePath := dst.GetClusterBasePath(clusterName)
 
 	fileUtils.DeleteDir(path.Join(basePath, "Master", "backup"))
 	fileUtils.DeleteDir(path.Join(basePath, "Master", "save"))
@@ -111,32 +99,29 @@ func CleanWorld() {
 	fileUtils.DeleteDir(path.Join(basePath, "Caves", "save"))
 }
 
-func Regenerateworld() {
-	SentBroadcast(":pig 即将重置世界！！！")
-	//TODO
+func Regenerateworld(clusterName string) {
 
-	cluster := dstConfigUtils.GetDstConfig().Cluster
+	SentBroadcast(clusterName, ":pig 即将重置世界！！！")
 
-	masterCMD := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
-	cavesCMD := "screen -S \"" + getscreenKey(cluster, "Caves") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
+	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
+	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
 	shellUtils.Shell(masterCMD)
 	shellUtils.Shell(cavesCMD)
 }
 
-func MasterConsole(command string) {
+func MasterConsole(clusterName string, command string) {
 
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-	cmd := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	shellUtils.Shell(cmd)
 }
 
-func CavesConsole(command string) {
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-	cmd := "screen -S \"" + getscreenKey(cluster, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+func CavesConsole(clusterName string, command string) {
+
+	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	shellUtils.Shell(cmd)
 }
 
-func OperatePlayer(otype, kuId string) {
+func OperatePlayer(clusterName string, otype, kuId string) {
 	command := ""
 	//复活
 	if otype == "0" {
@@ -150,8 +135,8 @@ func OperatePlayer(otype, kuId string) {
 	if otype == "2" {
 		command = "c_despawn('%s')"
 	}
-	MasterConsole(command)
-	CavesConsole(command)
+	MasterConsole(clusterName, command)
+	CavesConsole(clusterName, command)
 }
 
 func WorkshopIds(content string) []string {

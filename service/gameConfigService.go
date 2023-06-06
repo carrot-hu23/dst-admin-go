@@ -3,11 +3,9 @@ package service
 import (
 	"dst-admin-go/constant"
 	"dst-admin-go/constant/dst"
-	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"github.com/gin-gonic/gin"
 	"log"
 	"path"
 	"strconv"
@@ -22,10 +20,7 @@ type GameConfigService struct {
 	ClusterService
 }
 
-func (c *GameConfigService) GetConfig(ctx *gin.Context) vo.GameConfigVO {
-
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
+func (c *GameConfigService) GetConfig(clusterName string) vo.GameConfigVO {
 
 	gameConfig := vo.NewGameConfigVO()
 	gameConfig.Token = c.getClusterToken(clusterName)
@@ -158,10 +153,7 @@ func (c *GameConfigService) getModoverrides(clusterName string) string {
 	return modoverrides
 }
 
-func (c *GameConfigService) SaveConfig(ctx *gin.Context, gameConfigVo vo.GameConfigVO) {
-
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
+func (c *GameConfigService) SaveConfig(clusterName string, gameConfigVo vo.GameConfigVO) {
 
 	//创建房间配置
 	c.createClusterIni(clusterName, gameConfigVo)

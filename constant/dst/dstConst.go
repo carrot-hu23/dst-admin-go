@@ -6,6 +6,10 @@ import (
 	"path"
 )
 
+func GetClusterBasePath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName)
+}
+
 func GetClusterIniPath(clusterName string) string {
 	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "cluster.ini")
 }
@@ -35,6 +39,14 @@ func GetMasterServerIniPath(clusterName string) string {
 
 func GetCavesServerIniPath(clusterName string) string {
 	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Master", "server.ini")
+}
+
+func GetAdminlistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "adminlist.txt")
+}
+
+func GetBlocklistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blocklist.txt")
 }
 
 func GetModSetup(clusterName string) string {

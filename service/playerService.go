@@ -1,8 +1,8 @@
 package service
 
 import (
-	"dst-admin-go/constant"
-	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/constant/dst"
+	"dst-admin-go/constant/screenKey"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
@@ -15,14 +15,12 @@ import (
 type PlayerService struct {
 }
 
-func (p *PlayerService) GetPlayerList() []vo.PlayerVO {
+func (p *PlayerService) GetPlayerList(clusterName string) []vo.PlayerVO {
 	id := strconv.FormatInt(time.Now().Unix(), 10)
 
 	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
-	clsuerName := dstConfigUtils.GetDstConfig().Cluster
-	screenKey := getscreenKey(clsuerName, "Master")
 
-	playerCMD := "screen -S \"" + screenKey + "\" -p 0 -X stuff \"" + command + "\\n\""
+	playerCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 
 	shellUtils.Shell(playerCMD)
 
@@ -44,8 +42,8 @@ func (p *PlayerService) GetPlayerList() []vo.PlayerVO {
 	return playerVOList
 }
 
-func (p *PlayerService) GetDstAdminList() (str []string) {
-	path := constant.GET_DST_ADMIN_LIST_PATH()
+func (p *PlayerService) GetDstAdminList(clusterName string) (str []string) {
+	path := dst.GetAdminlistPath(clusterName)
 	if !fileUtils.Exists(path) {
 		log.Println("路径不存在", path)
 		return
@@ -58,8 +56,8 @@ func (p *PlayerService) GetDstAdminList() (str []string) {
 	return
 }
 
-func (p *PlayerService) GetDstBlcaklistPlayerList() (str []string) {
-	path := constant.GET_DST_BLOCKLIST_PATH()
+func (p *PlayerService) GetDstBlcaklistPlayerList(clusterName string) (str []string) {
+	path := dst.GetBlocklistPath(clusterName)
 	if !fileUtils.Exists(path) {
 		log.Println("路径不存在", path)
 		return
@@ -72,9 +70,9 @@ func (p *PlayerService) GetDstBlcaklistPlayerList() (str []string) {
 	return
 }
 
-func (p *PlayerService) SaveDstAdminList(adminlist []string) {
+func (p *PlayerService) SaveDstAdminList(clusterName string, adminlist []string) {
 
-	path := constant.GET_DST_ADMIN_LIST_PATH()
+	path := dst.GetAdminlistPath(clusterName)
 
 	err := fileUtils.WriterLnFile(path, adminlist)
 	if err != nil {
@@ -82,9 +80,9 @@ func (p *PlayerService) SaveDstAdminList(adminlist []string) {
 	}
 }
 
-func (p *PlayerService) SaveDstBlacklistPlayerList(blacklist []string) {
+func (p *PlayerService) SaveDstBlacklistPlayerList(clusterName string, blacklist []string) {
 
-	path := constant.GET_DST_BLOCKLIST_PATH()
+	path := dst.GetBlocklistPath(clusterName)
 
 	err := fileUtils.WriterLnFile(path, blacklist)
 	if err != nil {

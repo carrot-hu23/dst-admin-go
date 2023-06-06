@@ -22,7 +22,7 @@ func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: clusterService.GetGameConfig(),
+		Data: clusterService.GetGameConfig(ctx),
 	})
 }
 
@@ -31,7 +31,7 @@ func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
 	gameConfig := cluster.GameConfig{}
 	ctx.ShouldBind(&gameConfig)
 	fmt.Printf("%v", gameConfig.Caves.ServerIni)
-	clusterService.SaveGameConfig(&gameConfig)
+	clusterService.SaveGameConfig(ctx, &gameConfig)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

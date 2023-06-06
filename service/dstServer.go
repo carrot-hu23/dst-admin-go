@@ -1,7 +1,7 @@
 package service
 
 import (
-	"dst-admin-go/constant"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"encoding/base64"
@@ -22,17 +22,17 @@ type DstService struct {
 	ClusterService
 }
 
-func (d *DstService) GetCurrGameArchive() *vo.GameArchive {
+func (d *DstService) GetCurrGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
 	wg.Add(4)
 
 	gameArchie := vo.NewGameArchie()
-	basePath := constant.GET_DST_USER_GAME_CONFG_PATH()
+	basePath := dst.GetClusterBasePath(clusterName)
 
 	// 获取基础信息
 	go func() {
-		clusterIni := d.ReadClusterIniFile()
+		clusterIni := d.ReadClusterIniFile(dst.GetClusterIniPath(clusterName))
 		gameArchie.ClusterName = clusterIni.ClusterName
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode

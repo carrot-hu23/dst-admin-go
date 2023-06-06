@@ -1,4 +1,4 @@
-package task
+package schedule
 
 import (
 	"dst-admin-go/utils/zip"
@@ -7,6 +7,31 @@ import (
 )
 
 type BackupSchedule struct {
+	cron  string
+	state chan int
+}
+
+func NewBackSchedule(cron string) *BackupSchedule {
+	backupSchedule := &BackupSchedule{
+		cron:  cron,
+		state: make(chan int),
+	}
+	backupSchedule.state <- 1
+	return backupSchedule
+}
+
+func (b *BackupSchedule) StartSchedule() {
+	go func() {
+		for {
+			select {
+			case <-b.state:
+				// 开始 定时任务
+			}
+		}
+	}()
+}
+func (b *BackupSchedule) ReSchedule(cron string) {
+
 }
 
 func (b *BackupSchedule) TimingBackup(sourceDir, targetZip string, hour, minute int) {
