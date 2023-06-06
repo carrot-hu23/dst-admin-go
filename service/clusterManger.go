@@ -87,16 +87,17 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	db.Create(&cluster)
 
 	// 安装 dontstarve_dedicated_server
+	log.Println("正在安装饥荒。。。。。。")
 	if !fileUtils.Exists(cluster.ForceInstallDir) {
 		// app_update 343050 beta updatebeta validate +quit
 		cmd := "cd " + cluster.SteamCmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + cluster.ForceInstallDir + " +app_update 343050 validate +quit"
 		output, err := shellUtils.Shell(cmd)
 		if err != nil {
-			return
+			log.Panicln("饥荒安装失败")
 		}
 		log.Println(output)
 	}
-
+	log.Println("饥荒安装完成！！！")
 	// 创建世界
 	c.InitCluster(cluster, global.CLUSTER_TOKEN)
 
