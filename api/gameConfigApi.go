@@ -18,7 +18,7 @@ func (g *GameConfigApi) GetConfig(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: gameConfigService.GetConfig(),
+		Data: gameConfigService.GetConfig(ctx),
 	})
 }
 
@@ -27,7 +27,7 @@ func (g *GameConfigApi) SaveConfig(ctx *gin.Context) {
 	gameConfig := vo.NewGameConfigVO()
 	ctx.ShouldBind(gameConfig)
 	log.Println(gameConfig)
-	gameConfigService.SaveConfig(*gameConfig)
+	gameConfigService.SaveConfig(ctx, *gameConfig)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

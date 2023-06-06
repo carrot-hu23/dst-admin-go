@@ -197,7 +197,7 @@ func (i *InitService) InitBaseCaves(basePath string) {
 func (i *InitService) InitCluster(cluster *model.Cluster, token string) {
 
 	kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
-	baseLevelPath := filepath.Join(kleiPath, cluster.Uuid)
+	baseLevelPath := filepath.Join(kleiPath, cluster.ClusterName)
 	if fileUtils.Exists(baseLevelPath) {
 		return
 	}

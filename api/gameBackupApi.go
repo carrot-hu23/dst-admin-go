@@ -20,7 +20,7 @@ func (g *GameBackUpApi) DeleteBackup(ctx *gin.Context) {
 	if err := ctx.BindJSON(&body); err != nil {
 		return
 	}
-	backupService.DeleteBackup(body.FileNames)
+	backupService.DeleteBackup(ctx, body.FileNames)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "delete backups success",
@@ -37,7 +37,7 @@ func (g *GameBackUpApi) GetBackupList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "get backup list success",
-		Data: backupService.GetBackupList(),
+		Data: backupService.GetBackupList(ctx),
 	})
 }
 
@@ -50,7 +50,7 @@ func (g *GameBackUpApi) RenameBackup(ctx *gin.Context) {
 	if err := ctx.BindJSON(&body); err != nil {
 		return
 	}
-	backupService.RenameBackup(body.FileName, body.NewName)
+	backupService.RenameBackup(ctx, body.FileName, body.NewName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -78,7 +78,7 @@ func (g *GameBackUpApi) CreateBackup(ctx *gin.Context) {
 	if err := ctx.ShouldBind(&body); err != nil {
 		body.BackupName = ""
 	}
-	backupService.CreateBackup(body.BackupName)
+	backupService.CreateBackup(ctx, body.BackupName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

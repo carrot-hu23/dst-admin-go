@@ -18,7 +18,7 @@ var dstService = service.DstService{}
 
 func (g *GameConsoleApi) UpdateGame(ctx *gin.Context) {
 
-	gameService.UpdateGame()
+	gameService.UpdateGame(ctx)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -173,7 +173,7 @@ func (g *GameConsoleApi) RestoreBackup(ctx *gin.Context) {
 
 	backupName := ctx.Query("backupName")
 
-	backupService.RestoreBackup(backupName)
+	backupService.RestoreBackup(ctx, backupName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

@@ -2,6 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo/cluster"
 	"github.com/go-ini/ini"
@@ -20,12 +21,15 @@ const (
 	CAVES_SERVER_INI_TEMPLATE  = "./static/template/caves_server.ini"
 )
 
-func (c *ClusterService) ReadClusterIniFile() *cluster.ClusterIni {
+func (c *ClusterService) ReadClusterIniFile(clusterName string) *cluster.ClusterIni {
 	newCluster := cluster.NewCluster()
 	// 加载 INI 文件
-	clusterIniPath := constant.GET_CLUSTER_INI_PATH()
+	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	if !fileUtils.Exists(clusterIniPath) {
-		fileUtils.CreateFileIfNotExists(clusterIniPath)
+		err := fileUtils.CreateFileIfNotExists(clusterIniPath)
+		if err != nil {
+			return nil
+		}
 		return newCluster
 	}
 	cfg, err := ini.Load(clusterIniPath)

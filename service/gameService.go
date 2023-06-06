@@ -2,10 +2,13 @@ package service
 
 import (
 	"dst-admin-go/constant"
+	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"path"
 	"regexp"
@@ -17,15 +20,15 @@ type GameService struct {
 	specifiedGameService SpecifiedGameService
 }
 
-func (s *GameService) UpdateGame() {
+func (s *GameService) UpdateGame(ctx *gin.Context) {
+
 	SentBroadcast(":pig 正在更新游戏......")
-	// ElegantShutdownMaster()
-	// ElegantShutdownCaves()
 	time.Sleep(3 * time.Second)
-	cluster := dstConfigUtils.GetDstConfig().Cluster
-	s.specifiedGameService.stopSpecifiedMaster(cluster)
-	s.specifiedGameService.stopSpecifiedCaves(cluster)
-	updateGameCMd := constant.GET_UPDATE_GAME_CMD()
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	s.specifiedGameService.stopSpecifiedMaster(cluster.ClusterName)
+	s.specifiedGameService.stopSpecifiedCaves(cluster.ClusterName)
+	updateGameCMd := dst.GetDstUpdateCmd(cluster.ClusterName)
 	log.Println(updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
@@ -40,11 +43,6 @@ func ClearScreen() bool {
 	}
 	res := strings.Split(result, "\n")[0]
 	return res != ""
-}
-
-func DeleteGameRecord() {
-	shellUtils.Shell(constant.DEL_RECORD_MASTER_CMD)
-	shellUtils.Shell(constant.DEL_RECORD_CAVES_CMD)
 }
 
 func SentBroadcast(message string) {
