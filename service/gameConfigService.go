@@ -245,14 +245,14 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 	}
 }
 
-func (c *GameConfigService) UpdateDedicatedServerModsSetup(modConfig string) {
+func (c *GameConfigService) UpdateDedicatedServerModsSetup(clusterName, modConfig string) {
 	if modConfig != "" {
 		var serverModSetup = ""
 		workshopIds := WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
-		fileUtils.WriterTXT(constant.GET_DST_MOD_SETUP_PATH(), serverModSetup)
+		fileUtils.WriterTXT(dst.GetModSetup(clusterName), serverModSetup)
 	}
 
 }

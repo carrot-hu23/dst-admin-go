@@ -159,7 +159,7 @@ func (s *SpecifiedGameService) GetSpecifiedClusterDashboard(clusterName string) 
 	var wg sync.WaitGroup
 	wg.Add(10)
 
-	dashboardVO := vo.NewDashboardVO()
+	dashboardVO := vo.NewDashboardVO(clusterName)
 	start := time.Now()
 	go func() {
 		defer wg.Done()

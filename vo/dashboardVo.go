@@ -2,7 +2,6 @@ package vo
 
 import (
 	"dst-admin-go/constant"
-	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"path/filepath"
 )
@@ -25,9 +24,9 @@ type DashboardVO struct {
 	IpConnect string   `json:"ipConnect"`
 }
 
-func NewDashboardVO() *DashboardVO {
+func NewDashboardVO(clusterName string) *DashboardVO {
 	return &DashboardVO{
-		MasterLog: filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster, "Master", "server_log.txt"),
-		CavesLog:  filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster, "Caves", "server_log.txt"),
+		MasterLog: filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Master", "server_log.txt"),
+		CavesLog:  filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Caves", "server_log.txt"),
 	}
 }
