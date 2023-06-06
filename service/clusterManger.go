@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
@@ -55,6 +56,26 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 	totalPages := total / int64(size)
 	if total%int64(size) != 0 {
 		totalPages++
+	}
+	var clusterVOList []vo.ClusterVO
+
+	for _, cluster := range clusters {
+		clusterVO := vo.ClusterVO{
+			ClusterName:     cluster.ClusterName,
+			Description:     cluster.Description,
+			SteamCmd:        cluster.SteamCmd,
+			ForceInstallDir: cluster.ForceInstallDir,
+			Backup:          cluster.Backup,
+			ModDownloadPath: cluster.ModDownloadPath,
+			Uuid:            cluster.Uuid,
+			Beta:            cluster.Beta,
+			ID:              cluster.ID,
+			CreatedAt:       cluster.CreatedAt,
+			UpdatedAt:       cluster.UpdatedAt,
+			Master:          dst.Status(clusterName, "Master"),
+			Caves:           dst.Status(clusterName, "Caves"),
+		}
+		clusterVOList = append(clusterVOList, clusterVO)
 	}
 
 	ctx.JSON(http.StatusOK, vo.Response{

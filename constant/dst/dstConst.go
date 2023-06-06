@@ -3,7 +3,9 @@ package dst
 import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/shellUtils"
 	"path"
+	"strings"
 )
 
 func GetClusterBasePath(clusterName string) string {
@@ -59,4 +61,14 @@ func GetDstUpdateCmd(clusterName string) string {
 	steamcmd := cluster.SteamCmd
 	dst_install_dir := cluster.ForceInstallDir
 	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+}
+
+func Status(clusterName, level string) bool {
+	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
+	result, err := shellUtils.Shell(cmd)
+	if err != nil {
+		return false
+	}
+	res := strings.Split(result, "\n")[0]
+	return res != ""
 }
