@@ -2,7 +2,8 @@ package service
 
 import (
 	"dst-admin-go/constant/dst"
-	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/constant/screenKey"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
@@ -13,10 +14,6 @@ import (
 	"sync"
 	"time"
 )
-
-func getscreenKey(clusterName, level string) string {
-	return "DST_" + level + "_" + clusterName
-}
 
 type SpecifiedGameService struct {
 }
@@ -35,8 +32,8 @@ func (s *SpecifiedGameService) shutdownSpecifiedLevel(clusterName, level string)
 	if !s.GetSpecifiedLevelStatus(clusterName, level) {
 		return
 	}
-	screenKey := getscreenKey(clusterName, level)
-	shell := "screen -S \"" + screenKey + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
+
+	shell := "screen -S \"" + screenKey.Key(clusterName, level) + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
 	_, err := shellUtils.Shell(shell)
 	if err != nil {
 		log.Panicln("shut down " + clusterName + " " + level + " error: " + err.Error())
@@ -60,17 +57,14 @@ func (s *SpecifiedGameService) killSpecifiedLevel(clusterName, level string) {
 
 func (s *SpecifiedGameService) launchSpecifiedLevel(clusterName, level string) {
 
-	dstConfig := dstConfigUtils.GetDstConfig()
-	cluster := dstConfig.Cluster
-	dst_install_dir := dstConfig.Force_install_dir
+	cluster := clusterUtils.GetCluster(clusterName)
+	dst_install_dir := cluster.ForceInstallDir
 
-	screenKey := getscreenKey(clusterName, level)
-
-	cmd := "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + screenKey + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + level + "  ;"
+	cmd := "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
 
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
-		log.Panicln("launch " + cluster + " " + level + " error: " + err.Error())
+		log.Panicln("launch " + clusterName + " " + level + " error: " + err.Error())
 	}
 
 }

@@ -72,8 +72,8 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 			ID:              cluster.ID,
 			CreatedAt:       cluster.CreatedAt,
 			UpdatedAt:       cluster.UpdatedAt,
-			Master:          dst.Status(clusterName, "Master"),
-			Caves:           dst.Status(clusterName, "Caves"),
+			Master:          dst.Status(cluster.ClusterName, "Master"),
+			Caves:           dst.Status(cluster.ClusterName, "Caves"),
 		}
 		clusterVOList = append(clusterVOList, clusterVO)
 	}
@@ -82,7 +82,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: vo.Page{
-			Data:       clusters,
+			Data:       clusterVOList,
 			Page:       page,
 			Size:       size,
 			Total:      total,
