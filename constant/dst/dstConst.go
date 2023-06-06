@@ -3,7 +3,9 @@ package dst
 import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
+	"log"
 	"path"
 	"strings"
 )
@@ -63,6 +65,8 @@ func GetDstUpdateCmd(clusterName string) string {
 	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
 }
 
+// ============= 工具类 以后放到别的位置 ================//
+
 func Status(clusterName, level string) bool {
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
 	result, err := shellUtils.Shell(cmd)
@@ -71,4 +75,23 @@ func Status(clusterName, level string) bool {
 	}
 	res := strings.Split(result, "\n")[0]
 	return res != ""
+}
+
+func ReadMasterLog(clusterName string, lineNum uint) []string {
+	logPath := path.Join(GetClusterBasePath(clusterName), "Master", "server_log.txt")
+	logs, err := fileUtils.ReverseRead(logPath, lineNum)
+	if err != nil {
+		log.Panicln("read dst master log error:", err)
+	}
+	return logs
+}
+
+func ReadCavesLog(clusterName string, lineNum uint) []string {
+
+	logPath := path.Join(GetClusterBasePath(clusterName), "Caves", "server_log.txt")
+	logs, err := fileUtils.ReverseRead(logPath, lineNum)
+	if err != nil {
+		log.Panicln("read dst caves log error:", err)
+	}
+	return logs
 }

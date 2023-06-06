@@ -26,8 +26,10 @@ func (p *PlayerService) GetPlayerList(clusterName string) []vo.PlayerVO {
 
 	time.Sleep(time.Duration(1) * time.Second)
 
+	// TODO 如果只启动了洞穴，应该去读取洞穴的日志
+
 	// 读取日志
-	dstLogs := ReadDstMasterLog(100)
+	dstLogs := dst.ReadMasterLog(clusterName, 100)
 	var playerVOList []vo.PlayerVO
 
 	for _, line := range dstLogs {
