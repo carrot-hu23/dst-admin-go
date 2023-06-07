@@ -134,17 +134,17 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 	db.Updates(oldCluster)
 }
 
-func (c *ClusterManager) DeleteCluster(id uint) error {
+func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 	db := database.DB
 
 	cluster := model.Cluster{}
 	result := db.Where("id = ?", id).Delete(&cluster)
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
 	// TODO 删除集群 和 饥荒、备份、mod 下载
 
-	return nil
+	return &cluster, nil
 }
 
 func (c *ClusterManager) FindClusterByUuid(uuid string) *model.Cluster {

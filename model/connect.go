@@ -4,9 +4,10 @@ import "gorm.io/gorm"
 
 type Connect struct {
 	gorm.Model
-	Ip      string
-	Name    string
-	KuId    string
-	SteamId string
-	Time    string
+	Ip          string
+	Name        string
+	KuId        string
+	SteamId     string
+	Time        string
+	ClusterName string
 }

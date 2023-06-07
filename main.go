@@ -45,7 +45,7 @@ func InitConfig() {
 	global.Config = configData
 }
 
-func iniiDB() {
+func initDB() {
 	db, err := gorm.Open(sqlite.Open(configData.Db), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -53,7 +53,10 @@ func iniiDB() {
 		panic("failed to connect database")
 	}
 	database.DB = db
-	database.DB.AutoMigrate(&model.Spawn{}, &model.PlayerLog{}, &model.Connect{}, &model.Proxy{}, &model.ModInfo{}, &model.Cluster{})
+	err = database.DB.AutoMigrate(&model.Spawn{}, &model.PlayerLog{}, &model.Connect{}, &model.Proxy{}, &model.ModInfo{}, &model.Cluster{})
+	if err != nil {
+		return
+	}
 
 	proxyEntities := []model.Proxy{}
 	db.Find(&proxyEntities)
@@ -67,6 +70,13 @@ func iniiDB() {
 			p := httputil.NewSingleHostReverseProxy(r)
 			global.RoutingTable[proxyEntity.Name] = &global.Route{Proxy: p, Url: r}
 		}
+	}
+
+	//---------------
+	var clusters []model.Cluster
+	db.Find(&clusters)
+	for _, cluster := range clusters {
+		global.CollectMap.AddNewCollect(cluster.ClusterName)
 	}
 
 }
@@ -91,7 +101,7 @@ func logInit() {
 func init() {
 	logInit()
 	InitConfig()
-	iniiDB()
+	initDB()
 }
 
 func main() {

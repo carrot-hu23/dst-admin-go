@@ -17,6 +17,7 @@ type Collect struct {
 	severLogList      []string
 	serverChatLogList []string
 	length            int
+	clusterName       string
 }
 
 func NewCollect(baseLogPath string) *Collect {
@@ -33,6 +34,10 @@ func NewCollect(baseLogPath string) *Collect {
 	}
 	collect.state <- 1
 	return collect
+}
+
+func (c *Collect) Stop() {
+	close(c.stop)
 }
 
 func (c *Collect) ReCollect(baseLogPath string) {
@@ -82,7 +87,7 @@ func (c *Collect) parseSpawnRequestLog(text string) {
 	role := strings.Replace(arr[3], " ", "", -1)
 	name := strings.Replace(arr[5], "\n", "", -1)
 
-	spawn := model.Spawn{Name: name, Role: role, Time: t}
+	spawn := model.Spawn{Name: name, Role: role, Time: t, ClusterName: c.clusterName}
 	database.DB.Create(&spawn)
 }
 
@@ -139,6 +144,7 @@ func (c *Collect) parseNewIncomingLog(lines []string) {
 				steamId = steamId[1 : len(steamId)-1]
 				fmt.Println("steamId", steamId)
 				connect.SteamId = steamId
+				connect.ClusterName = c.clusterName
 			}
 		}
 	}
@@ -252,14 +258,15 @@ func (c *Collect) parseSay(text string) {
 	connect := c.getConnectInfo(name)
 
 	playerLog := model.PlayerLog{
-		Name:       name,
-		Role:       spawn.Role,
-		Action:     action,
-		ActionDesc: actionDesc,
-		Time:       t,
-		Ip:         connect.Ip,
-		KuId:       kuId,
-		SteamId:    connect.SteamId,
+		Name:        name,
+		Role:        spawn.Role,
+		Action:      action,
+		ActionDesc:  actionDesc,
+		Time:        t,
+		Ip:          connect.Ip,
+		KuId:        kuId,
+		SteamId:     connect.SteamId,
+		ClusterName: c.clusterName,
 	}
 	database.DB.Create(&playerLog)
 }
@@ -289,14 +296,15 @@ func (c *Collect) parseDeath(text string) {
 	fmt.Println(connect)
 
 	playerLog := model.PlayerLog{
-		Name:       name,
-		Role:       spawn.Role,
-		Action:     action,
-		ActionDesc: actionDesc,
-		Time:       t,
-		Ip:         connect.Ip,
-		KuId:       connect.KuId,
-		SteamId:    connect.SteamId,
+		Name:        name,
+		Role:        spawn.Role,
+		Action:      action,
+		ActionDesc:  actionDesc,
+		Time:        t,
+		Ip:          connect.Ip,
+		KuId:        connect.KuId,
+		SteamId:     connect.SteamId,
+		ClusterName: c.clusterName,
 	}
 
 	database.DB.Create(&playerLog)
@@ -319,13 +327,14 @@ func (c *Collect) parseJoin(text string) {
 	connect := c.getConnectInfo(name)
 
 	playerLog := model.PlayerLog{
-		Name:    name,
-		Role:    spawn.Role,
-		Action:  action,
-		Time:    t,
-		Ip:      connect.Ip,
-		KuId:    connect.KuId,
-		SteamId: connect.SteamId,
+		Name:        name,
+		Role:        spawn.Role,
+		Action:      action,
+		Time:        t,
+		Ip:          connect.Ip,
+		KuId:        connect.KuId,
+		SteamId:     connect.SteamId,
+		ClusterName: c.clusterName,
 	}
 	database.DB.Create(&playerLog)
 }
@@ -367,12 +376,12 @@ func (c *Collect) tailServerChatLog(fileName string) {
 
 func (c *Collect) getSpawnRole(name string) *model.Spawn {
 	spawn := new(model.Spawn)
-	database.DB.Where("name LIKE ?", "%"+name+"%").Last(spawn)
+	database.DB.Where("name LIKE ?", "cluster_name = ?", "%"+name+"%", c.clusterName).Last(spawn)
 	return spawn
 }
 
 func (c *Collect) getConnectInfo(name string) *model.Connect {
 	connect := new(model.Connect)
-	database.DB.Where("name LIKE ?", "%"+name+"%").Last(connect)
+	database.DB.Where("name LIKE ?", "cluster_name = ?", "%"+name+"%", c.clusterName).Last(connect)
 	return connect
 }
