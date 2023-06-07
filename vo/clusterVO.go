@@ -16,4 +16,12 @@ type ClusterVO struct {
 	UpdatedAt       time.Time
 	Master          bool `json:"master"`
 	Caves           bool `json:"caves"`
+
+	Connected      int    `json:"connected"`
+	MaxConnections int    `json:"maxConnections"`
+	Mode           string `json:"mode"`
+	Mods           int    `json:"mods"`
+	Season         string `json:"season"`
+	Password       string `json:"password"`
+	RowId          string `json:"rowId"`
 }

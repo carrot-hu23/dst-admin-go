@@ -68,6 +68,12 @@ func GetDstUpdateCmd(clusterName string) string {
 // ============= 工具类 以后放到别的位置 ================//
 
 func Status(clusterName, level string) bool {
+	defer func() {
+		if err := recover(); err != nil {
+
+		}
+	}()
+
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
 	result, err := shellUtils.Shell(cmd)
 	if err != nil {

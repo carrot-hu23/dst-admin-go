@@ -1,14 +1,11 @@
 package main
 
 import (
-	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
-	"dst-admin-go/constant"
 	"dst-admin-go/model"
 	"dst-admin-go/router"
-	"dst-admin-go/utils/dstConfigUtils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -21,7 +18,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"path/filepath"
 )
 
 const log_path = "./dst-admin-go.log"
@@ -111,11 +107,6 @@ func main() {
 	}()
 
 	fmt.Println(":pig, 你是好人")
-
-	baseLogPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", dstConfigUtils.GetDstConfig().Cluster)
-
-	global.Collect = collect.NewCollect(baseLogPath)
-	global.Collect.StartCollect()
 
 	app := router.NewRoute()
 	app.Run(":" + configData.Port)

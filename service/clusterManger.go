@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/config/global"
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
@@ -14,11 +15,13 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 type ClusterManager struct {
 	DstHelper
 	InitService
+	ClusterService
 }
 
 func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
@@ -57,27 +60,64 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 	if total%int64(size) != 0 {
 		totalPages++
 	}
-	var clusterVOList []vo.ClusterVO
 
-	for _, cluster := range clusters {
-		clusterVO := vo.ClusterVO{
-			ClusterName:     cluster.ClusterName,
-			Description:     cluster.Description,
-			SteamCmd:        cluster.SteamCmd,
-			ForceInstallDir: cluster.ForceInstallDir,
-			Backup:          cluster.Backup,
-			ModDownloadPath: cluster.ModDownloadPath,
-			Uuid:            cluster.Uuid,
-			Beta:            cluster.Beta,
-			ID:              cluster.ID,
-			CreatedAt:       cluster.CreatedAt,
-			UpdatedAt:       cluster.UpdatedAt,
-			Master:          dst.Status(cluster.ClusterName, "Master"),
-			Caves:           dst.Status(cluster.ClusterName, "Caves"),
-		}
-		clusterVOList = append(clusterVOList, clusterVO)
+	var clusterVOList = make([]vo.ClusterVO, len(clusters))
+	var wg sync.WaitGroup
+	wg.Add(len(clusters))
+	for i, cluster := range clusters {
+		go func(cluster model.Cluster, i int) {
+			clusterVO := vo.ClusterVO{
+				ClusterName:     cluster.ClusterName,
+				Description:     cluster.Description,
+				SteamCmd:        cluster.SteamCmd,
+				ForceInstallDir: cluster.ForceInstallDir,
+				Backup:          cluster.Backup,
+				ModDownloadPath: cluster.ModDownloadPath,
+				Uuid:            cluster.Uuid,
+				Beta:            cluster.Beta,
+				ID:              cluster.ID,
+				CreatedAt:       cluster.CreatedAt,
+				UpdatedAt:       cluster.UpdatedAt,
+				//Master:          dst.Status(cluster.ClusterName, "Master"),
+				//Caves:           dst.Status(cluster.ClusterName, "Caves"),
+				Master: true,
+				Caves:  true,
+			}
+			clusterIniPath := dst.GetClusterIniPath(clusterName)
+			clusterIni := c.ReadClusterIniFile(clusterIniPath)
+			name := clusterIni.ClusterName
+			maxPlayers := clusterIni.MaxPlayers
+			mode := clusterIni.GameMode
+			password := clusterIni.ClusterPassword
+			var hasPassword int
+			if password == "" {
+				hasPassword = 0
+			} else {
+				hasPassword = 1
+			}
+			// http 请求服务信息
+			homeInfos := clusterUtils.GetDstServerInfo(name)
+			if len(homeInfos) > 0 {
+				for _, info := range homeInfos {
+					if info.Name == name &&
+						uint(info.MaxConnect) == maxPlayers &&
+						info.Mode == mode &&
+						int(info.Password) == hasPassword {
+						clusterVO.RowId = info.Row
+						clusterVO.Connected = int(info.Connected)
+						clusterVO.MaxConnections = int(info.MaxConnect)
+						clusterVO.Mode = info.Mode
+						clusterVO.Mods = int(info.Mods)
+						clusterVO.Season = info.Season
+					}
+
+				}
+			}
+			clusterVOList[i] = clusterVO
+			wg.Done()
+		}(cluster, i)
 	}
-
+	wg.Wait()
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
