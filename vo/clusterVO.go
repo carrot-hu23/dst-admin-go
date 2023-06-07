@@ -24,4 +24,5 @@ type ClusterVO struct {
 	Season         string `json:"season"`
 	Password       string `json:"password"`
 	RowId          string `json:"rowId"`
+	Region         string `json:"region"`
 }

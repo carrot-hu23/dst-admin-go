@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -77,10 +78,8 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				ID:              cluster.ID,
 				CreatedAt:       cluster.CreatedAt,
 				UpdatedAt:       cluster.UpdatedAt,
-				//Master:          dst.Status(cluster.ClusterName, "Master"),
-				//Caves:           dst.Status(cluster.ClusterName, "Caves"),
-				Master: true,
-				Caves:  true,
+				Master:          dst.Status(cluster.ClusterName, "Master"),
+				Caves:           dst.Status(cluster.ClusterName, "Caves"),
 			}
 			clusterIni := c.ReadClusterIniFile(cluster.ClusterName)
 			name := clusterIni.ClusterName
@@ -107,6 +106,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 						clusterVO.Mode = info.Mode
 						clusterVO.Mods = int(info.Mods)
 						clusterVO.Season = info.Season
+						clusterVO.Region = info.Region
 					}
 
 				}

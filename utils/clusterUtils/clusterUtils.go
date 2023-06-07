@@ -84,6 +84,7 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 		name := d.([]interface{})[10].(string)
 		password := d.([]interface{})[11].(float64)
 		season := d.([]interface{})[14].(string)
+		region := d.([]interface{})[20].(string)
 		h := DstHomeInfo{
 			Row:        row,
 			Connected:  connected,
@@ -93,6 +94,7 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 			Name:       name,
 			Password:   password,
 			Season:     season,
+			Region:     region,
 		}
 		homeDataList = append(homeDataList, h)
 	}
@@ -108,4 +110,5 @@ type DstHomeInfo struct {
 	Name       string
 	Password   float64
 	Season     string
+	Region     string
 }
