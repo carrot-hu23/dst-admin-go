@@ -33,6 +33,7 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 
 	d := "{\"page\": 1,\"paginate\": 10,\"sort_type\": \"name\",\"sort_way\": 1,\"search_type\": 1,\"search_content\": \"%s\",\"mod\": 1}"
 	d2 := fmt.Sprintf(d, clusterName)
+	log.Println("查询: ", d2)
 	data := []byte(d2)
 	// 创建HTTP请求
 	url := "https://dst.liuyh.com/index/serverlist/getserverlist.html"
