@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -83,8 +82,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				Master: true,
 				Caves:  true,
 			}
-			clusterIniPath := dst.GetClusterIniPath(clusterName)
-			clusterIni := c.ReadClusterIniFile(clusterIniPath)
+			clusterIni := c.ReadClusterIniFile(cluster.ClusterName)
 			name := clusterIni.ClusterName
 			maxPlayers := clusterIni.MaxPlayers
 			mode := clusterIni.GameMode
