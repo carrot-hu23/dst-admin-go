@@ -1,7 +1,6 @@
 package service
 
 import (
-	"dst-admin-go/config/global"
 	"dst-admin-go/constant"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/dstConfigUtils"
@@ -67,8 +66,8 @@ func (i *InitService) InstallSteamCmdAndDst() map[string]string {
 func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
 	i.InitUserInfo(initDst.UserInfo)
-	i.InitDstConfig(initDst.DstConfig)
-	i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, global.CLUSTER_TOKEN, false)
+	//i.InitDstConfig(initDst.DstConfig)
+	//i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, global.CLUSTER_TOKEN, false)
 
 	log.Println("创建完成")
 }
