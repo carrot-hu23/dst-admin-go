@@ -32,7 +32,7 @@ func ClearScreen() bool {
 func (s *GameService) UpdateGame(clusterName string) {
 
 	s.lock.Lock()
-	defer s.lock.TryLock()
+	defer s.lock.Unlock()
 
 	s.stopSpecifiedMaster(clusterName)
 	s.stopSpecifiedCaves(clusterName)
