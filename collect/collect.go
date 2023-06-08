@@ -377,12 +377,12 @@ func (c *Collect) tailServerChatLog(fileName string) {
 
 func (c *Collect) getSpawnRole(name string) *model.Spawn {
 	spawn := new(model.Spawn)
-	database.DB.Where("name LIKE ?", "cluster_name = ?", "%"+name+"%", c.clusterName).Last(spawn)
+	database.DB.Where("name LIKE ? and cluster_name = ?", "%"+name+"%", c.clusterName).Last(spawn)
 	return spawn
 }
 
 func (c *Collect) getConnectInfo(name string) *model.Connect {
 	connect := new(model.Connect)
-	database.DB.Where("name LIKE ?", "cluster_name = ?", "%"+name+"%", c.clusterName).Last(connect)
+	database.DB.Where("name LIKE ? and cluster_name = ?", "%"+name+"%", c.clusterName).Last(connect)
 	return connect
 }
