@@ -157,7 +157,7 @@ func (s *GameService) launchSpecifiedCaves(clusterName string) {
 
 func (s *GameService) StartSpecifiedGame(clusterName string, opType int) {
 	s.lock.Lock()
-	defer s.lock.Lock()
+	defer s.lock.Unlock()
 	if opType == dst.START_GAME {
 
 		s.stopSpecifiedMaster(clusterName)
