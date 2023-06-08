@@ -233,7 +233,7 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 
 		var serverModSetup = ""
 		//TODO 添加mod setup
-		workshopIds := WorkshopIds(modConfig)
+		workshopIds := dst.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
@@ -248,7 +248,7 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 func (c *GameConfigService) UpdateDedicatedServerModsSetup(clusterName, modConfig string) {
 	if modConfig != "" {
 		var serverModSetup = ""
-		workshopIds := WorkshopIds(modConfig)
+		workshopIds := dst.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}

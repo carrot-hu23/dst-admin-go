@@ -26,7 +26,7 @@ func (dst *DstHelper) ParseTemplate(templatePath string, data interface{}) strin
 func (d *DstHelper) DedicatedServerModsSetup(clusterName string, modConfig string) {
 	if modConfig != "" {
 		var serverModSetup = ""
-		workshopIds := WorkshopIds(modConfig)
+		workshopIds := dst.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}

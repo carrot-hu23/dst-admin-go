@@ -14,29 +14,15 @@ import (
 type GameConsoleApi struct {
 }
 
-var gameService = service.GameService{}
+var consoleService = service.GameConsoleService{}
 var dstService = service.DstService{}
-
-func (g *GameConsoleApi) UpdateGame(ctx *gin.Context) {
-
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
-
-	gameService.UpdateGame(clusterName)
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "update dst success",
-		Data: nil,
-	})
-}
 
 func (g *GameConsoleApi) SentBroadcast(ctx *gin.Context) {
 	message := ctx.Query("message")
 	log.Println("发送公告信息：" + message)
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 
-	service.SentBroadcast(cluster.ClusterName, message)
+	consoleService.SentBroadcast(cluster.ClusterName, message)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -53,7 +39,7 @@ func (g *GameConsoleApi) KickPlayer(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.KickPlayer(clusterName, kuId)
+	consoleService.KickPlayer(clusterName, kuId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -70,7 +56,7 @@ func (g *GameConsoleApi) KillPlayer(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.KillPlayer(clusterName, kuId)
+	consoleService.KillPlayer(clusterName, kuId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -87,7 +73,7 @@ func (g *GameConsoleApi) RespawnPlayer(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.RespawnPlayer(clusterName, kuId)
+	consoleService.RespawnPlayer(clusterName, kuId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -108,7 +94,7 @@ func (g *GameConsoleApi) RollBack(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.RollBack(clusterName, days)
+	consoleService.RollBack(clusterName, days)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -124,7 +110,7 @@ func (g *GameConsoleApi) Regenerateworld(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.Regenerateworld(clusterName)
+	consoleService.Regenerateworld(clusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -140,7 +126,7 @@ func (g *GameConsoleApi) CleanWorld(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.CleanWorld(clusterName)
+	consoleService.CleanWorld(clusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -164,7 +150,7 @@ func (g *GameConsoleApi) MasterConsole(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.MasterConsole(clusterName, comment)
+	consoleService.MasterConsole(clusterName, comment)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -187,7 +173,7 @@ func (g *GameConsoleApi) CavesConsole(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.CavesConsole(clusterName, comment)
+	consoleService.CavesConsole(clusterName, comment)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -203,7 +189,7 @@ func (g *GameConsoleApi) OperatePlayer(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	service.OperatePlayer(clusterName, otype, kuId)
+	consoleService.OperatePlayer(clusterName, otype, kuId)
 
 	log.Printf("执行高级针对玩家的操作: type=%s,kuId=%s", otype, kuId)
 

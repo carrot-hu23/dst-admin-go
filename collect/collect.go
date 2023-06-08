@@ -20,7 +20,7 @@ type Collect struct {
 	clusterName       string
 }
 
-func NewCollect(baseLogPath string) *Collect {
+func NewCollect(baseLogPath string, clusterName string) *Collect {
 	collect := &Collect{
 		state: make(chan int, 1),
 		severLogList: []string{
@@ -29,8 +29,9 @@ func NewCollect(baseLogPath string) *Collect {
 		serverChatLogList: []string{
 			filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 		},
-		stop:   make(chan bool, 2),
-		length: 2,
+		stop:        make(chan bool, 2),
+		length:      2,
+		clusterName: clusterName,
 	}
 	collect.state <- 1
 	return collect

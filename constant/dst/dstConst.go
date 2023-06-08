@@ -7,6 +7,7 @@ import (
 	"dst-admin-go/utils/shellUtils"
 	"log"
 	"path"
+	"regexp"
 	"strings"
 )
 
@@ -100,4 +101,19 @@ func ReadCavesLog(clusterName string, lineNum uint) []string {
 		log.Panicln("read dst caves log error:", err)
 	}
 	return logs
+}
+
+func WorkshopIds(content string) []string {
+	var workshopIds []string
+
+	re := regexp.MustCompile("\"workshop-\\w[-\\w+]*\"")
+	workshops := re.FindAllString(content, -1)
+
+	for _, workshop := range workshops {
+		workshop = strings.Replace(workshop, "\"", "", -1)
+		split := strings.Split(workshop, "-")
+		workshopId := strings.TrimSpace(split[1])
+		workshopIds = append(workshopIds, workshopId)
+	}
+	return workshopIds
 }

@@ -14,7 +14,22 @@ import (
 type SpecifiedGameApi struct {
 }
 
-var specifiedGameService = service.SpecifiedGameService{}
+var gameService = service.GameService{}
+
+func (s *SpecifiedGameApi) UpdateGame(ctx *gin.Context) {
+
+	log.Println("正在更新游戏。。。。。。")
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	gameService.UpdateGame(clusterName)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "update dst success",
+		Data: nil,
+	})
+}
 
 func (s *SpecifiedGameApi) StartSpecifiedGame(ctx *gin.Context) {
 
@@ -23,7 +38,7 @@ func (s *SpecifiedGameApi) StartSpecifiedGame(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 	log.Println("正在启动指定游戏服务 type:", clusterName, opType)
-	specifiedGameService.StartSpecifiedGame(clusterName, opType)
+	gameService.StartSpecifiedGame(clusterName, opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -39,7 +54,7 @@ func (s *SpecifiedGameApi) StopSpecifiedGame(ctx *gin.Context) {
 	clusterName := cluster.ClusterName
 	log.Println("正在停止指定游戏服务 type:", clusterName, opType)
 
-	specifiedGameService.StopSpecifiedGame(clusterName, opType)
+	gameService.StopSpecifiedGame(clusterName, opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -55,7 +70,7 @@ func (s *SpecifiedGameApi) GetSpecifiedDashboardInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: specifiedGameService.GetSpecifiedClusterDashboard(clusterName),
+		Data: gameService.GetSpecifiedClusterDashboard(clusterName),
 	})
 }
 

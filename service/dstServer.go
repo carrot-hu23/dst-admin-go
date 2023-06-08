@@ -18,7 +18,7 @@ import (
 )
 
 type DstService struct {
-	SpecifiedGameService
+	GameService
 	ClusterService
 }
 
@@ -50,7 +50,7 @@ func (d *DstService) GetCurrGameArchive(clusterName string) *vo.GameArchive {
 		if err != nil {
 			gameArchie.Mods = 0
 		} else {
-			gameArchie.Mods = len(WorkshopIds(masterModoverrides))
+			gameArchie.Mods = len(dst.WorkshopIds(masterModoverrides))
 		}
 		wg.Done()
 	}()

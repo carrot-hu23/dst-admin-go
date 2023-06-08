@@ -22,6 +22,7 @@ type ClusterManager struct {
 	DstHelper
 	InitService
 	ClusterService
+	s GameService
 }
 
 func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
@@ -143,7 +144,14 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	}
 	db := database.DB
 	cluster.Uuid = generateUUID()
-	db.Create(&cluster)
+	err := db.Create(&cluster).Error
+
+	if err != nil {
+		if err.Error() == "Error 1062: Duplicate entry" {
+			log.Panicln("唯一索引冲突！")
+		}
+		log.Panicln("创建集群失败！")
+	}
 
 	// 安装 dontstarve_dedicated_server
 	log.Println("正在安装饥荒。。。。。。")
@@ -176,12 +184,21 @@ func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 	db := database.DB
 
 	cluster := model.Cluster{}
+
 	result := db.Where("id = ?", id).Delete(&cluster)
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	// TODO 删除集群 和 饥荒、备份、mod 下载
 
+	// 删除集群
+
+	// 删除饥荒
+
+	// 停止服务
+	c.s.StopSpecifiedGame(cluster.ClusterName, 0)
 	return &cluster, nil
 }
 
