@@ -247,7 +247,7 @@ func GET_START_CAVES_CMD() string {
 	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
 	persistent_storage_root := dstConfig.Persistent_storage_root
 	if donot_starve_server_directory == "" {
-		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + cluster + " -shard " + DST_CAVES + " ;"
+		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_CAVES + " ;"
 	}
 	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -persistent_storage_root " + persistent_storage_root + "-conf_dir " + donot_starve_server_directory + " -cluster " + cluster + " -shard " + DST_CAVES + " ;"
 }
@@ -315,7 +315,7 @@ func GET_CLUSTER_TOKEN_PATH() string {
 }
 
 func GET_CLUSTER_INI_PATH() string {
-	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "world.ini")
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "cluster.ini")
 }
 
 func GET_MASTER_DIR_PATH() string {

@@ -110,7 +110,7 @@ func (i *InitService) InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, usernam
 }
 
 func (i *InitService) InitClusterIni(basePath string, username string) {
-	cluster_ini_path := filepath.Join(basePath, "world.ini")
+	cluster_ini_path := filepath.Join(basePath, "cluster.ini")
 	fileUtils.CreateFileIfNotExists(cluster_ini_path)
 	clusterIni := world.NewClusterIni()
 	clusterName := ""

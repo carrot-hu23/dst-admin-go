@@ -104,7 +104,7 @@ func (g *GameService) launchLevel(clusterName, level string) {
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
 
-	cmd := "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + clusterName + " -shard " + level + "  ;"
+	cmd := "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
 
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {

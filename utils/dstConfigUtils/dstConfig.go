@@ -69,7 +69,7 @@ func GetDstConfig() DstConfig {
 				dst_config.Persistent_storage_root = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "world") {
+		if strings.Contains(value, "cluster") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
@@ -103,7 +103,7 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		"force_install_dir=" + dstConfig.Force_install_dir,
 		"donot_starve_server_directory=" + dstConfig.DoNotStarveServerDirectory,
 		"persistent_storage_root=" + dstConfig.Persistent_storage_root,
-		"world=" + dstConfig.Cluster,
+		"cluster=" + dstConfig.Cluster,
 		"backup=" + dstConfig.Backup,
 		"mod_download_path=" + dstConfig.Mod_download_path,
 	})
