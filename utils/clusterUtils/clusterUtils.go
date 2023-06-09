@@ -22,7 +22,7 @@ func GetCluster(clusterName string) *model.Cluster {
 
 func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
 	clusterName := ctx.GetHeader("Cluster")
-	log.Print(ctx.Request.RequestURI, "cluster: ", clusterName)
+	log.Print(ctx.Request.RequestURI, "world: ", clusterName)
 	db := database.DB
 	cluster := &model.Cluster{}
 	db.Where("cluster_name=?", clusterName).First(cluster)

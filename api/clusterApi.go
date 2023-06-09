@@ -5,7 +5,6 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
-	"dst-admin-go/vo/cluster"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,30 +15,31 @@ import (
 
 type ClusterApi struct{}
 
-var clusterService = service.ClusterService{}
 var clusterManager = service.ClusterManager{}
 
-func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: clusterService.GetGameConfig(ctx),
-	})
-}
+// var clusterService = service.HomeService{}
 
-func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
-
-	gameConfig := cluster.GameConfig{}
-	ctx.ShouldBind(&gameConfig)
-	fmt.Printf("%v", gameConfig.Caves.ServerIni)
-	clusterService.SaveGameConfig(ctx, &gameConfig)
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: nil,
-	})
-}
+//func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
+//	ctx.JSON(http.StatusOK, vo.Response{
+//		Code: 200,
+//		Msg:  "success",
+//		Data: clusterService.GetGameConfig(ctx),
+//	})
+//}
+//
+//func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
+//
+//	gameConfig := world.GameConfig{}
+//	ctx.ShouldBind(&gameConfig)
+//	fmt.Printf("%v", gameConfig.Caves.ServerIni)
+//	clusterService.SaveGameConfig(ctx, &gameConfig)
+//
+//	ctx.JSON(http.StatusOK, vo.Response{
+//		Code: 200,
+//		Msg:  "success",
+//		Data: nil,
+//	})
+//}
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx)
@@ -87,7 +87,7 @@ func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 
 	clusterModel, err := clusterManager.DeleteCluster(uint(id))
 	if err != nil {
-		log.Panicln("delete cluster error", err)
+		log.Panicln("delete world error", err)
 	}
 
 	global.CollectMap.RemoveCollect(clusterModel.ClusterName)

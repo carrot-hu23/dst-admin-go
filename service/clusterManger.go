@@ -21,7 +21,7 @@ import (
 type ClusterManager struct {
 	DstHelper
 	InitService
-	ClusterService
+	HomeService
 	s GameService
 }
 
@@ -82,7 +82,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				Master:          dst.Status(cluster.ClusterName, "Master"),
 				Caves:           dst.Status(cluster.ClusterName, "Caves"),
 			}
-			clusterIni := c.ReadClusterIniFile(cluster.ClusterName)
+			clusterIni := c.GetClusterIni(cluster.ClusterName)
 			name := clusterIni.ClusterName
 			maxPlayers := clusterIni.MaxPlayers
 			mode := clusterIni.GameMode
@@ -166,7 +166,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	}
 	log.Println("饥荒安装完成！！！")
 	// 创建世界
-	c.InitCluster(cluster, global.CLUSTER_TOKEN)
+	c.InitCluster(cluster, global.ClusterToken)
 
 }
 
@@ -198,7 +198,7 @@ func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 	// 删除饥荒
 
 	// 停止服务
-	c.s.StopSpecifiedGame(cluster.ClusterName, 0)
+	c.s.StopGame(cluster.ClusterName, 0)
 	return &cluster, nil
 }
 

@@ -8,6 +8,8 @@ import (
 func initClusterRouter(router *gin.RouterGroup) {
 
 	clusterApi := api.ClusterApi{}
+	gameApi := api.GameApi{}
+
 	cluster := router.Group("/api/cluster")
 	{
 		cluster.GET("", clusterApi.GetClusterList)
@@ -18,8 +20,8 @@ func initClusterRouter(router *gin.RouterGroup) {
 
 	clusterGameConfig := router.Group("/api/cluster/game/config")
 	{
-		clusterGameConfig.GET("", clusterApi.GetGameConfig)
-		clusterGameConfig.POST("", clusterApi.SaveGameConfig)
+		clusterGameConfig.GET("", gameApi.GetGameConfig)
+		clusterGameConfig.POST("", gameApi.SaveGameConfig)
 	}
 
 }

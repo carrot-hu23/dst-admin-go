@@ -15,7 +15,7 @@ type GameConsoleApi struct {
 }
 
 var consoleService = service.GameConsoleService{}
-var dstService = service.DstService{}
+var gameArchiveService = service.GameArchive{}
 
 func (g *GameConsoleApi) SentBroadcast(ctx *gin.Context) {
 	message := ctx.Query("message")
@@ -200,7 +200,6 @@ func (g *GameConsoleApi) OperatePlayer(ctx *gin.Context) {
 	})
 }
 
-// TODO GET /game/restore
 func (g *GameConsoleApi) RestoreBackup(ctx *gin.Context) {
 
 	backupName := ctx.Query("backupName")
@@ -214,10 +213,6 @@ func (g *GameConsoleApi) RestoreBackup(ctx *gin.Context) {
 	})
 }
 
-func DeleteGame() {
-
-}
-
 func (g *GameConsoleApi) GetGameArchive(ctx *gin.Context) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -226,6 +221,6 @@ func (g *GameConsoleApi) GetGameArchive(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: dstService.GetCurrGameArchive(clusterName),
+		Data: gameArchiveService.GetGameArchive(clusterName),
 	})
 }

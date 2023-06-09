@@ -17,7 +17,8 @@ var master_server_init_template = "./static/template/master_server.ini"
 var caves_server_init_template = "./static/template/caves_server.ini"
 
 type GameConfigService struct {
-	ClusterService
+	d DstHelper
+	w HomeService
 }
 
 func (c *GameConfigService) GetConfig(clusterName string) vo.GameConfigVO {
@@ -183,7 +184,7 @@ func (c *GameConfigService) createMyDediServerDir() {
 func (c *GameConfigService) createClusterIni(clusterName string, gameConfigVo vo.GameConfigVO) {
 	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	log.Println("生成游戏配置文件 cluster.ini文件: ", clusterIniPath)
-	oldCluster := c.ReadClusterIniFile(clusterName)
+	oldCluster := c.w.GetClusterIni(clusterName)
 
 	oldCluster.ClusterName = gameConfigVo.ClusterName
 	oldCluster.ClusterDescription = gameConfigVo.ClusterDescription
@@ -194,7 +195,7 @@ func (c *GameConfigService) createClusterIni(clusterName string, gameConfigVo vo
 	oldCluster.PauseWhenNobody = gameConfigVo.PauseWhenNobody
 	oldCluster.ClusterPassword = gameConfigVo.ClusterPassword
 
-	clusterIni := c.ParseTemplate(cluster_init_template, oldCluster)
+	clusterIni := c.d.ParseTemplate(cluster_init_template, oldCluster)
 	fileUtils.WriterTXT(clusterIniPath, clusterIni)
 }
 

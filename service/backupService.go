@@ -80,7 +80,7 @@ func (b *BackupService) DeleteBackup(ctx *gin.Context, fileNames []string) {
 
 }
 
-// TODO: 恢复存档
+// RestoreBackup TODO: 恢复存档
 func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -125,7 +125,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 func (b *BackupService) DownloadBackup(c *gin.Context) {
 	fileName := c.Query("fileName")
 
-	clusterName := c.GetHeader("cluster")
+	clusterName := c.GetHeader("world")
 	cluster := clusterUtils.GetCluster(clusterName)
 
 	filePath := path.Join(cluster.Backup, fileName)

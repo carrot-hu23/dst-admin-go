@@ -7,7 +7,7 @@ import (
 
 func initFirstRouter(router *gin.RouterGroup) {
 
-	fistApi := api.FirstApi{}
+	fistApi := api.InitApi{}
 	router.GET("/api/init", fistApi.CheckIsFirst)
 	router.POST("/api/init", fistApi.InitFirst)
 	router.GET("/api/install/steamcmd", fistApi.InstallSteamCmd)

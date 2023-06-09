@@ -16,7 +16,7 @@ func GetClusterBasePath(clusterName string) string {
 }
 
 func GetClusterIniPath(clusterName string) string {
-	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "cluster.ini")
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "world.ini")
 }
 
 func GetClusterTokenPath(clusterName string) string {

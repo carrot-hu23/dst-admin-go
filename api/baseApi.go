@@ -7,10 +7,10 @@ import (
 
 var sessions *session.Manager
 
-const COOKIE_NAME = "token"
+const CookieName = "token"
 
 func init() {
-	sessions = session.NewManager("memory", COOKIE_NAME, 3600*5)
+	sessions = session.NewManager("memory", CookieName, 3600*5)
 	go sessions.GC()
 }
 

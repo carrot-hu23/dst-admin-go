@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type FirstApi struct {
+type InitApi struct {
 }
 
 const first = "./first"
 
-func (f *FirstApi) InstallSteamCmd(ctx *gin.Context) {
+func (f *InitApi) InstallSteamCmd(ctx *gin.Context) {
 
 	exist := fileUtils.Exists(first)
 	if exist {
@@ -29,7 +29,7 @@ func (f *FirstApi) InstallSteamCmd(ctx *gin.Context) {
 	})
 }
 
-func (f *FirstApi) InitFirst(ctx *gin.Context) {
+func (f *InitApi) InitFirst(ctx *gin.Context) {
 
 	exist := fileUtils.Exists(first)
 	if exist {
@@ -49,7 +49,7 @@ func (f *FirstApi) InitFirst(ctx *gin.Context) {
 	})
 }
 
-func (f *FirstApi) CheckIsFirst(ctx *gin.Context) {
+func (f *InitApi) CheckIsFirst(ctx *gin.Context) {
 
 	exist := fileUtils.Exists(first)
 

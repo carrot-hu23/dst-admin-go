@@ -1,4 +1,4 @@
-package cluster
+package world
 
 type ClusterIni struct {
 	// [GAEMPLAY]
@@ -54,7 +54,7 @@ type ServerIni struct {
 	MasterServerPort   string `json:"master_server_port"`
 }
 
-func NewCluster() *ClusterIni {
+func NewClusterIni() *ClusterIni {
 	return &ClusterIni{
 		Pvp:              false,
 		PauseWhenNobody:  true,
@@ -108,7 +108,7 @@ type World struct {
 }
 
 type GameConfig struct {
-	ClusterIni   *ClusterIni `json:"cluster"`
+	ClusterIni   *ClusterIni `json:"world"`
 	ClusterToken string      `json:"cluster_token"`
 	Adminlist    []string    `json:"adminlist"`
 	Blocklist    []string    `json:"blocklist"`
@@ -118,7 +118,7 @@ type GameConfig struct {
 
 type BaseLevel struct {
 	ClusterName  string      `json:"ClusterName"`
-	Cluster      *ClusterIni `json:"cluster"`
+	Cluster      *ClusterIni `json:"world"`
 	ClusterToken string      `json:"cluster_token"`
 	Adminlist    []string    `json:"adminlist"`
 	Blocklist    []string    `json:"blocklist"`

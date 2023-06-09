@@ -7,22 +7,22 @@ import (
 
 func InitGameRouter(router *gin.RouterGroup) {
 
-	gameApi := api.GameConsoleApi{}
-	game := router.Group("/api/game")
+	gameConsoleApi := api.GameConsoleApi{}
+	gameConsole := router.Group("/api/game")
 	{
-		game.GET("/sent/broadcast", gameApi.SentBroadcast)
-		game.GET("/kick/player", gameApi.KickPlayer)
-		game.GET("/kill/player", gameApi.KillPlayer)
-		game.GET("/respawn/player", gameApi.RespawnPlayer)
-		game.GET("/rollback", gameApi.RollBack)
-		game.GET("/regenerateworld", gameApi.Regenerateworld)
-		game.POST("/master/console", gameApi.MasterConsole)
-		game.POST("/caves/console", gameApi.CavesConsole)
-		game.GET("/operate/player", gameApi.OperatePlayer)
-		game.GET("/backup/restore", gameApi.RestoreBackup)
+		gameConsole.GET("/sent/broadcast", gameConsoleApi.SentBroadcast)
+		gameConsole.GET("/kick/player", gameConsoleApi.KickPlayer)
+		gameConsole.GET("/kill/player", gameConsoleApi.KillPlayer)
+		gameConsole.GET("/respawn/player", gameConsoleApi.RespawnPlayer)
+		gameConsole.GET("/rollback", gameConsoleApi.RollBack)
+		gameConsole.GET("/regenerateworld", gameConsoleApi.Regenerateworld)
+		gameConsole.POST("/master/console", gameConsoleApi.MasterConsole)
+		gameConsole.POST("/caves/console", gameConsoleApi.CavesConsole)
+		gameConsole.GET("/operate/player", gameConsoleApi.OperatePlayer)
+		gameConsole.GET("/backup/restore", gameConsoleApi.RestoreBackup)
 
-		game.GET("/archive", gameApi.GetGameArchive)
-		game.GET("/clean", gameApi.CleanWorld)
+		gameConsole.GET("/archive", gameConsoleApi.GetGameArchive)
+		gameConsole.GET("/clean", gameConsoleApi.CleanWorld)
 	}
 
 	gameConfigApi := api.GameConfigApi{}
@@ -32,13 +32,13 @@ func InitGameRouter(router *gin.RouterGroup) {
 		gameConfig.POST("", gameConfigApi.SaveConfig)
 	}
 
-	specifiedGameApi := api.SpecifiedGameApi{}
-	specified := router.Group("/api/game")
+	gameApi := api.GameApi{}
+	game := router.Group("/api/game")
 	{
-		specified.GET("/update", specifiedGameApi.UpdateGame)
-		specified.GET("/dashboard", specifiedGameApi.GetSpecifiedDashboardInfo)
-		specified.GET("/start", specifiedGameApi.StartSpecifiedGame)
-		specified.GET("/stop", specifiedGameApi.StopSpecifiedGame)
+		game.GET("/update", gameApi.UpdateGame)
+		game.GET("/dashboard", gameApi.GetDashboardInfo)
+		game.GET("/start", gameApi.StartGame)
+		game.GET("/stop", gameApi.StopGame)
 	}
 
 }

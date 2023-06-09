@@ -1,8 +1,11 @@
 package service
 
 import (
-	"dst-admin-go/constant"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
+	"dst-admin-go/vo/world"
+	"github.com/gin-gonic/gin"
+
 	"dst-admin-go/constant/screenKey"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -20,10 +23,21 @@ import (
 
 type GameService struct {
 	lock sync.Mutex
+	c    HomeService
+}
+
+func GetLocalDstVersion(clusterName string) string {
+	cluster := clusterUtils.GetCluster(clusterName)
+	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
+	version, err := fileUtils.ReadFile(versionTextPath)
+	if err != nil {
+		return ""
+	}
+	return version
 }
 
 func ClearScreen() bool {
-	result, err := shellUtils.Shell(constant.CLEAR_SCREEN_CMD)
+	result, err := shellUtils.Shell(consts.ClearScreenCmd)
 	if err != nil {
 		return false
 	}
@@ -31,22 +45,22 @@ func ClearScreen() bool {
 	return res != ""
 }
 
-func (s *GameService) UpdateGame(clusterName string) {
+func (g *GameService) UpdateGame(clusterName string) {
 
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	g.lock.Lock()
+	defer g.lock.Unlock()
 
-	s.stopSpecifiedMaster(clusterName)
-	s.stopSpecifiedCaves(clusterName)
+	g.stopMaster(clusterName)
+	g.stopCaves(clusterName)
 	updateGameCMd := dst.GetDstUpdateCmd(clusterName)
 	log.Println(updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
-		log.Panicln("update game error: " + err.Error())
+		log.Panicln("update world error: " + err.Error())
 	}
 }
 
-func (s *GameService) GetSpecifiedLevelStatus(clusterName, level string) bool {
+func (g *GameService) GetLevelStatus(clusterName, level string) bool {
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
 	result, err := shellUtils.Shell(cmd)
 	if err != nil {
@@ -56,8 +70,8 @@ func (s *GameService) GetSpecifiedLevelStatus(clusterName, level string) bool {
 	return res != ""
 }
 
-func (s *GameService) shutdownSpecifiedLevel(clusterName, level string) {
-	if !s.GetSpecifiedLevelStatus(clusterName, level) {
+func (g *GameService) shutdownLevel(clusterName, level string) {
+	if !g.GetLevelStatus(clusterName, level) {
 		return
 	}
 
@@ -72,9 +86,9 @@ func (s *GameService) shutdownSpecifiedLevel(clusterName, level string) {
 /*
 STOP_CAVES_CMD = "ps -ef | grep -v grep |grep '" + DST_CAVES + "' |sed -n '1P'|awk '{print $2}' |xargs kill -9"
 */
-func (s *GameService) killSpecifiedLevel(clusterName, level string) {
+func (g *GameService) killLevel(clusterName, level string) {
 
-	if !s.GetSpecifiedLevelStatus(clusterName, level) {
+	if !g.GetLevelStatus(clusterName, level) {
 		return
 	}
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' |xargs kill -9"
@@ -85,12 +99,12 @@ func (s *GameService) killSpecifiedLevel(clusterName, level string) {
 	}
 }
 
-func (s *GameService) launchSpecifiedLevel(clusterName, level string) {
+func (g *GameService) launchLevel(clusterName, level string) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
-	dst_install_dir := cluster.ForceInstallDir
+	dstInstallDir := cluster.ForceInstallDir
 
-	cmd := "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
+	cmd := "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + clusterName + " -shard " + level + "  ;"
 
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
@@ -99,29 +113,29 @@ func (s *GameService) launchSpecifiedLevel(clusterName, level string) {
 
 }
 
-func (s *GameService) stopSpecifiedMaster(clusterName string) {
+func (g *GameService) stopMaster(clusterName string) {
 	level := "Master"
-	s.stopSpecifiedLevel(clusterName, level)
+	g.stopLevel(clusterName, level)
 }
 
-func (s *GameService) stopSpecifiedCaves(clusterName string) {
+func (g *GameService) stopCaves(clusterName string) {
 
 	level := "Caves"
-	s.stopSpecifiedLevel(clusterName, level)
+	g.stopLevel(clusterName, level)
 }
 
-func (s *GameService) stopSpecifiedLevel(clusterName, level string) {
-	s.shutdownSpecifiedLevel(clusterName, level)
+func (g *GameService) stopLevel(clusterName, level string) {
+	g.shutdownLevel(clusterName, level)
 
 	time.Sleep(3 * time.Second)
 
-	if s.GetSpecifiedLevelStatus(clusterName, level) {
+	if g.GetLevelStatus(clusterName, level) {
 		var i uint8 = 1
 		for {
-			if s.GetSpecifiedLevelStatus(clusterName, level) {
+			if g.GetLevelStatus(clusterName, level) {
 				break
 			}
-			s.shutdownSpecifiedLevel(clusterName, level)
+			g.shutdownLevel(clusterName, level)
 			time.Sleep(1 * time.Second)
 			i++
 			if i > 3 {
@@ -129,60 +143,60 @@ func (s *GameService) stopSpecifiedLevel(clusterName, level string) {
 			}
 		}
 	}
-	s.killSpecifiedLevel(clusterName, level)
+	g.killLevel(clusterName, level)
 }
 
-func (s *GameService) StopSpecifiedGame(clusterName string, opType int) {
-	if opType == dst.START_GAME {
-		s.stopSpecifiedMaster(clusterName)
-		s.stopSpecifiedCaves(clusterName)
+func (g *GameService) StopGame(clusterName string, opType int) {
+	if opType == consts.StopGame {
+		g.stopMaster(clusterName)
+		g.stopCaves(clusterName)
 	}
 
-	if opType == dst.START_MASTER {
-		s.stopSpecifiedMaster(clusterName)
+	if opType == consts.StopMaster {
+		g.stopMaster(clusterName)
 	}
 
-	if opType == dst.START_CAVES {
-		s.stopSpecifiedCaves(clusterName)
+	if opType == consts.StopCaves {
+		g.stopCaves(clusterName)
 	}
 }
 
-func (s *GameService) launchSpecifiedMaster(clusterName string) {
+func (g *GameService) launchMaster(clusterName string) {
 	level := "Master"
-	s.launchSpecifiedLevel(clusterName, level)
+	g.launchLevel(clusterName, level)
 }
 
-func (s *GameService) launchSpecifiedCaves(clusterName string) {
+func (g *GameService) launchCaves(clusterName string) {
 	level := "Caves"
-	s.launchSpecifiedLevel(clusterName, level)
+	g.launchLevel(clusterName, level)
 }
 
-func (s *GameService) StartSpecifiedGame(clusterName string, opType int) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	if opType == dst.START_GAME {
+func (g *GameService) StartGame(clusterName string, opType int) {
+	g.lock.Lock()
+	defer g.lock.Unlock()
+	if opType == consts.StartGame {
 
-		s.stopSpecifiedMaster(clusterName)
-		s.stopSpecifiedCaves(clusterName)
+		g.stopMaster(clusterName)
+		g.stopCaves(clusterName)
 
-		s.launchSpecifiedMaster(clusterName)
-		s.launchSpecifiedCaves(clusterName)
+		g.launchMaster(clusterName)
+		g.launchCaves(clusterName)
 	}
 
-	if opType == dst.START_MASTER {
-		s.stopSpecifiedMaster(clusterName)
-		s.launchSpecifiedMaster(clusterName)
+	if opType == consts.StartMaster {
+		g.stopMaster(clusterName)
+		g.launchMaster(clusterName)
 	}
 
-	if opType == dst.START_CAVES {
-		s.stopSpecifiedCaves(clusterName)
-		s.launchSpecifiedCaves(clusterName)
+	if opType == consts.StartCaves {
+		g.stopCaves(clusterName)
+		g.launchCaves(clusterName)
 	}
 
 	ClearScreen()
 }
 
-func (s *GameService) GetSpecifiedClusterDashboard(clusterName string) vo.DashboardVO {
+func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboardVO {
 	var wg sync.WaitGroup
 	wg.Add(10)
 
@@ -191,7 +205,7 @@ func (s *GameService) GetSpecifiedClusterDashboard(clusterName string) vo.Dashbo
 	go func() {
 		defer wg.Done()
 		s1 := time.Now()
-		dashboardVO.MasterStatus = s.GetSpecifiedLevelStatus(clusterName, "Master")
+		dashboardVO.MasterStatus = g.GetLevelStatus(clusterName, "Master")
 		elapsed := time.Since(s1)
 		fmt.Println("master =", elapsed)
 	}()
@@ -199,7 +213,7 @@ func (s *GameService) GetSpecifiedClusterDashboard(clusterName string) vo.Dashbo
 	go func() {
 		defer wg.Done()
 		s1 := time.Now()
-		dashboardVO.CavesStatus = s.GetSpecifiedLevelStatus(clusterName, "Caves")
+		dashboardVO.CavesStatus = g.GetLevelStatus(clusterName, "Caves")
 		elapsed := time.Since(s1)
 		fmt.Println("cave =", elapsed)
 	}()
@@ -261,12 +275,12 @@ func (s *GameService) GetSpecifiedClusterDashboard(clusterName string) vo.Dashbo
 	// 获取master进程占用情况
 	go func() {
 		defer wg.Done()
-		dashboardVO.MasterPs = s.PsAuxSpecified(clusterName, "Master")
+		dashboardVO.MasterPs = g.PsAuxSpecified(clusterName, "Master")
 	}()
 	// 获取caves进程占用情况
 	go func() {
 		defer wg.Done()
-		dashboardVO.CavesPs = s.PsAuxSpecified(clusterName, "Caves")
+		dashboardVO.CavesPs = g.PsAuxSpecified(clusterName, "Caves")
 	}()
 
 	wg.Wait()
@@ -276,7 +290,7 @@ func (s *GameService) GetSpecifiedClusterDashboard(clusterName string) vo.Dashbo
 	return *dashboardVO
 }
 
-func (s *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
+func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
 
@@ -298,12 +312,75 @@ func (s *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	return dstPsVo
 }
 
-func GetLocalDstVersion(clusterName string) string {
-	cluster := clusterUtils.GetCluster(clusterName)
-	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
-	version, err := fileUtils.ReadFile(versionTextPath)
-	if err != nil {
-		return ""
-	}
-	return version
+func (g *GameService) GetGameConfig(ctx *gin.Context) *world.GameConfig {
+	gameConfig := world.GameConfig{}
+	var wg sync.WaitGroup
+	wg.Add(6)
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+	go func() {
+		gameConfig.ClusterToken = g.c.GetClusterToken(clusterName)
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.ClusterIni = g.c.GetClusterIni(clusterName)
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Adminlist = g.c.GetAdminlist(clusterName)
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Blocklist = g.c.GetBlocklist(clusterName)
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Master = g.c.GetMasterWorld(clusterName)
+		wg.Done()
+	}()
+	go func() {
+		gameConfig.Caves = g.c.GetCavesWorld(clusterName)
+		wg.Done()
+	}()
+	wg.Wait()
+	return &gameConfig
+}
+
+func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *world.GameConfig) {
+	var wg sync.WaitGroup
+	wg.Add(6)
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+	go func() {
+		g.c.SaveClusterToken(clusterName, gameConfig.ClusterToken)
+		wg.Done()
+	}()
+
+	go func() {
+		g.c.SaveClusterIni(clusterName, gameConfig.ClusterIni)
+		wg.Done()
+	}()
+
+	go func() {
+		// SaveAdminlist(world.Adminlist)
+		wg.Done()
+	}()
+
+	go func() {
+		// SaveBlocklist(world.Blocklist)
+		wg.Done()
+	}()
+
+	go func() {
+		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
+		g.c.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
+		wg.Done()
+	}()
+
+	go func() {
+		g.c.SaveCavesWorld(clusterName, gameConfig.Caves)
+		wg.Done()
+	}()
+
+	wg.Wait()
 }

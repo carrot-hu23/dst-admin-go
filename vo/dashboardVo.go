@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-type DashboardVO struct {
+type ClusterDashboardVO struct {
 	IsInstallDst bool                  `json:"isInstallDst"`
 	MasterStatus bool                  `json:"masterStatus"`
 	CavesStatus  bool                  `json:"cavesStatus"`
@@ -24,8 +24,8 @@ type DashboardVO struct {
 	IpConnect string   `json:"ipConnect"`
 }
 
-func NewDashboardVO(clusterName string) *DashboardVO {
-	return &DashboardVO{
+func NewDashboardVO(clusterName string) *ClusterDashboardVO {
+	return &ClusterDashboardVO{
 		MasterLog: filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Master", "server_log.txt"),
 		CavesLog:  filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Caves", "server_log.txt"),
 	}

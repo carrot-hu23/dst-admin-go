@@ -11,7 +11,7 @@ import (
 type DstHelper struct {
 }
 
-func (dst *DstHelper) ParseTemplate(templatePath string, data interface{}) string {
+func (d *DstHelper) ParseTemplate(templatePath string, data interface{}) string {
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
 		panic(err)

@@ -17,12 +17,12 @@ import (
 	"time"
 )
 
-type DstService struct {
+type GameArchive struct {
 	GameService
-	ClusterService
+	HomeService
 }
 
-func (d *DstService) GetCurrGameArchive(clusterName string) *vo.GameArchive {
+func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
 	wg.Add(4)
@@ -32,7 +32,7 @@ func (d *DstService) GetCurrGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取基础信息
 	go func() {
-		clusterIni := d.ReadClusterIniFile(dst.GetClusterIniPath(clusterName))
+		clusterIni := d.GetClusterIni(dst.GetClusterIniPath(clusterName))
 		gameArchie.ClusterName = clusterIni.ClusterName
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
@@ -74,7 +74,7 @@ func (d *DstService) GetCurrGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取直连ip
 	go func() {
-		serverIni := d.ReadServerIniFile(path.Join(basePath, "Master", "server.ini"), true)
+		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
 		ipv4, err := d.GetPublicIP()
 		if err != nil {
 			gameArchie.IpConnect = ""
@@ -89,7 +89,7 @@ func (d *DstService) GetCurrGameArchive(clusterName string) *vo.GameArchive {
 	return gameArchie
 }
 
-func (d *DstService) GetPublicIP() (string, error) {
+func (d *GameArchive) GetPublicIP() (string, error) {
 	resp, err := http.Get("https://api.ipify.org/")
 	if err != nil {
 		return "", err
@@ -104,7 +104,7 @@ func (d *DstService) GetPublicIP() (string, error) {
 	return string(ip), nil
 }
 
-func (d *DstService) getSubPathLevel(rootP, curPath string) int {
+func (d *GameArchive) getSubPathLevel(rootP, curPath string) int {
 	relPath, err := filepath.Rel(rootP, curPath)
 	if err != nil {
 		// 如果计算相对路径时出错，说明 curPath 不是 rootP 的子目录
@@ -114,7 +114,7 @@ func (d *DstService) getSubPathLevel(rootP, curPath string) int {
 	return strings.Count(relPath, "..")
 }
 
-func (d *DstService) FindLatestMetaFile(rootDir string) (string, error) {
+func (d *GameArchive) FindLatestMetaFile(rootDir string) (string, error) {
 	var latestFile string
 	var latestModTime time.Time
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {

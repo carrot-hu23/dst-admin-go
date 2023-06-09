@@ -6,7 +6,7 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"dst-admin-go/vo/cluster"
+	"dst-admin-go/vo/world"
 	"fmt"
 	"log"
 	"os/exec"
@@ -21,15 +21,12 @@ const (
 	cluster_template = "./static/template/cluster2.ini"
 	master_template  = "./static/Master"
 	caves_template   = "./static/Caves"
-
-	// cluster_template = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\template\\cluster2.ini"
-	// master_template  = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\Master"
-	// caves_template   = "C:\\Users\\xm\\Desktop\\dst-admin-go\\static\\Caves"
 )
 
 type InitService struct {
 	GameConfigService
 	LoginService
+	DstHelper
 }
 
 type InitDstData struct {
@@ -113,9 +110,9 @@ func (i *InitService) InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, usernam
 }
 
 func (i *InitService) InitClusterIni(basePath string, username string) {
-	cluster_ini_path := filepath.Join(basePath, "cluster.ini")
+	cluster_ini_path := filepath.Join(basePath, "world.ini")
 	fileUtils.CreateFileIfNotExists(cluster_ini_path)
-	clusterIni := cluster.NewCluster()
+	clusterIni := world.NewClusterIni()
 	clusterName := ""
 	if username != "" {
 		clusterName = username + "的世界"

@@ -18,7 +18,7 @@ func main() {
 	GetMemInfo()
 	GetDiskInfo()
 
-	tmpl, err := template.ParseFiles("cluster.ini")
+	tmpl, err := template.ParseFiles("world.ini")
 	CheckErr(err)
 	buf := new(bytes.Buffer)
 	gameConfigVo := vo.GameConfigVO{

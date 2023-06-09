@@ -53,13 +53,13 @@ var (
 	/**
 	 * 启动地面进程命令 设置名称为 DST_MASTER
 	 */
-	START_MASTER_CMD = "cd " + DST_INSTALL_DIR + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + CLUSTER + " -shard " + DST_MASTER + "  ;"
-	// cd ~/dst/bin/ ; screen -d -m -S \"DST_MASTER\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster MyDediServer -shard Master  ;
+	START_MASTER_CMD = "cd " + DST_INSTALL_DIR + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + CLUSTER + " -shard " + DST_MASTER + "  ;"
+	// cd ~/dst/bin/ ; screen -d -m -S \"DST_MASTER\"  ./dontstarve_dedicated_server_nullrenderer -console -world MyDediServer -shard Master  ;
 
 	/**
 	 * 启动洞穴进程命令 设置名称为 DST_CAVES
 	 */
-	START_CAVES_CMD = "cd " + DST_INSTALL_DIR + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + CLUSTER + " -shard " + DST_CAVES + " ;"
+	START_CAVES_CMD = "cd " + DST_INSTALL_DIR + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + CLUSTER + " -shard " + DST_CAVES + " ;"
 
 	/**
 	 * 检查目前所有的screen作业，并删除已经无法使用的screen作业
@@ -158,7 +158,7 @@ var (
 	/**
 	 * 游戏房间设置的文件名称
 	 */
-	DST_USER_CLUSTER_INI_NAME = "cluster.ini"
+	DST_USER_CLUSTER_INI_NAME = "world.ini"
 
 	/**
 	 * token设置文件
@@ -188,7 +188,7 @@ var (
 	/**
 	 * 游戏配置文件
 	 */
-	DST_USER_GAME_CONFIG_PATH = ".klei/DoNotStarveTogether/" + CLUSTER + "/cluster.ini"
+	DST_USER_GAME_CONFIG_PATH = ".klei/DoNotStarveTogether/" + CLUSTER + "/world.ini"
 
 	/**
 	 * 地面游戏运行日志位置
@@ -234,10 +234,10 @@ func GET_START_MASTER_CMD() string {
 	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
 	persistent_storage_root := dstConfig.Persistent_storage_root
 	if donot_starve_server_directory == "" {
-		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
+		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + cluster + " -shard " + DST_MASTER + "  ;"
 	}
 
-	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console  -persistent_storage_root " + persistent_storage_root + " -conf_dir " + donot_starve_server_directory + " -cluster " + cluster + " -shard " + DST_MASTER + "  ;"
+	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console  -persistent_storage_root " + persistent_storage_root + " -conf_dir " + donot_starve_server_directory + " -world " + cluster + " -shard " + DST_MASTER + "  ;"
 }
 
 func GET_START_CAVES_CMD() string {
@@ -247,9 +247,9 @@ func GET_START_CAVES_CMD() string {
 	donot_starve_server_directory := dstConfig.DoNotStarveServerDirectory
 	persistent_storage_root := dstConfig.Persistent_storage_root
 	if donot_starve_server_directory == "" {
-		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + cluster + " -shard " + DST_CAVES + " ;"
+		return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -world " + cluster + " -shard " + DST_CAVES + " ;"
 	}
-	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -persistent_storage_root " + persistent_storage_root + "-conf_dir " + donot_starve_server_directory + " -cluster " + cluster + " -shard " + DST_CAVES + " ;"
+	return "cd " + dst_install_dir + "/bin ; screen -d -m -S \"" + SCREEN_WORK_CAVES_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -persistent_storage_root " + persistent_storage_root + "-conf_dir " + donot_starve_server_directory + " -world " + cluster + " -shard " + DST_CAVES + " ;"
 }
 
 func GET_UPDATE_GAME_CMD() string {
@@ -303,7 +303,7 @@ func GET_DST_USER_GAME_CONFG_PATH() string {
 	persistent_storage_root := dstConfig.Persistent_storage_root
 	if donot_starve_server_directory == "" {
 		path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
-		// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + cluster + "/"
+		// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + world + "/"
 		return path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
 	}
 
@@ -315,7 +315,7 @@ func GET_CLUSTER_TOKEN_PATH() string {
 }
 
 func GET_CLUSTER_INI_PATH() string {
-	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "cluster.ini")
+	return path.Join(GET_DST_USER_GAME_CONFG_PATH(), "world.ini")
 }
 
 func GET_MASTER_DIR_PATH() string {
