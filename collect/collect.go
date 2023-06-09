@@ -98,6 +98,11 @@ func (c *Collect) parseRegenerateLog(text string) {
 
 func (c *Collect) parseNewIncomingLog(lines []string) {
 
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("new incoming 日志解析异常:", err)
+		}
+	}()
 	connect := model.Connect{}
 	log.Println("len:", len(lines), lines)
 	for i, line := range lines {

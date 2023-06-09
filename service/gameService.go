@@ -5,11 +5,13 @@ import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/constant/screenKey"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -247,8 +249,13 @@ func (s *GameService) GetSpecifiedClusterDashboard(clusterName string) vo.Dashbo
 	}()
 
 	go func() {
-		defer wg.Done()
-		dashboardVO.Version = ""
+		defer func() {
+			if r := recover(); r != nil {
+				dashboardVO.Version = ""
+			}
+			wg.Done()
+		}()
+		dashboardVO.Version = GetLocalDstVersion(clusterName)
 	}()
 
 	// 获取master进程占用情况
@@ -289,4 +296,14 @@ func (s *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
 
 	return dstPsVo
+}
+
+func GetLocalDstVersion(clusterName string) string {
+	cluster := clusterUtils.GetCluster(clusterName)
+	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
+	version, err := fileUtils.ReadFile(versionTextPath)
+	if err != nil {
+		return ""
+	}
+	return version
 }

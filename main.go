@@ -7,6 +7,7 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/router"
 	"fmt"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"gopkg.in/yaml.v2"
@@ -109,6 +110,7 @@ func main() {
 	fmt.Println(":pig, 你是好人")
 
 	app := router.NewRoute()
+	pprof.Register(app)
 	app.Run(":" + configData.Port)
 
 }
