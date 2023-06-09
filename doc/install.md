@@ -27,10 +27,7 @@ mkdir -p ~/.klei/DoNotStarveTogether/MyCluster1
 cd ~
 ```
 
-记住这两个路径
-
-+ steamcmd  安装路径为 ~/steamcmd
-+ 饥荒 安装的路径为 ~/dontstarve_dedicated_server
+**记住 steamcmd 路径** 等下要用到
 
 
 ## 2. 从 release 下载 稳定的版本，并解压
@@ -47,7 +44,7 @@ cd ~
     **参考配置**
     ```yml
     port: 8082
-    db: dst-database
+    database: dst-database
     ```
 ## 3. 启动
 
@@ -60,3 +57,21 @@ nohup ./dst-admin-go >dst-admin-go/log &
 ps -ef | grep dst-admin-go
 ```
 找到进程号 kill -9
+
+## 4. 在浏览器 输入 http://xxx:8082 进入页面
+初始化用户信息,进入页面
+
+点击右上角新建集群按钮,按照要求输入相应路径,
+等待5~20分钟会自动创建饥荒服务和世界配置
+
+### 创建集群时请不要使用 纯数字、中文、或者特殊字符，集群名称就是你存档的名称
+错误集群名称示例
++ 1
++ ——
++ @@@
++ 1213
+
+正确集群名称示例
++ caicai1
++ caicai2
++ caicai3
