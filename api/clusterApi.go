@@ -87,7 +87,7 @@ func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 
 	clusterModel, err := clusterManager.DeleteCluster(uint(id))
 	if err != nil {
-		log.Panicln("delete world error", err)
+		log.Panicln("delete cluster error", err)
 	}
 
 	global.CollectMap.RemoveCollect(clusterModel.ClusterName)

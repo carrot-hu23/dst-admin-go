@@ -11,7 +11,7 @@ type DstConfig struct {
 	Force_install_dir          string `json:"force_install_dir"`
 	DoNotStarveServerDirectory string `json:"donot_starve_server_directory"`
 	Persistent_storage_root    string `json:"persistent_storage_root"`
-	Cluster                    string `json:"world"`
+	Cluster                    string `json:"cluster"`
 	Backup                     string `json:"backup"`
 	Mod_download_path          string `json:"mod_download_path"`
 }
