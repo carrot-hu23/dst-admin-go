@@ -31,6 +31,12 @@ func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
 
 func GetDstServerInfo(clusterName string) []DstHomeInfo {
 
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("查询集群房间失败:", err)
+		}
+	}()
+
 	d := "{\"page\": 1,\"paginate\": 10,\"sort_type\": \"name\",\"sort_way\": 1,\"search_type\": 1,\"search_content\": \"%s\",\"mod\": 1}"
 	d2 := fmt.Sprintf(d, clusterName)
 	log.Println("查询: ", d2)
