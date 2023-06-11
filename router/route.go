@@ -32,6 +32,8 @@ func NewRoute() *gin.Engine {
 	initThirdPartyRouter(router)
 	initWsRouter(router)
 	initSteamRouter(router)
+	initJobTaskRouter(router)
+
 	initStaticFile(app)
 
 	return app

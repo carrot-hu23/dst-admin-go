@@ -143,6 +143,14 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 		log.Panicln("create cluster is error, forceInstallDir is null")
 	}
 	db := database.DB
+	tx := db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	cluster.Uuid = generateUUID()
 	err := db.Create(&cluster).Error
 
@@ -168,6 +176,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	// 创建世界
 	c.InitCluster(cluster, global.ClusterToken)
 
+	tx.Commit()
 }
 
 func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
