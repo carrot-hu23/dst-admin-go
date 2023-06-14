@@ -93,7 +93,16 @@ func (c *Collect) parseSpawnRequestLog(text string) {
 }
 
 func (c *Collect) parseRegenerateLog(text string) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("Generating 日志解析异常:", err)
+		}
+	}()
 
+	regenerate := model.Regenerate{
+		ClusterName: c.clusterName,
+	}
+	database.DB.Create(&regenerate)
 }
 
 func (c *Collect) parseNewIncomingLog(lines []string) {
@@ -186,7 +195,7 @@ func (c *Collect) tailServeLog(fileName string) {
 				text := line.Text
 				if find := strings.Contains(text, "Spawn request"); find {
 					c.parseSpawnRequestLog(text)
-				} else if find := strings.Contains(text, "regenerate"); find {
+				} else if find := strings.Contains(text, "# Generating"); find {
 					c.parseRegenerateLog(text)
 				} else if find := strings.Contains(text, "New incoming connection"); find {
 					isNewConnect = true
