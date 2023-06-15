@@ -3,6 +3,7 @@ package service
 import (
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/vo/world"
 	"github.com/gin-gonic/gin"
 
@@ -373,7 +374,7 @@ func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *world.GameCon
 
 	go func() {
 		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
-		g.c.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
+		dstUtils.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
 		wg.Done()
 	}()
 

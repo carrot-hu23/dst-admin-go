@@ -2,8 +2,8 @@ package clusterUtils
 
 import (
 	"bytes"
-	"dst-admin-go/config/database"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/dstConfigUtils"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -14,19 +14,27 @@ import (
 )
 
 func GetCluster(clusterName string) *model.Cluster {
-	db := database.DB
-	cluster := &model.Cluster{}
-	db.Where("cluster_name=?", clusterName).First(cluster)
-	return cluster
+	config := dstConfigUtils.GetDstConfig()
+	cluster := model.Cluster{
+		SteamCmd:        config.Steamcmd,
+		ForceInstallDir: config.Force_install_dir,
+		ClusterName:     config.Cluster,
+		Backup:          config.Backup,
+		ModDownloadPath: config.Mod_download_path,
+	}
+	return &cluster
 }
 
 func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
-	clusterName := ctx.GetHeader("Cluster")
-	log.Print(ctx.Request.RequestURI, "cluster: ", clusterName)
-	db := database.DB
-	cluster := &model.Cluster{}
-	db.Where("cluster_name=?", clusterName).First(cluster)
-	return cluster
+	config := dstConfigUtils.GetDstConfig()
+	cluster := model.Cluster{
+		SteamCmd:        config.Steamcmd,
+		ForceInstallDir: config.Force_install_dir,
+		ClusterName:     config.Cluster,
+		Backup:          config.Backup,
+		ModDownloadPath: config.Mod_download_path,
+	}
+	return &cluster
 }
 
 func GetDstServerInfo(clusterName string) []DstHomeInfo {

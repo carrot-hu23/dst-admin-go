@@ -3,6 +3,7 @@ package service
 import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/constant/screenKey"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
@@ -29,7 +30,7 @@ func (p *PlayerService) GetPlayerList(clusterName string) []vo.PlayerVO {
 	// TODO 如果只启动了洞穴，应该去读取洞穴的日志
 
 	// 读取日志
-	dstLogs := dst.ReadMasterLog(clusterName, 100)
+	dstLogs := dstUtils.ReadMasterLog(clusterName, 100)
 	var playerVOList []vo.PlayerVO
 
 	for _, line := range dstLogs {

@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
@@ -19,7 +19,6 @@ import (
 )
 
 type ClusterManager struct {
-	DstHelper
 	InitService
 	HomeService
 	s GameService
@@ -79,8 +78,8 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				ID:              cluster.ID,
 				CreatedAt:       cluster.CreatedAt,
 				UpdatedAt:       cluster.UpdatedAt,
-				Master:          dst.Status(cluster.ClusterName, "Master"),
-				Caves:           dst.Status(cluster.ClusterName, "Caves"),
+				Master:          dstUtils.Status(cluster.ClusterName, "Master"),
+				Caves:           dstUtils.Status(cluster.ClusterName, "Caves"),
 			}
 			clusterIni := c.GetClusterIni(cluster.ClusterName)
 			name := clusterIni.ClusterName
