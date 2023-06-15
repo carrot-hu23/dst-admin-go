@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/utils"
 	"dst-admin-go/vo"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -50,7 +51,7 @@ func (s *StatisticsApi) CountActiveUser(ctx *gin.Context) {
 	unit := ctx.Query("unit")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
-	fmt.Println("unit", unit, "startTime", startDate, "endTime", endDate)
+	log.Println("unit", unit, "startTime", startDate, "endTime", endDate)
 
 	db := database.DB
 	var data1 []UserStatistics
@@ -90,8 +91,8 @@ func (s *StatisticsApi) CountActiveUser(ctx *gin.Context) {
 		Y1 []int   `json:"y1"`
 		Y2 []int   `json:"y2"`
 	}
-	fmt.Println("data1", data1)
-	fmt.Println("data1", data2)
+	log.Println("data1", data1)
+	log.Println("data1", data2)
 	//填充数据
 	// var stamp []int64;
 	for _, stamp := range stamps {
