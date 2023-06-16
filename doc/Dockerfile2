@@ -20,10 +20,10 @@ RUN chmod 755 /app/dst-admin-go
 COPY run.sh /app/run.sh
 RUN chmod 755 /app/run.sh
 
-COPY config.yml /app/config.yml
-COPY dst_config /app/dst_config
+COPY ../config.yml /app/config.yml
+COPY ../dst_config /app/dst_config
 COPY dist /app/dist
-COPY static /app/static
+COPY ../static /app/static
 
 # 内嵌源配置信息
 
