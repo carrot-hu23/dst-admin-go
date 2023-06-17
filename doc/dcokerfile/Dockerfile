@@ -5,10 +5,24 @@ RUN echo "deb http://mirrors.aliyun.com/debian/ buster main contrib non-free" > 
     echo "deb http://mirrors.aliyun.com/debian/ buster-updates main contrib non-free" >> /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/debian/ buster-backports main contrib non-free" >> /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/debian-security buster/updates main contrib non-free" >> /etc/apt/sources.list && \
-    dpkg --add-architecture i386 && \
-    apt-get update && \
-    apt-get install -y lib32stdc++6 libgcc1 libcurl4-gnutls-dev:i386 wget screen procps
-
+   # dpkg --add-architecture i386 && \
+   # apt-get update && \
+   # apt-get install -y lib32stdc++6 libgcc1 libcurl4-gnutls-dev:i386 wget screen procps
+    dpkg --add-architecture i386 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --no-install-suggests  \
+        libstdc++6:i386 \
+        libgcc1:i386 \
+        lib32gcc1 \
+        lib32stdc++6 \
+        libcurl4-gnutls-dev:i386 \
+        wget \
+        ca-certificates \
+        screen \
+        procps \
+        sudo \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
@@ -20,10 +34,10 @@ RUN chmod 755 /app/dst-admin-go
 COPY run.sh /app/run.sh
 RUN chmod 755 /app/run.sh
 
-COPY ../config.yml /app/config.yml
-COPY ../dst_config /app/dst_config
+COPY config.yml /app/config.yml
+COPY dst_config /app/dst_config
 COPY dist /app/dist
-COPY ../static /app/static
+COPY static /app/static
 
 # 内嵌源配置信息
 
