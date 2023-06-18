@@ -196,7 +196,7 @@ func DeleteFile(path string) error {
 }
 
 func DeleteDir(path string) (err error) {
-	err = os.RemoveAll("./file1.txt")
+	err = os.RemoveAll(path)
 	if err != nil {
 		log.Printf("removeAll "+path+" : %v\n", err)
 	}

@@ -95,7 +95,7 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 	defer func(path string) {
 		err := fileUtils.DeleteDir(path)
 		if err != nil {
-
+			log.Println("删除tmp失败")
 		}
 	}(tmpDir)
 
@@ -123,7 +123,7 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 		}
 		return nil
 	})
-
+	log.Println(basePath, err)
 	if basePath == "" {
 		log.Panicln("未找到存档")
 	}
