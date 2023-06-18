@@ -69,7 +69,7 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Println("Error executing command:", err)
+			log.Panicln("下载mod失败，请检查steamcmd路径是否配置正确", err)
 			return make(map[string]interface{})
 		}
 
