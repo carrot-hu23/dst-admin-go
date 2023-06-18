@@ -299,3 +299,34 @@ func CreateDirIfNotExists(filepath string) {
 		CreateDir(filepath)
 	}
 }
+
+func Copy(srcPath, outFileDir string) error {
+	// 打开源文件
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	// 创建目标目录（如果不存在）
+	err = os.MkdirAll(outFileDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	// 创建目标文件
+	outFilePath := filepath.Join(outFileDir, filepath.Base(srcPath))
+	outFile, err := os.Create(outFilePath)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	// 复制数据
+	_, err = io.Copy(outFile, srcFile)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

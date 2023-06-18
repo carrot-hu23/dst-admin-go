@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -85,20 +86,64 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	filePath := path.Join(cluster.Backup, backupName)
-	log.Println("filepath", filePath)
-
 	clusterPath := path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", cluster.ClusterName)
 	err := fileUtils.DeleteDir(clusterPath)
 	if err != nil {
-		log.Println("删除失败,", clusterPath, err)
-		return
+		log.Panicln("删除失败,", clusterPath, err)
 	}
-	err = zip.Unzip(filePath, clusterPath)
+	log.Println("正在恢复存档", filePath, path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"))
+	// 先解压到临时目录
+	tmpDir := path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", "tmp_613e78awhjkdhjkasjkldaso")
+	defer func(path string) {
+		err := fileUtils.DeleteDir(path)
+		if err != nil {
+
+		}
+	}(tmpDir)
+
+	err = zip.Unzip(filePath, tmpDir)
 	if err != nil {
-		log.Println("解压失败,", filePath, clusterPath, err)
-		return
+		log.Panicln("解压失败,", filePath, clusterPath, err)
 	}
 
+	tmpFile, err := os.Open(tmpDir)
+	if err != nil {
+		log.Panicln("打开tmp目录失败,", tmpFile, err)
+	}
+
+	var basePath string
+
+	// 遍历文件及其子目录
+	err = filepath.Walk(tmpFile.Name(), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// 找到 Master 目录
+		if info.IsDir() && info.Name() == "Master" {
+			basePath = filepath.Dir(path)
+			return filepath.SkipDir
+		}
+		return nil
+	})
+
+	if basePath == "" {
+		log.Panicln("未找到存档")
+	}
+
+	pathList := []string{
+		"Master",
+		"Caves",
+		"cluster.ini",
+		"cluster_token.txt",
+		"blacklist.txt",
+		"adminlist.txt",
+	}
+	for _, p := range pathList {
+		fp := filepath.Join(basePath, p)
+		if fileUtils.Exists(fp) {
+			fileUtils.Copy(fp, clusterPath)
+		}
+	}
 }
 
 func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
