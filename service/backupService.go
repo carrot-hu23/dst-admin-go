@@ -17,7 +17,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type BackupService struct{}
+type BackupService struct {
+	HomeService
+}
 
 func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -154,7 +156,9 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 		log.Panicln("backup path is not exists")
 	}
 	if backupName == "" {
-		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + cluster.ClusterName + ".zip"
+		// TODO 增加存档信息
+		name := b.GetClusterIni(cluster.ClusterName).ClusterName
+		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
 	}
 	dst := path.Join(backupPath, backupName)
 	log.Println("src", src, dst)
