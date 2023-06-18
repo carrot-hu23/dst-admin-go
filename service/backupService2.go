@@ -1,87 +1,124 @@
 package service
 
 import (
+	"dst-admin-go/config/database"
 	"dst-admin-go/constant"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/zip"
 	"dst-admin-go/vo"
-	"io/ioutil"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-type BackupService struct {
+type BackupService2 struct {
 	GameConfigService
 }
 
-func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	var backupPath = cluster.Backup
-	var backupList []vo.BackupVo
+func (this *BackupService2) GetBackupList(ctx *gin.Context) {
+	//获取查询参数
+	name := ctx.Query("name")
+	description := ctx.Query("description")
 
-	if !fileUtils.Exists(backupPath) {
-		return backupList
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
+	if page <= 0 {
+		page = 1
 	}
-	//获取文件或目录相关信息
-	fileInfoList, err := ioutil.ReadDir(backupPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, file := range fileInfoList {
-		if file.IsDir() {
-			continue
-		}
-		suffix := path.Ext(file.Name())
-		if suffix == ".zip" || suffix == ".tar" {
-			backup := vo.BackupVo{
-				FileName:   file.Name(),
-				FileSize:   file.Size(),
-				CreateTime: file.ModTime(),
-				Time:       file.ModTime().Unix(),
-			}
-			backupList = append(backupList, backup)
-		}
+	if size < 0 {
+		size = 10
 	}
 
-	return backupList
+	db := database.DB
 
+	if name, isExist := ctx.GetQuery("name"); isExist {
+		db = db.Where("name LIKE ?", "%"+name+"%")
+	}
+	if description, isExist := ctx.GetQuery("description"); isExist {
+		db = db.Where("description LIKE ?", "%"+description+"%")
+	}
+
+	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
+
+	backupList := make([]model.Backup, 0)
+
+	if err := db.Find(&backupList).Error; err != nil {
+		fmt.Println(err.Error())
+	}
+
+	var total int64
+	db2 := database.DB
+	if name != "" && description != "" {
+		db2.Model(&model.Backup{}).Where("name like ? and description like ?", "%"+name+"%", "%"+description+"%").Count(&total)
+	} else if name != "" {
+		db2.Model(&model.Backup{}).Where("name like ?", "%"+name+"%").Count(&total)
+	} else if description != "" {
+		db2.Model(&model.Backup{}).Where("description like ?", "%"+description+"%").Count(&total)
+	} else {
+		db2.Model(&model.Backup{}).Count(&total)
+	}
+	totalPages := total / int64(size)
+	if total%int64(size) != 0 {
+		totalPages++
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: vo.Page{
+			Data:       backupList,
+			Page:       page,
+			Size:       size,
+			Total:      total,
+			TotalPages: totalPages,
+		},
+	})
 }
 
-func (b *BackupService) RenameBackup(ctx *gin.Context, fileName, newName string) {
+func (this *BackupService2) RenameBackup(ctx *gin.Context, fileName, newName string) {
+
+	db := database.DB
+	oldBackup := &model.Backup{}
+	db.Where("name = ?", fileName).First(oldBackup)
+	oldBackup.Name = newName
+
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
 	err := fileUtils.Rename(path.Join(backupPath, fileName), path.Join(backupPath, newName))
 	if err != nil {
 		return
 	}
+	oldBackup.Path = path.Join(backupPath, newName)
+
+	db.Updates(oldBackup)
 }
 
-func (b *BackupService) DeleteBackup(ctx *gin.Context, fileNames []string) {
+func (this *BackupService2) DeleteBackup(ctx *gin.Context, fileNames []string) {
 
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	backupPath := cluster.Backup
-	for _, fileName := range fileNames {
-		filePath := path.Join(backupPath, fileName)
-		if !fileUtils.Exists(filePath) {
-			continue
-		}
-		err := fileUtils.DeleteFile(filePath)
+	db := database.DB
+	backupList := make([]model.Backup, 0)
+	db.Where("name in ?", fileNames).Find(&backupList)
+	for _, backup := range backupList {
+		b := model.Backup{}
+		db.Where("path = ?", backup.Path).Delete(&b)
+		err := fileUtils.DeleteFile(backup.Path)
 		if err != nil {
 			return
 		}
 	}
-
 }
 
 // RestoreBackup TODO: 恢复存档
-func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
+func (this *BackupService2) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	filePath := path.Join(cluster.Backup, backupName)
@@ -90,18 +127,16 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 	clusterPath := path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", cluster.ClusterName)
 	err := fileUtils.DeleteDir(clusterPath)
 	if err != nil {
-		log.Println("删除失败,", clusterPath, err)
 		return
 	}
 	err = zip.Unzip(filePath, clusterPath)
 	if err != nil {
-		log.Println("解压失败,", filePath, clusterPath, err)
 		return
 	}
 
 }
 
-func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
+func (this *BackupService2) CreateBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
@@ -112,7 +147,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 	}
 	if backupName == "" {
 		gameConfig := vo.NewGameConfigVO()
-		b.GetClusterIni(cluster.ClusterName, gameConfig)
+		this.GetClusterIni(cluster.ClusterName, gameConfig)
 		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName + ".zip"
 	}
 	dst := path.Join(backupPath, backupName)
@@ -124,7 +159,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 	log.Println("创建备份成功")
 }
 
-func (b *BackupService) DownloadBackup(c *gin.Context) {
+func (this *BackupService2) DownloadBackup(c *gin.Context) {
 	fileName := c.Query("fileName")
 
 	clusterName := c.GetHeader("world")
@@ -144,7 +179,7 @@ func (b *BackupService) DownloadBackup(c *gin.Context) {
 	c.File(filePath)
 }
 
-func (b *BackupService) UploadBackup(c *gin.Context) {
+func (this *BackupService2) UploadBackup(c *gin.Context) {
 	// 单文件
 	file, _ := c.FormFile("file")
 	log.Println(file.Filename)
@@ -166,7 +201,7 @@ func (b *BackupService) UploadBackup(c *gin.Context) {
 
 }
 
-func (b *BackupService) backupPath() string {
+func (this *BackupService2) backupPath() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	backupPath := dstConfig.Backup
 	if !fileUtils.Exists(backupPath) {

@@ -1,6 +1,7 @@
 package dstConfigUtils
 
 import (
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/fileUtils"
 	"log"
 	"strings"
@@ -24,7 +25,7 @@ func NewDstConfig() *DstConfig {
 
 func GetDstConfig() DstConfig {
 
-	dst_config := NewDstConfig()
+	dstConfig := NewDstConfig()
 
 	//判断是否存在，不存在创建一个
 	if !fileUtils.Exists(dst_config_path) {
@@ -45,54 +46,63 @@ func GetDstConfig() DstConfig {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.Steamcmd = strings.Replace(s, "\\n", "", -1)
+				dstConfig.Steamcmd = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "force_install_dir") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.Force_install_dir = strings.Replace(s, "\\n", "", -1)
+				dstConfig.Force_install_dir = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "donot_starve_server_directory") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.DoNotStarveServerDirectory = strings.Replace(s, "\\n", "", -1)
+				dstConfig.DoNotStarveServerDirectory = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "persistent_storage_root") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.Persistent_storage_root = strings.Replace(s, "\\n", "", -1)
+				dstConfig.Persistent_storage_root = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "cluster") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.Cluster = strings.Replace(s, "\\n", "", -1)
+				dstConfig.Cluster = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "backup") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.Backup = strings.Replace(s, "\\n", "", -1)
+				dstConfig.Backup = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 		if strings.Contains(value, "mod_download_path") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
-				dst_config.Mod_download_path = strings.Replace(s, "\\n", "", -1)
+				dstConfig.Mod_download_path = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 	}
-
-	return *dst_config
+	// 设置默认值
+	if dstConfig.Cluster == "" {
+		dstConfig.Cluster = "Cluster1"
+	}
+	if dstConfig.Backup == "" {
+		dstConfig.Backup = consts.KleiDstPath
+	}
+	if dstConfig.Mod_download_path == "" {
+		dstConfig.Backup = consts.KleiDstPath
+	}
+	return *dstConfig
 }
 
 func SaveDstConfig(dstConfig *DstConfig) {
