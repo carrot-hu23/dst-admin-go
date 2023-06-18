@@ -301,6 +301,47 @@ func CreateDirIfNotExists(filepath string) {
 }
 
 func Copy(srcPath, outFileDir string) error {
+
+	srcInfo, err := os.Stat(srcPath)
+	if err != nil {
+		return err
+	}
+
+	// 如果源文件是目录，则递归复制目录
+	if srcInfo.IsDir() {
+		// 创建目标目录（如果不存在）
+		err = os.MkdirAll(outFileDir, srcInfo.Mode())
+		if err != nil {
+			return err
+		}
+		// 遍历源目录中的所有文件和子目录，并递归复制它们
+		srcDir, err := os.Open(srcPath)
+		if err != nil {
+			return err
+		}
+		defer srcDir.Close()
+
+		files, err := srcDir.Readdir(-1)
+		if err != nil {
+			return err
+		}
+
+		for _, file := range files {
+			srcFilePath := filepath.Join(srcPath, file.Name())
+			outFilePath := filepath.Join(outFileDir, filepath.Base(srcPath))
+			err = Copy(srcFilePath, outFilePath)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return copyHelper(srcPath, outFileDir)
+}
+
+func copyHelper(srcPath, outFileDir string) error {
 	// 打开源文件
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
@@ -327,6 +368,5 @@ func Copy(srcPath, outFileDir string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

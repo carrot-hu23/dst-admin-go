@@ -37,7 +37,7 @@ func (c *GameConfigService) getClusterToken(clusterName string) string {
 	clusterToken := dst.GetClusterTokenPath(clusterName)
 	token, err := fileUtils.ReadFile(clusterToken)
 	if err != nil {
-		panic("read cluster_token.txt file error: " + err.Error())
+		return ""
 	}
 
 	return token
@@ -129,7 +129,7 @@ func (c *GameConfigService) getMasterLeveldataoverride(clusterName string) strin
 
 	level, err := fileUtils.ReadFile(leveldataoverridePath)
 	if err != nil {
-		panic("read Master/leveldataoverride.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return level
 }
@@ -139,7 +139,7 @@ func (c *GameConfigService) getCavesLeveldataoverride(clusterName string) string
 	leveldataoverridePath := dst.GetCavesLeveldataoverridePath(clusterName)
 	level, err := fileUtils.ReadFile(leveldataoverridePath)
 	if err != nil {
-		panic("read Caves/leveldataoverride.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return level
 }
@@ -149,7 +149,7 @@ func (c *GameConfigService) getModoverrides(clusterName string) string {
 	modoverridesPath := dst.GetMasterModoverridesPath(clusterName)
 	modoverrides, err := fileUtils.ReadFile(modoverridesPath)
 	if err != nil {
-		panic("read Master/modoverrides.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return modoverrides
 }
