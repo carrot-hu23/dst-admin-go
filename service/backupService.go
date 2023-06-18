@@ -17,9 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type BackupService struct {
-	GameConfigService
-}
+type BackupService struct{}
 
 func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -156,9 +154,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 		log.Panicln("backup path is not exists")
 	}
 	if backupName == "" {
-		gameConfig := vo.NewGameConfigVO()
-		b.GetClusterIni(cluster.ClusterName, gameConfig)
-		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + gameConfig.ClusterName + ".zip"
+		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + cluster.ClusterName + ".zip"
 	}
 	dst := path.Join(backupPath, backupName)
 	log.Println("src", src, dst)
