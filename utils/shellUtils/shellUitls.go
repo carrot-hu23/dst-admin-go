@@ -20,7 +20,9 @@ func ExecuteCommand(command string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("执行命令时发生错误: %v, 命令输出: %s", err, stderr.String())
 	}
-
+	if stderr.String() != "" {
+		return "", fmt.Errorf("执行命令失败: %s", stderr.String())
+	}
 	return out.String(), nil
 }
 
