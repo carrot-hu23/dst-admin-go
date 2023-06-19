@@ -5,21 +5,20 @@ import (
 	"dst-admin-go/constant"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	whitelist = []string{"/api/login", "/api/logout", "/ws", "/api/init", "/api/install/steamcmd"}
+)
+
 // 拦截检查是否安装 dst steam cmd
 func CheckDstHandler() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
-
-		//request := c.Request
 		path := c.Request.URL.Path
 		if checkIsInstallDst(path) {
 			// 验证通过，会继续访问下一个中间件
@@ -31,32 +30,24 @@ func CheckDstHandler() gin.HandlerFunc {
 				Code: 501,
 				Msg:  "Sorry, you haven't installed DST Stream CMD",
 			})
-			// return可省略, 只要前面执行Abort()就可以让后面的handler函数不再执行
 			return
 		}
 	}
-
 }
 
 func checkIsInstallDst(path string) bool {
-	// for _, value := range blacklist {
-	// 	if value == path {
-	// 		return true
-	// 	}
-	// }
-	if filter(whilelist, path) {
+
+	if apiFilter(whitelist, path) {
 		return true
 	}
 
-	dst_path := constant.DST_INSTALL_DIR + "/bin" + constant.SINGLE_SLASH + constant.DST_START_PROGRAM
-	log.Println("dst_path", dst_path)
+	dstPath := constant.DST_INSTALL_DIR + "/bin" + constant.SINGLE_SLASH + constant.DST_START_PROGRAM
+	log.Println("dst_path", dstPath)
 
-	return fileUtils.Exists(dst_path)
+	return fileUtils.Exists(dstPath)
 }
 
-var whilelist = []string{"/api/login", "/api/logout", "/ws", "/api/init", "/api/install/steamcmd"}
-
-func filter(s []string, str string) bool {
+func apiFilter(s []string, str string) bool {
 	//开放不是 /api 开头接口
 	if !strings.Contains(str, "/api") {
 		return true
@@ -68,34 +59,32 @@ func filter(s []string, str string) bool {
 	}
 	return false
 }
-func Authentucation() gin.HandlerFunc {
-
+func Authentication() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		path := c.Request.URL.Path
-		if filter(whilelist, path) {
+		if apiFilter(whitelist, path) {
 			c.Next()
 			return
 		} else {
 			session := api.Sessions().Start(c.Writer, c.Request)
-			//fmt.Sprintf("%v", session.Get("username"))
 			cookieName := session.Get("username")
-			sessionID := url.QueryEscape(session.SessionID())
-			log.Println("cookiName: " + fmt.Sprintf("%v", session.Get("username")))
-			log.Println("sessionID: " + sessionID)
+			// sessionID := url.QueryEscape(session.SessionID())
 			if cookieName == nil {
-				// c.Abort()
-				// c.JSON(http.StatusBadGateway, vo.Response{
-				// 	Code: 401,
-				// 	Msg:  "Please login",
-				// })
 				// 如果用户未登录，返回 HTTP 401
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
 				c.Next()
 			}
 		}
-
 	}
+}
 
+func SseHeadersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Content-Type", "text/event-stream")
+		c.Writer.Header().Set("Cache-Control", "no-cache")
+		c.Writer.Header().Set("Connection", "keep-alive")
+		c.Writer.Header().Set("Transfer-Encoding", "chunked")
+		c.Next()
+	}
 }
