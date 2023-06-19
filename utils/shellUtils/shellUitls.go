@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 )
@@ -63,4 +64,23 @@ func ConvertByte2String(byte []byte, charset Charset) string {
 		str = string(byte)
 	}
 	return str
+}
+
+func Chmod(filePath string) error {
+	// 获取文件的当前权限
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	// 添加可执行权限
+	newMode := fileInfo.Mode() | 0100
+
+	// 更改文件权限
+	err = os.Chmod(filePath, newMode)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

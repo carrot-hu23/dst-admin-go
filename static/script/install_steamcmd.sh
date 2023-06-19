@@ -42,5 +42,5 @@ done
 bash $steam_cmd_path/steamcmd/steamcmd.sh +force_install_dir $steam_dst_server/dst-dedicated-server +login anonymous +app_update 343050 validate +quit
 
 # 运行其他命令，这里只是做示例
-echo "SteamCMD installed at $steam_cmd_path"
-echo "SteamDST server installed at $steam_dst_server"
+echo "SteamCMD installed at $steam_cmd_path/steamcmd"
+echo "SteamDST server installed at $steam_dst_server/dst-dedicated-server"

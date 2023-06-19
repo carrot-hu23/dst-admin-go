@@ -3,6 +3,7 @@ package api
 import (
 	"bufio"
 	"dst-admin-go/constant/consts"
+	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/systemUtils"
 	"errors"
 	"fmt"
@@ -121,7 +122,9 @@ func installCmd(eventCh chan string, stopCh chan byte) error {
 	eventCh <- "data: 正在安装steamcmd。。。\n\n"
 
 	// 直接调用脚本安装
-	err := commandShell(eventCh, "./static/script/install_steamcmd.sh", consts.HomePath, consts.HomePath)
+	scriptPath := "./static/script/install_steamcmd.sh"
+	shellUtils.Chmod(scriptPath)
+	err := commandShell(eventCh, scriptPath, consts.HomePath, consts.HomePath)
 	if err != nil {
 		eventCh <- "data: 安装steamcmd失败！！！ \n\n"
 		return err
