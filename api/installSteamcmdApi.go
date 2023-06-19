@@ -3,6 +3,7 @@ package api
 import (
 	"bufio"
 	"dst-admin-go/constant/consts"
+	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/systemUtils"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -130,6 +132,14 @@ func installCmd(eventCh chan string, stopCh chan byte) error {
 		return err
 	}
 	eventCh <- "data: 安装steamcmd成功！！！ \n\n"
+
+	// 写入到配置文件里面
+	config := dstConfigUtils.GetDstConfig()
+	config.Steamcmd = filepath.Join(consts.HomePath, "steamcmd")
+	config.Force_install_dir = filepath.Join(consts.HomePath, "dst-dedicated-server")
+
+	dstConfigUtils.SaveDstConfig(&config)
+
 	return nil
 }
 
