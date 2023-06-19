@@ -90,25 +90,38 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 
 	if strings.Contains(strings.ToLower(info.Platform), "centos") {
 		// 安装依赖，只兼容 centos 和 Ubuntu
-		eventCh <- "data: 正在安装饥荒依赖 \n\n"
 		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
 
-		err := command(eventCh, "sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686", "-l")
+		err := command(eventCh, "sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
-		err = command(eventCh, "sudo yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64", "-l")
+		err = command(eventCh, "sudo yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
 
 		eventCh <- "data: 正在建立libcurl-gnutls.so.4软连接 \n\n"
-		err = command(eventCh, "ln -s /usr/lib/libcurl.so.4 /usr/lib/libcurl-gnutls.so.4", "-l")
+		err = command(eventCh, "ln -s /usr/lib/libcurl.so.4 /usr/lib/libcurl-gnutls.so.4", "")
 		if err != nil {
 			eventCh <- "建立libcurl-gnutls.so.4软连接失败 \n\n"
 		}
 
 	} else if strings.Contains(strings.ToLower(info.Platform), "ubuntu") {
+
+		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
+		err := command(eventCh, "sudo apt-get update", "")
+		if err != nil {
+			eventCh <- "安装失败 apt-get update \n\n"
+		}
+		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen", "")
+		if err != nil {
+			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen \n\n"
+		}
+		err = command(eventCh, "sudo apt-get install -y libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-gfx1.2-dev", "")
+		if err != nil {
+			eventCh <- "安装失败 libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-gfx1.2-dev \n\n"
+		}
 
 	} else {
 		eventCh <- "data: 暂不支持 " + info.Platform + " 请手动安装依赖 \n\n"
