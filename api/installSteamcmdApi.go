@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bufio"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/systemUtils"
 	"errors"
 	"fmt"
@@ -110,9 +112,7 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 		return errors.New("not support yet")
 	}
 
-	eventCh <- "data: 前置依赖安装完成 \n\n"
 	return nil
-
 }
 
 // 检测是否已经安装了 steamcmd
@@ -120,6 +120,13 @@ func installCmd(eventCh chan string, stopCh chan byte) error {
 
 	eventCh <- "data: 正在安装steamcmd。。。\n\n"
 
+	// 直接调用脚本安装
+	err := commandShell(eventCh, "./static/script/install_steamcmd.sh", consts.HomePath, consts.HomePath)
+	if err != nil {
+		eventCh <- "data: 安装steamcmd失败！！！ \n\n"
+		return err
+	}
+	eventCh <- "data: 安装steamcmd成功！！！ \n\n"
 	return nil
 }
 
@@ -155,57 +162,121 @@ func (i *InstallSteamCmd) handle(eventCh chan string, stopCh chan byte) {
 	stopCh <- 1
 }
 
-func command(eventCh chan string, name string, arg ...string) error {
-	cmd := exec.Command(name, arg...) // 示例命令：列出当前目录下的文件列表
+func commandShell(eventCh chan string, name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
 
-	// 创建管道来获取命令的标准输出和标准错误输出
-	stdout, err := cmd.StdoutPipe()
+	// 创建管道来获取命令的输出
+	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
-		return err
+		fmt.Println("Error creating StdoutPipe:", err)
+		return nil
 	}
-	stderr, err := cmd.StderrPipe()
+	stderrPipe, err := cmd.StderrPipe()
 	if err != nil {
-		return err
+		fmt.Println("Error creating StderrPipe:", err)
+		return nil
 	}
 
 	// 启动命令
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
-		return err
+		return nil
 	}
 
-	// 创建协程读取并打印标准输出
-	go func() {
-		readAndSend(stdout, eventCh)
-	}()
+	// 创建字符串通道来接收输出
+	stdoutCh := make(chan string)
 
-	// 创建协程读取并打印标准错误输出
-	go func() {
-		readAndSend(stderr, eventCh)
-	}()
+	errputCh := make(chan string)
+
+	// 创建协程读取并处理标准输出
+	go readAndSend(stdoutPipe, stdoutCh)
+	// 创建协程读取并处理标准错误输出
+	go readAndSend(stderrPipe, errputCh)
+
+	// 从字符串通道接收输出并处理
+	for output := range stdoutCh {
+		fmt.Println(output)
+		eventCh <- "data: " + output + "\n\n"
+	}
+
+	for errput := range errputCh {
+		fmt.Println(errput)
+		eventCh <- "data: " + errput + "\n\n"
+	}
 
 	// 等待命令执行完成
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Command finished with error:", err)
-		return err
 	}
+
+	return nil
+}
+
+func command(eventCh chan string, name string, arg ...string) error {
+	cmd := exec.Command("sh", "-c", name)
+
+	// 创建管道来获取命令的输出
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Println("Error creating StdoutPipe:", err)
+		return nil
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		fmt.Println("Error creating StderrPipe:", err)
+		return nil
+	}
+
+	// 启动命令
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
+		return nil
+	}
+
+	// 创建字符串通道来接收输出
+	stdoutCh := make(chan string)
+
+	errputCh := make(chan string)
+
+	// 创建协程读取并处理标准输出
+	go readAndSend(stdoutPipe, stdoutCh)
+	// 创建协程读取并处理标准错误输出
+	go readAndSend(stderrPipe, errputCh)
+
+	// 从字符串通道接收输出并处理
+	for output := range stdoutCh {
+		fmt.Println(output)
+		eventCh <- "data: " + output + "\n\n"
+	}
+
+	for errput := range errputCh {
+		fmt.Println(errput)
+		eventCh <- "data: " + errput + "\n\n"
+	}
+
+	// 等待命令执行完成
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Command finished with error:", err)
+	}
+
 	return nil
 }
 
 // 读取io.Reader并将每行内容发送到字符串通道
 func readAndSend(reader io.Reader, ch chan<- string) {
-	buf := make([]byte, 1024)
+	bufReader := bufio.NewReader(reader)
 	for {
-		n, err := reader.Read(buf)
-		if n > 0 {
-			ch <- string(buf[:n])
+		line, err := bufReader.ReadString('\n')
+		if line != "" {
+			ch <- line
 		}
 		if err != nil {
 			if err != io.EOF {
 				fmt.Println("Error reading from reader:", err)
 			}
-			close(ch)
-			return
+			break
 		}
 	}
+	// 关闭通道
+	defer close(ch)
 }
