@@ -196,7 +196,7 @@ func DeleteFile(path string) error {
 }
 
 func DeleteDir(path string) (err error) {
-	err = os.RemoveAll("./file1.txt")
+	err = os.RemoveAll(path)
 	if err != nil {
 		log.Printf("removeAll "+path+" : %v\n", err)
 	}
@@ -298,4 +298,75 @@ func CreateDirIfNotExists(filepath string) {
 	if !Exists(filepath) {
 		CreateDir(filepath)
 	}
+}
+
+func Copy(srcPath, outFileDir string) error {
+
+	srcInfo, err := os.Stat(srcPath)
+	if err != nil {
+		return err
+	}
+
+	// 如果源文件是目录，则递归复制目录
+	if srcInfo.IsDir() {
+		// 创建目标目录（如果不存在）
+		err = os.MkdirAll(outFileDir, srcInfo.Mode())
+		if err != nil {
+			return err
+		}
+		// 遍历源目录中的所有文件和子目录，并递归复制它们
+		srcDir, err := os.Open(srcPath)
+		if err != nil {
+			return err
+		}
+		defer srcDir.Close()
+
+		files, err := srcDir.Readdir(-1)
+		if err != nil {
+			return err
+		}
+
+		for _, file := range files {
+			srcFilePath := filepath.Join(srcPath, file.Name())
+			outFilePath := filepath.Join(outFileDir, filepath.Base(srcPath))
+			err = Copy(srcFilePath, outFilePath)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return copyHelper(srcPath, outFileDir)
+}
+
+func copyHelper(srcPath, outFileDir string) error {
+	// 打开源文件
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	// 创建目标目录（如果不存在）
+	err = os.MkdirAll(outFileDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	// 创建目标文件
+	outFilePath := filepath.Join(outFileDir, filepath.Base(srcPath))
+	outFile, err := os.Create(outFilePath)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	// 复制数据
+	_, err = io.Copy(outFile, srcFile)
+	if err != nil {
+		return err
+	}
+	return nil
 }

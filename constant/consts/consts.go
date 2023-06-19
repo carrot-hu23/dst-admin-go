@@ -3,6 +3,7 @@ package consts
 import (
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
+	"path/filepath"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 )
 
 var HomePath string
+var KleiDstPath string
 
 func init() {
 	home, err := systemUtils.Home()
@@ -27,4 +29,7 @@ func init() {
 	}
 	HomePath = home
 	fmt.Println("home path: " + HomePath)
+
+	KleiDstPath = filepath.Join(home, ".klei/DoNotStarveTogether")
+
 }

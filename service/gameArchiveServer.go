@@ -33,7 +33,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取基础信息
 	go func() {
-		clusterIni := d.GetClusterIni(dst.GetClusterIniPath(clusterName))
+		clusterIni := d.GetClusterIni(clusterName)
 		gameArchie.ClusterName = clusterIni.ClusterName
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
