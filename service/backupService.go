@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -39,7 +38,7 @@ func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
 		if file.IsDir() {
 			continue
 		}
-		suffix := path.Ext(file.Name())
+		suffix := filepath.Ext(file.Name())
 		if suffix == ".zip" || suffix == ".tar" {
 			backup := vo.BackupVo{
 				FileName:   file.Name(),
@@ -58,7 +57,7 @@ func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
 func (b *BackupService) RenameBackup(ctx *gin.Context, fileName, newName string) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
-	err := fileUtils.Rename(path.Join(backupPath, fileName), path.Join(backupPath, newName))
+	err := fileUtils.Rename(filepath.Join(backupPath, fileName), filepath.Join(backupPath, newName))
 	if err != nil {
 		return
 	}
@@ -69,7 +68,7 @@ func (b *BackupService) DeleteBackup(ctx *gin.Context, fileNames []string) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
 	for _, fileName := range fileNames {
-		filePath := path.Join(backupPath, fileName)
+		filePath := filepath.Join(backupPath, fileName)
 		if !fileUtils.Exists(filePath) {
 			continue
 		}
@@ -85,15 +84,15 @@ func (b *BackupService) DeleteBackup(ctx *gin.Context, fileNames []string) {
 func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
-	filePath := path.Join(cluster.Backup, backupName)
-	clusterPath := path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", cluster.ClusterName)
+	filePath := filepath.Join(cluster.Backup, backupName)
+	clusterPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", cluster.ClusterName)
 	err := fileUtils.DeleteDir(clusterPath)
 	if err != nil {
 		log.Panicln("删除失败,", clusterPath, err)
 	}
-	log.Println("正在恢复存档", filePath, path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"))
+	log.Println("正在恢复存档", filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"))
 	// 先解压到临时目录
-	tmpDir := path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", "tmp_613e78awhjkdhjkasjkldaso")
+	tmpDir := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", "tmp_613e78awhjkdhjkasjkldaso")
 	defer func(path string) {
 		err := fileUtils.DeleteDir(path)
 		if err != nil {
@@ -160,7 +159,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 		name := b.GetClusterIni(cluster.ClusterName).ClusterName
 		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
 	}
-	dst := path.Join(backupPath, backupName)
+	dst := filepath.Join(backupPath, backupName)
 	log.Println("src", src, dst)
 	err := zip.Zip(src, dst)
 	if err != nil {
@@ -175,7 +174,7 @@ func (b *BackupService) DownloadBackup(c *gin.Context) {
 	clusterName := c.GetHeader("world")
 	cluster := clusterUtils.GetCluster(clusterName)
 
-	filePath := path.Join(cluster.Backup, fileName)
+	filePath := filepath.Join(cluster.Backup, fileName)
 	//打开文件
 	_, err := os.Open(filePath)
 	//非空处理
@@ -195,7 +194,7 @@ func (b *BackupService) UploadBackup(c *gin.Context) {
 	log.Println(file.Filename)
 
 	cluster := clusterUtils.GetClusterFromGin(c)
-	dst := path.Join(cluster.Backup, file.Filename)
+	dst := filepath.Join(cluster.Backup, file.Filename)
 
 	if fileUtils.Exists(dst) {
 		log.Panicln("backup is existed")
