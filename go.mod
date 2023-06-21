@@ -3,7 +3,6 @@ module dst-admin-go
 go 1.19
 
 require (
-	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-ini/ini v1.67.0

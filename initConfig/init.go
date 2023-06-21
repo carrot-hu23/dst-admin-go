@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
+	"dst-admin-go/lobbyServer"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
 	"dst-admin-go/utils/dstConfigUtils"
@@ -20,6 +21,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -33,11 +35,12 @@ func Init() {
 	initDB()
 	initCollect()
 	initSchedule()
+	initLobbyServer()
 }
 
 func initDB() {
 	db, err := gorm.Open(sqlite.Open(global.Config.Db), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
 		panic("failed to connect database")
@@ -51,6 +54,7 @@ func initDB() {
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
+		&lobbyServer.LobbyHome{},
 	)
 	if err != nil {
 		return
@@ -104,4 +108,23 @@ func initCollect() {
 
 func initSchedule() {
 	global.Schedule = schedule.NewSchedule()
+}
+
+func initLobbyServer() {
+	// 定义一个定时器，每隔 5 秒执行一次
+	lobbyServer2 := lobbyServer.NewLobbyServer2(database.DB)
+
+	global.LobbyServer = lobbyServer2
+
+	ticker := time.NewTicker(60 * time.Second)
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				lobbyServer2.SaveLobbyList()
+			}
+		}
+	}()
+
 }
