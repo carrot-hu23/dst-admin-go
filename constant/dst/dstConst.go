@@ -63,7 +63,7 @@ func GetDstUpdateCmd(clusterName string) string {
 	cluster := clusterUtils.GetCluster(clusterName)
 	steamcmd := cluster.SteamCmd
 	dst_install_dir := cluster.ForceInstallDir
-	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+	return "cd " + steamcmd + " ; ./steamcmd.sh +force_install_dir " + dst_install_dir + " +login anonymous +app_update 343050 validate +quit"
 }
 
 // ============= 工具类 以后放到别的位置 ================//

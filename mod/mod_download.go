@@ -66,7 +66,7 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 	} else {
 		// 调用 SteamCMD 命令下载 mod
 		steamcmd := dstConfig.Steamcmd
-		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+force_install_dir", mod_download_path, "+login anonymous", "+workshop_download_item 322330 "+mod_id, "+quit")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Error executing command:", err)
