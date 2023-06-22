@@ -89,7 +89,7 @@ var (
 	/**
 	 * 更新游戏目录
 	 */
-	UPDATE_GAME_CMD = "cd " + STEAMCMD + " ; ./steamcmd.sh +login anonymous +force_install_dir " + DST_INSTALL_DIR + " +app_update 343050 validate +quit"
+	UPDATE_GAME_CMD = "cd " + STEAMCMD + " ; ./steamcmd.sh +force_install_dir " + DST_INSTALL_DIR + " +login anonymous +app_update 343050 validate +quit"
 
 	/**
 	 * 删除地面游戏记录
@@ -256,7 +256,7 @@ func GET_UPDATE_GAME_CMD() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	steamcmd := dstConfig.Steamcmd
 	dst_install_dir := dstConfig.Force_install_dir
-	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+	return "cd " + steamcmd + " ; ./steamcmd.sh +force_install_dir " + dst_install_dir + " +login anonymous +app_update 343050 validate +quit"
 }
 
 func GET_DST_MOD_SETTING_PATH() string {
