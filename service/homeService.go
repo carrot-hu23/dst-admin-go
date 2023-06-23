@@ -1,6 +1,5 @@
 package service
 
-import "C"
 import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
