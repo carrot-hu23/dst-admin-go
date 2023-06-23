@@ -132,15 +132,6 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 
 func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 
-	if cluster.ClusterName == "" {
-		log.Panicln("create cluster is error, cluster name is null")
-	}
-	if cluster.SteamCmd == "" {
-		log.Panicln("create cluster is error, steamCmd is null")
-	}
-	if cluster.ForceInstallDir == "" {
-		log.Panicln("create cluster is error, forceInstallDir is null")
-	}
 	db := database.DB
 	tx := db.Begin()
 
@@ -155,7 +146,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 
 	if err != nil {
 		if err.Error() == "Error 1062: Duplicate entry" {
-			log.Panicln("唯一索引冲突！")
+			log.Panicln("集群名称重复，请更换另一个名字！！！")
 		}
 		log.Panicln("创建集群失败！")
 	}
@@ -189,24 +180,28 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 }
 
 func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
+
 	db := database.DB
-
 	cluster := model.Cluster{}
-
 	result := db.Where("id = ?", id).Delete(&cluster)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
+	// 停止服务
+	c.s.StopGame(cluster.ClusterName, 0)
+
 	// TODO 删除集群 和 饥荒、备份、mod 下载
 
 	// 删除集群
 
 	// 删除饥荒
+	err := fileUtils.DeleteDir(cluster.ForceInstallDir)
+	if err != nil {
+		return nil, err
+	}
 
-	// 停止服务
-	c.s.StopGame(cluster.ClusterName, 0)
 	return &cluster, nil
 }
 

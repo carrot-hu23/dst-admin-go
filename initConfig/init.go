@@ -1,6 +1,7 @@
 package initConfig
 
 import (
+	"dst-admin-go/api"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
@@ -17,7 +18,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -51,6 +51,7 @@ func initDB() {
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
+		&api.SystemConfig{},
 		&lobbyServer.LobbyHome{},
 	)
 	if err != nil {
@@ -103,6 +104,12 @@ func initSchedule() {
 }
 
 func initLobbyServer() {
+
+	if !global.Config.EnableLobby {
+		log.Println("不开启 lobby server")
+		return
+	}
+
 	// 定义一个定时器，每隔 5 秒执行一次
 	lobbyServer2 := lobbyServer.NewLobbyServer2(database.DB)
 
