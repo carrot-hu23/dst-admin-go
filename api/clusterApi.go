@@ -42,7 +42,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		clusterModel.Backup = filepath.Join(consts.KleiDstPath, clusterModel.ClusterName)
 	}
 	if clusterModel.ModDownloadPath == "" {
-		clusterModel.Backup = filepath.Join(consts.KleiDstPath, clusterModel.ClusterName)
+		clusterModel.ModDownloadPath = filepath.Join(consts.KleiDstPath)
 	}
 
 	clusterManager.CreateCluster(&clusterModel)

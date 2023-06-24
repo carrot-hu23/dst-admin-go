@@ -73,13 +73,16 @@ func get_mod_info_config(mod_id string, ctx *gin.Context) map[string]interface{}
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	steamcmd_path := cluster.SteamCmd
 	mod_download_path := cluster.ModDownloadPath
-
+	if mod_download_path == "" {
+		log.Panicln("请设置模组下载路径")
+	}
 	mod_path := path.Join(mod_download_path, "/steamapps/workshop/content/322330/", mod_id)
 	if _, err := os.Stat(mod_path); err == nil {
 		fmt.Println("Mod already downloaded to:", mod_path)
 	} else {
 		// 调用 SteamCMD 命令下载 mod
 		steamcmd := steamcmd_path
+		log.Println("正在下载模组：", path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
 		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
@@ -100,6 +103,7 @@ func get_mod_info_config(mod_id string, ctx *gin.Context) map[string]interface{}
 
 	// 查找 modinfo.lua 文件
 	modinfo_path := filepath.Join(mod_path, "modinfo.lua")
+	log.Println("正在解析模组配置：", modinfo_path)
 	if _, err := os.Stat(modinfo_path); err != nil {
 		fmt.Println("Error finding modinfo.lua:", err)
 		return make(map[string]interface{})
