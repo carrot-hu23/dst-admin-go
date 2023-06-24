@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -14,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"sync"
 )
@@ -183,7 +185,7 @@ func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 
 	db := database.DB
 	cluster := model.Cluster{}
-	result := db.Where("id = ?", id).Delete(&cluster)
+	result := db.Where("id = ?", id).Unscoped().Delete(&cluster)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -197,7 +199,15 @@ func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 	// 删除集群
 
 	// 删除饥荒
+	log.Println("正在删除集群: ", cluster.ForceInstallDir)
 	err := fileUtils.DeleteDir(cluster.ForceInstallDir)
+	if err != nil {
+		return nil, err
+	}
+
+	clusterPath := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+	log.Println("正在删除存档: ", clusterPath)
+	err = fileUtils.DeleteDir(clusterPath)
 	if err != nil {
 		return nil, err
 	}
