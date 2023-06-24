@@ -195,7 +195,7 @@ func (b *BackupService) UploadBackup(c *gin.Context) {
 
 	cluster := clusterUtils.GetClusterFromGin(c)
 	dst := filepath.Join(cluster.Backup, file.Filename)
-
+	log.Println("备份保存在: ", dst)
 	if fileUtils.Exists(dst) {
 		log.Panicln("backup is existed")
 	}

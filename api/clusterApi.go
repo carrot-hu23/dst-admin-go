@@ -39,10 +39,10 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		clusterModel.ForceInstallDir = filepath.Join(consts.HomePath, "dst-dedicated-cluster", clusterModel.ClusterName)
 	}
 	if clusterModel.Backup == "" {
-		clusterModel.Backup = filepath.Join(consts.KleiDstPath, clusterModel.ClusterName)
+		clusterModel.Backup = consts.KleiDstPath
 	}
 	if clusterModel.ModDownloadPath == "" {
-		clusterModel.ModDownloadPath = filepath.Join(consts.KleiDstPath)
+		clusterModel.ModDownloadPath = consts.KleiDstPath
 	}
 
 	clusterManager.CreateCluster(&clusterModel)

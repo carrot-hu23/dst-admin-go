@@ -184,6 +184,13 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 
 	db := database.DB
+	cluster1 := model.Cluster{}
+	db.Where("id = ?", id).First(&cluster1)
+
+	if cluster1.ID == 0 {
+		log.Panicln("删除集群失败, ID 不存在 ", id)
+	}
+
 	cluster := model.Cluster{}
 	result := db.Where("id = ?", id).Unscoped().Delete(&cluster)
 
@@ -191,28 +198,30 @@ func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 		return nil, result.Error
 	}
 
+	log.Println("正在删除 cluster", cluster1)
+
 	// 停止服务
-	c.s.StopGame(cluster.ClusterName, 0)
+	c.s.StopGame(cluster1.ClusterName, 0)
 
 	// TODO 删除集群 和 饥荒、备份、mod 下载
 
 	// 删除集群
 
 	// 删除饥荒
-	log.Println("正在删除集群: ", cluster.ForceInstallDir)
-	err := fileUtils.DeleteDir(cluster.ForceInstallDir)
+	log.Println("正在删除集群: ", cluster1.ForceInstallDir)
+	err := fileUtils.DeleteDir(cluster1.ForceInstallDir)
 	if err != nil {
 		return nil, err
 	}
 
-	clusterPath := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+	clusterPath := filepath.Join(consts.KleiDstPath, cluster1.ClusterName)
 	log.Println("正在删除存档: ", clusterPath)
 	err = fileUtils.DeleteDir(clusterPath)
 	if err != nil {
 		return nil, err
 	}
 
-	return &cluster, nil
+	return &cluster1, nil
 }
 
 func (c *ClusterManager) FindClusterByUuid(uuid string) *model.Cluster {
