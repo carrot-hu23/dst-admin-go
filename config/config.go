@@ -11,4 +11,6 @@ type Config struct {
 	Flag           string `yaml:"flag"`
 
 	Token string `yaml:"token"`
+
+	EnableLobby bool `yaml:"enableLobby"`
 }

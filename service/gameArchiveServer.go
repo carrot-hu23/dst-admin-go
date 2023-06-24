@@ -2,6 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"encoding/base64"
@@ -32,7 +33,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取基础信息
 	go func() {
-		clusterIni := d.GetClusterIni(dst.GetClusterIniPath(clusterName))
+		clusterIni := d.GetClusterIni(clusterName)
 		gameArchie.ClusterName = clusterIni.ClusterName
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
@@ -50,7 +51,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		if err != nil {
 			gameArchie.Mods = 0
 		} else {
-			gameArchie.Mods = len(dst.WorkshopIds(masterModoverrides))
+			gameArchie.Mods = len(dstUtils.WorkshopIds(masterModoverrides))
 		}
 		wg.Done()
 	}()

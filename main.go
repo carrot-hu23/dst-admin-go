@@ -4,7 +4,7 @@ import (
 	"dst-admin-go/config/global"
 	"dst-admin-go/initConfig"
 	"dst-admin-go/router"
-	"github.com/gin-contrib/pprof"
+	"fmt"
 )
 
 func init() {
@@ -14,7 +14,9 @@ func init() {
 func main() {
 
 	app := router.NewRoute()
-	pprof.Register(app)
-	app.Run(":" + global.Config.Port)
+	err := app.Run(":" + global.Config.Port)
+	if err != nil {
+		fmt.Println("启动失败！！！", err)
+	}
 
 }

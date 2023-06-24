@@ -3,6 +3,7 @@ package service
 import (
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/vo/world"
 	"github.com/gin-gonic/gin"
 
@@ -56,7 +57,7 @@ func (g *GameService) UpdateGame(clusterName string) {
 	log.Println(updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
-		log.Panicln("update world error: " + err.Error())
+		log.Panicln("更新游戏失败: ", err)
 	}
 }
 
@@ -95,7 +96,7 @@ func (g *GameService) killLevel(clusterName, level string) {
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		// TODO 强制杀掉
-		log.Panicln("kill " + clusterName + " " + level + " error: " + err.Error())
+		log.Panicln("kill "+clusterName+" "+level+" error: ", err)
 	}
 }
 
@@ -108,7 +109,7 @@ func (g *GameService) launchLevel(clusterName, level string) {
 
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
-		log.Panicln("launch " + clusterName + " " + level + " error: " + err.Error())
+		log.Panicln("启动 "+clusterName+" "+level+" error,", err)
 	}
 
 }
@@ -373,7 +374,7 @@ func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *world.GameCon
 
 	go func() {
 		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
-		g.c.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
+		dstUtils.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
 		wg.Done()
 	}()
 

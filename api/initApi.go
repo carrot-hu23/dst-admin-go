@@ -2,6 +2,7 @@ package api
 
 import (
 	"dst-admin-go/service"
+	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"log"
@@ -58,6 +59,12 @@ func (f *InitApi) CheckIsFirst(ctx *gin.Context) {
 	if exist {
 		code = 400
 		msg = "is not first"
+	} else {
+		dstConfig := dstConfigUtils.GetDstConfig()
+		if dstConfig.Cluster != "" {
+			initEvnService.InitBaseLevel(&dstConfig, "默认初始", "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw=", true)
+		}
+
 	}
 
 	ctx.JSON(http.StatusOK, vo.Response{

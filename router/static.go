@@ -4,6 +4,11 @@ import "github.com/gin-gonic/gin"
 
 func initStaticFile(app *gin.Engine) {
 
+	defer func() {
+		if r := recover(); r != nil {
+		}
+	}()
+
 	app.LoadHTMLGlob("dist/index.html") // 添加入口index.html
 	//r.LoadHTMLFiles("dist//*") // 添加资源路径
 	app.Static("/assets", "./dist/assets")

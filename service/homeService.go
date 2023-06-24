@@ -2,16 +2,19 @@ package service
 
 import (
 	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/vo"
 	"dst-admin-go/vo/world"
 	"github.com/go-ini/ini"
 	"log"
+	"path"
+	"strconv"
 	"strings"
+	"sync"
 )
 
-type HomeService struct {
-	DstHelper
-}
+type HomeService struct{}
 
 const (
 	ClusterIniTemplate      = "./static/template/cluster2.ini"
@@ -87,7 +90,7 @@ func (c *HomeService) GetClusterToken(clusterName string) string {
 	clusterTokenPath := dst.GetClusterTokenPath(clusterName)
 	token, err := fileUtils.ReadFile(clusterTokenPath)
 	if err != nil {
-		panic("read cluster_token.txt file error: " + err.Error())
+		return ""
 	}
 	return token
 }
@@ -99,7 +102,7 @@ func (c *HomeService) GetAdminlist(clusterName string) (str []string) {
 	str, err := fileUtils.ReadLnFile(adminListPath)
 	log.Println("str:", str)
 	if err != nil {
-		panic("read dst adminlist.txt error: \n" + err.Error())
+		return []string{}
 	}
 	return
 }
@@ -110,7 +113,7 @@ func (c *HomeService) GetBlocklist(clusterName string) (str []string) {
 	str, err := fileUtils.ReadLnFile(blocklistPath)
 	log.Println("str:", str)
 	if err != nil {
-		panic("read dst blocklist.txt error: \n" + err.Error())
+		return []string{}
 	}
 	return
 }
@@ -123,7 +126,7 @@ func (c *HomeService) GetLeveldataoverride(filepath string) string {
 
 	leveldataoverride, err := fileUtils.ReadFile(filepath)
 	if err != nil {
-		panic("read leveldataoverride.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return leveldataoverride
 }
@@ -135,7 +138,7 @@ func (c *HomeService) GetModoverrides(filepath string) string {
 	}
 	modoverrides, err := fileUtils.ReadFile(filepath)
 	if err != nil {
-		panic("read modoverrides.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return modoverrides
 }
@@ -154,7 +157,7 @@ func (c *HomeService) GetServerIni(filepath string, isMaster bool) *world.Server
 	// 加载 INI 文件
 	cfg, err := ini.Load(filepath)
 	if err != nil {
-		log.Panicln("Failed to load INI file:", err)
+		return serverIni
 	}
 
 	// [NETWORK]
@@ -193,7 +196,7 @@ func (c *HomeService) SaveClusterToken(clusterName, token string) {
 
 func (c *HomeService) SaveClusterIni(clusterName string, cluster *world.ClusterIni) {
 	clusterIniPath := dst.GetClusterIniPath(clusterName)
-	fileUtils.WriterTXT(clusterIniPath, c.ParseTemplate(ClusterIniTemplate, cluster))
+	fileUtils.WriterTXT(clusterIniPath, dstUtils.ParseTemplate(ClusterIniTemplate, cluster))
 }
 
 func (c *HomeService) SaveAdminlist(clusterName string, str []string) {
@@ -247,7 +250,7 @@ func (c *HomeService) SaveMasterWorld(clusterName string, world *world.World) {
 	fileUtils.WriterTXT(lPath, world.Leveldataoverride)
 	fileUtils.WriterTXT(mPath, world.Modoverrides)
 
-	serverBuf := c.ParseTemplate(MasterServerIniTemplate, world.ServerIni)
+	serverBuf := dstUtils.ParseTemplate(MasterServerIniTemplate, world.ServerIni)
 
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
@@ -265,81 +268,90 @@ func (c *HomeService) SaveCavesWorld(clusterName string, world *world.World) {
 	fileUtils.WriterTXT(lPath, world.Leveldataoverride)
 	fileUtils.WriterTXT(mPath, world.Modoverrides)
 
-	serverBuf := c.ParseTemplate(CavesServerIniTemplate, world.ServerIni)
+	serverBuf := dstUtils.ParseTemplate(CavesServerIniTemplate, world.ServerIni)
 
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
 
-//func (c *HomeService) GetGameConfig(ctx *gin.Context) *world.GameConfig {
-//	gameConfig := world.GameConfig{}
-//	var wg sync.WaitGroup
-//	wg.Add(6)
-//	cluster := clusterUtils.GetClusterFromGin(ctx)
-//	clusterName := cluster.ClusterName
-//	go func() {
-//		gameConfig.ClusterToken = c.GetClusterToken(clusterName)
-//		wg.Done()
-//	}()
-//	go func() {
-//		gameConfig.ClusterIni = c.GetClusterIni(clusterName)
-//		wg.Done()
-//	}()
-//	go func() {
-//		gameConfig.Adminlist = c.GetAdminlist(clusterName)
-//		wg.Done()
-//	}()
-//	go func() {
-//		gameConfig.Blocklist = c.GetBlocklist(clusterName)
-//		wg.Done()
-//	}()
-//	go func() {
-//		gameConfig.Master = c.GetMasterWorld(clusterName)
-//		wg.Done()
-//	}()
-//	go func() {
-//		gameConfig.Caves = c.GetCavesWorld(clusterName)
-//		wg.Done()
-//	}()
-//	wg.Wait()
-//	return &gameConfig
-//}
-//
-//func (c *HomeService) SaveGameConfig(ctx *gin.Context, gameConfig *world.GameConfig) {
-//
-//	var wg sync.WaitGroup
-//	wg.Add(6)
-//	cluster := clusterUtils.GetClusterFromGin(ctx)
-//	clusterName := cluster.ClusterName
-//	go func() {
-//		c.SaveClusterToken(clusterName, gameConfig.ClusterToken)
-//		wg.Done()
-//	}()
-//
-//	go func() {
-//		c.SaveClusterIni(clusterName, gameConfig.ClusterIni)
-//		wg.Done()
-//	}()
-//
-//	go func() {
-//		// SaveAdminlist(world.Adminlist)
-//		wg.Done()
-//	}()
-//
-//	go func() {
-//		// SaveBlocklist(world.Blocklist)
-//		wg.Done()
-//	}()
-//
-//	go func() {
-//		c.SaveMasterWorld(clusterName, gameConfig.Master)
-//		c.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
-//		wg.Done()
-//	}()
-//
-//	go func() {
-//		c.SaveCavesWorld(clusterName, gameConfig.Caves)
-//		wg.Done()
-//	}()
-//
-//	wg.Wait()
-//}
+func (c *HomeService) GameArchive(clusterName string) *vo.GameArchive {
+
+	var wg sync.WaitGroup
+	wg.Add(4)
+
+	gameArchie := vo.NewGameArchie()
+	basePath := dst.GetClusterBasePath(clusterName)
+
+	// 获取基础信息
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("", r)
+			}
+			wg.Done()
+		}()
+
+		clusterIni := c.GetClusterIni(dst.GetClusterIniPath(clusterName))
+		gameArchie.ClusterName = clusterIni.ClusterName
+		gameArchie.ClusterPassword = clusterIni.ClusterPassword
+		gameArchie.GameMod = clusterIni.GameMode
+		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
+
+	}()
+
+	// 获取mod数量
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("", r)
+			}
+			wg.Done()
+		}()
+
+		masterModoverrides, err := fileUtils.ReadFile(path.Join(basePath, "Master", "modoverrides.lua"))
+		if err != nil {
+			gameArchie.Mods = 0
+		} else {
+			gameArchie.Mods = len(dstUtils.WorkshopIds(masterModoverrides))
+		}
+	}()
+
+	// 获取天数和季节
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("", r)
+			}
+			wg.Done()
+		}()
+		gameArchie.Meta = c.getSessionMeta()
+		wg.Done()
+	}()
+
+	// 获取直连ip
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("", r)
+			}
+			wg.Done()
+		}()
+		serverIni := c.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
+		ipv4, err := dstUtils.GetPublicIP()
+		if err != nil {
+			gameArchie.IpConnect = ""
+		} else {
+			gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	return gameArchie
+}
+
+// TODO 获取存档 元数据
+func (c *HomeService) getSessionMeta() string {
+
+	return ""
+}

@@ -11,7 +11,7 @@ func NewRoute() *gin.Engine {
 
 	app.Use(middleware.Recover)
 	app.Use(middleware.ShellInjectionInterceptor())
-	app.Use(middleware.Authentucation())
+	app.Use(middleware.Authentication())
 
 	// app.Use(middleware.CheckDstHandler())
 
@@ -33,6 +33,9 @@ func NewRoute() *gin.Engine {
 	initWsRouter(router)
 	initSteamRouter(router)
 	initJobTaskRouter(router)
+
+	initLobbyServer(router)
+	initSystemRouter(router)
 
 	initStaticFile(app)
 

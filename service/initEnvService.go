@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/constant"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/world"
@@ -26,7 +27,6 @@ const (
 type InitService struct {
 	GameConfigService
 	LoginService
-	DstHelper
 }
 
 type InitDstData struct {
@@ -121,7 +121,7 @@ func (i *InitService) InitClusterIni(basePath string, username string) {
 	}
 	clusterIni.ClusterName = clusterName
 	clusterIni.MaxPlayers = 8
-	fileUtils.WriterTXT(cluster_ini_path, i.ParseTemplate(cluster_template, clusterIni))
+	fileUtils.WriterTXT(cluster_ini_path, dstUtils.ParseTemplate(cluster_template, clusterIni))
 }
 
 func (i *InitService) InitClusterToken(basePath string, token string) {

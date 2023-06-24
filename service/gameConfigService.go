@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/constant"
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"log"
@@ -17,7 +18,6 @@ var master_server_init_template = "./static/template/master_server.ini"
 var caves_server_init_template = "./static/template/caves_server.ini"
 
 type GameConfigService struct {
-	d DstHelper
 	w HomeService
 }
 
@@ -37,7 +37,7 @@ func (c *GameConfigService) getClusterToken(clusterName string) string {
 	clusterToken := dst.GetClusterTokenPath(clusterName)
 	token, err := fileUtils.ReadFile(clusterToken)
 	if err != nil {
-		panic("read cluster_token.txt file error: " + err.Error())
+		return ""
 	}
 
 	return token
@@ -129,7 +129,7 @@ func (c *GameConfigService) getMasterLeveldataoverride(clusterName string) strin
 
 	level, err := fileUtils.ReadFile(leveldataoverridePath)
 	if err != nil {
-		panic("read Master/leveldataoverride.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return level
 }
@@ -139,7 +139,7 @@ func (c *GameConfigService) getCavesLeveldataoverride(clusterName string) string
 	leveldataoverridePath := dst.GetCavesLeveldataoverridePath(clusterName)
 	level, err := fileUtils.ReadFile(leveldataoverridePath)
 	if err != nil {
-		panic("read Caves/leveldataoverride.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return level
 }
@@ -149,7 +149,7 @@ func (c *GameConfigService) getModoverrides(clusterName string) string {
 	modoverridesPath := dst.GetMasterModoverridesPath(clusterName)
 	modoverrides, err := fileUtils.ReadFile(modoverridesPath)
 	if err != nil {
-		panic("read Master/modoverrides.lua file error: " + err.Error())
+		return "return {}"
 	}
 	return modoverrides
 }
@@ -195,7 +195,7 @@ func (c *GameConfigService) createClusterIni(clusterName string, gameConfigVo vo
 	oldCluster.PauseWhenNobody = gameConfigVo.PauseWhenNobody
 	oldCluster.ClusterPassword = gameConfigVo.ClusterPassword
 
-	clusterIni := c.d.ParseTemplate(cluster_init_template, oldCluster)
+	clusterIni := dstUtils.ParseTemplate(cluster_init_template, oldCluster)
 	fileUtils.WriterTXT(clusterIniPath, clusterIni)
 }
 
@@ -234,7 +234,7 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 
 		var serverModSetup = ""
 		//TODO 添加mod setup
-		workshopIds := dst.WorkshopIds(modConfig)
+		workshopIds := dstUtils.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
@@ -249,7 +249,7 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 func (c *GameConfigService) UpdateDedicatedServerModsSetup(clusterName, modConfig string) {
 	if modConfig != "" {
 		var serverModSetup = ""
-		workshopIds := dst.WorkshopIds(modConfig)
+		workshopIds := dstUtils.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
