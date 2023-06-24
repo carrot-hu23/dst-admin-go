@@ -42,7 +42,7 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
-	modinfo := mod.GetModInfo(moId)
+	modinfo := mod.GetModInfo(moId, ctx)
 
 	var mod_config map[string]interface{}
 	json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)

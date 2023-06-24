@@ -20,7 +20,7 @@ type SystemConfig struct {
 	Steamcmd string `json:"steamcmd"`
 }
 
-func (s *SystemApi) GetConfig(ctx *gin.Context) {
+func (s *SystemApi) GetSystemSetting(ctx *gin.Context) {
 
 	db := database.DB
 	config := SystemConfig{}
@@ -33,7 +33,7 @@ func (s *SystemApi) GetConfig(ctx *gin.Context) {
 	})
 }
 
-func (s *SystemApi) SaveConfig(ctx *gin.Context) {
+func (s *SystemApi) SaveSystemSetting(ctx *gin.Context) {
 
 	var body struct {
 		Steamcmd string `json:"steamcmd"`
@@ -115,15 +115,15 @@ func installCmd2(eventCh chan string, stopCh chan byte) error {
 	db := database.DB
 	systemConfig := SystemConfig{}
 	db.First(&systemConfig)
-	var steamCmdPath string
+	eventCh <- "data: steamcmd 默认安装在 " + filepath.Join(consts.HomePath, "steamcmd") + "。。。\n\n"
 	if systemConfig.Steamcmd == "" {
-		eventCh <- "data: steamcmd 默认安装在 " + consts.HomePath + "。。。\n\n"
-		steamCmdPath = consts.HomePath
-		systemConfig.Steamcmd = filepath.Join(consts.HomePath, "steamcmd")
-		db.Save(systemConfig)
-
+		s := SystemConfig{
+			Steamcmd: filepath.Join(consts.HomePath, "steamcmd"),
+		}
+		db.Create(&s)
 	} else {
-		eventCh <- "data: steamcmd 即将安装在 " + steamCmdPath + "。。。\n\n"
+		systemConfig.Steamcmd = filepath.Join(consts.HomePath, "steamcmd")
+		db.Save(&systemConfig)
 	}
 
 	// 直接调用脚本安装
@@ -132,7 +132,7 @@ func installCmd2(eventCh chan string, stopCh chan byte) error {
 	if err != nil {
 		log.Panicln("设置steamcmd脚本权限错误", err)
 	}
-	err = commandShell(eventCh, scriptPath, steamCmdPath, consts.HomePath)
+	err = commandShell(eventCh, scriptPath, consts.HomePath, consts.HomePath)
 	if err != nil {
 		eventCh <- "data: 安装steamcmd失败！！！ \n\n"
 		return err

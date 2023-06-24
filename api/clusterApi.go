@@ -36,7 +36,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		log.Panicln("参数错误, steamcmd 或者 clusterName 不能为空")
 	}
 	if clusterModel.ForceInstallDir == "" {
-		clusterModel.ForceInstallDir = filepath.Join(consts.HomePath, "dst-dedicated-cluster")
+		clusterModel.ForceInstallDir = filepath.Join(consts.HomePath, "dst-dedicated-cluster", clusterModel.ClusterName)
 	}
 	if clusterModel.Backup == "" {
 		clusterModel.Backup = filepath.Join(consts.KleiDstPath, clusterModel.ClusterName)
