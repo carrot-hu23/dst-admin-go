@@ -2,6 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -150,7 +151,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
 
-	src := constant.GET_DST_USER_GAME_CONFG_PATH()
+	src := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
 	if !fileUtils.Exists(backupPath) {
 		log.Panicln("backup path is not exists")
 	}
