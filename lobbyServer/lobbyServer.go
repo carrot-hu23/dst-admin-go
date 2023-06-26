@@ -20,6 +20,7 @@ var (
 
 	LobbyRegionUrl = "https://lobby-v2-cdn.klei.com/regioncapabilities-v2.json"
 	LobbyListUrl   = "https://lobby-v2-cdn.klei.com/%s-Steam.json.gz"
+	LobbyListUrl2  = "https://lobby-v2-cdn.klei.com/%s-%s.json.gz"
 	LobbyReadUrl   = "https://lobby-v2-%s.klei.com/lobby/read"
 )
 
@@ -190,14 +191,15 @@ func (l *LobbyServer) queryRegions() (LobbyRegionsBody, error) {
 	return data, err
 }
 
-func (l *LobbyServer) QueryPlayer(playerName string) {
+func (l *LobbyServer) QueryPlayer(playerName string) []LobbyHomeDetail {
+	var result []LobbyHomeDetail
 	if regions, err := l.queryRegions(); err == nil {
 		var wg sync.WaitGroup
 		wg.Add(len(regions.LobbyRegions))
 		for _, region := range regions.LobbyRegions {
 			go func(region string) {
 				defer wg.Done()
-				if lobbyList, err := l.requestLobbyV2Api(region); err == nil {
+				if lobbyList, err := l.requestLobbyV2Api(region, "Steam"); err == nil {
 					fmt.Println("Size of lobbyList:", len(lobbyList.GET))
 					var w sync.WaitGroup
 					w.Add(len(lobbyList.GET))
@@ -206,9 +208,7 @@ func (l *LobbyServer) QueryPlayer(playerName string) {
 							homeDetail := l.QueryLobbyHomeInfo(region, lobbyHome.RowID)
 							if playerName != "" && strings.Contains(homeDetail.Players, playerName) {
 								log.Println(homeDetail.Name)
-								l.getPlayer(homeDetail.Players)
-
-								log.Println(homeDetail.Secondaries)
+								result = append(result, homeDetail)
 							}
 							w.Done()
 						}(lobbyHome, region)
@@ -219,28 +219,29 @@ func (l *LobbyServer) QueryPlayer(playerName string) {
 		}
 		wg.Wait()
 	}
+	return result
 }
 
 func (l *LobbyServer) SaveLobbyList() {
 	if regions, err := l.queryRegions(); err == nil {
 		var wg sync.WaitGroup
-		wg.Add(len(regions.LobbyRegions))
+		wg.Add(len(regions.LobbyRegions) * len(Platforms))
 		for _, region := range regions.LobbyRegions {
-			go func(region string) {
-				defer wg.Done()
-
-				if lobbyList, err := l.requestLobbyV2Api(region); err == nil {
-					fmt.Println("Size of lobbyList:", len(lobbyList.GET))
-					for i := range lobbyList.GET {
-						if lobbyList.GET[i].Secondaries != nil {
-							secondariesJson, _ := json.Marshal(lobbyList.GET[i].Secondaries)
-							lobbyList.GET[i].SecondariesJson = string(secondariesJson)
+			for _, platform := range Platforms {
+				go func(region, platform string) {
+					defer wg.Done()
+					if lobbyList, err := l.requestLobbyV2Api(region, platform); err == nil {
+						fmt.Println("Size of lobbyList:", len(lobbyList.GET))
+						for i := range lobbyList.GET {
+							if lobbyList.GET[i].Secondaries != nil {
+								secondariesJson, _ := json.Marshal(lobbyList.GET[i].Secondaries)
+								lobbyList.GET[i].SecondariesJson = string(secondariesJson)
+							}
 						}
+						l.updateLobbyHome(lobbyList.GET, region)
 					}
-					l.updateLobbyHome(lobbyList.GET, region)
-				}
-
-			}(region.Region)
+				}(region.Region, platform)
+			}
 		}
 		wg.Wait()
 	}
@@ -393,8 +394,8 @@ func (l *LobbyServer) containsRoom(rooms []LobbyHome, room LobbyHome) bool {
 	return false
 }
 
-func (l *LobbyServer) requestLobbyV2Api(region string) (LobbyHomeListBody, error) {
-	url := fmt.Sprintf(LobbyListUrl, region)
+func (l *LobbyServer) requestLobbyV2Api(region, platform string) (LobbyHomeListBody, error) {
+	url := fmt.Sprintf(LobbyListUrl2, region, platform)
 	log.Println("url: ", url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -499,6 +500,13 @@ type Player struct {
 }
 
 func (l *LobbyServer) getPlayer(playerLua string) []Player {
+
+	defer func() {
+		if r := recover(); r != nil {
+
+		}
+	}()
+
 	if playerLua == "return {  }" {
 		return []Player{}
 	}
@@ -528,9 +536,7 @@ func (l *LobbyServer) getPlayer(playerLua string) []Player {
 		if player == lua.LNil {
 			break
 		}
-
 		p := l.parsePlayer(player)
-		fmt.Printf("Player %d: %+v\n", i, p)
 		playerList = append(playerList, p)
 	}
 
@@ -574,6 +580,13 @@ func (l *LobbyServer) parsePlayer(player lua.LValue) Player {
 }
 
 func (l *LobbyServer) getDayData(dayLua string) DayData {
+
+	defer func() {
+		if r := recover(); r != nil {
+
+		}
+	}()
+
 	// 创建一个 Lua 虚拟机
 	L := lua.NewState()
 	defer L.Close()
