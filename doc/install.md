@@ -50,7 +50,7 @@ cd ~
 
 ```
 chmod +x dst-admin-go
-nohup ./dst-admin-go >dst-admin-go/log &
+nohup ./dst-admin-go >log.log &
 ```
 如果想要关掉服务
 ```
