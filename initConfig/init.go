@@ -14,7 +14,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -44,7 +43,6 @@ func initDB() {
 		&model.Spawn{},
 		&model.PlayerLog{},
 		&model.Connect{},
-		&model.Proxy{},
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
@@ -56,7 +54,7 @@ func initDB() {
 }
 
 func initConfig() {
-	yamlFile, err := ioutil.ReadFile("./config.yml")
+	yamlFile, err := os.ReadFile("./config.yml")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

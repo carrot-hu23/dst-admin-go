@@ -27,7 +27,6 @@ func NewRoute() *gin.Engine {
 	initLoginRouter(router)
 	initModRouter(router)
 	initPlayerRouter(router)
-	initProxyRouter(router)
 	initStatisticsRouter(router)
 	initThirdPartyRouter(router)
 	initWsRouter(router)
