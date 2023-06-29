@@ -13,7 +13,6 @@ import (
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
-	"fmt"
 	"log"
 	"path/filepath"
 	"runtime"
@@ -204,65 +203,42 @@ func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboar
 	wg.Add(10)
 
 	dashboardVO := vo.NewDashboardVO(clusterName)
-	start := time.Now()
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.MasterStatus = g.GetLevelStatus(clusterName, "Master")
-		elapsed := time.Since(s1)
-		fmt.Println("master =", elapsed)
 	}()
 
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.CavesStatus = g.GetLevelStatus(clusterName, "Caves")
-		elapsed := time.Since(s1)
-		fmt.Println("cave =", elapsed)
 	}()
 
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.HostInfo = systemUtils.GetHostInfo()
-		elapsed := time.Since(s1)
-		fmt.Println("host =", elapsed)
 	}()
 
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.CpuInfo = systemUtils.GetCpuInfo()
-		elapsed := time.Since(s1)
-		fmt.Println("cpu =", elapsed)
 	}()
 
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.MemInfo = systemUtils.GetMemInfo()
-		elapsed := time.Since(s1)
-		fmt.Println("mem =", elapsed)
 	}()
 
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
-		elapsed := time.Since(s1)
-		fmt.Println("disk =", elapsed)
 	}()
 
 	go func() {
 		defer wg.Done()
-		s1 := time.Now()
 		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
-		fmt.Printf("程序占用内存：%d Kb\n", m.Alloc/1024)
 		dashboardVO.MemStates = m.Alloc / 1024
-		elapsed := time.Since(s1)
-		fmt.Println("disk =", elapsed)
 	}()
 
 	go func() {
@@ -287,8 +263,6 @@ func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboar
 	}()
 
 	wg.Wait()
-	elapsed := time.Since(start)
-	fmt.Println("Elapsed =", elapsed)
 
 	return *dashboardVO
 }
@@ -299,7 +273,7 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 
 	info, err := shellUtils.Shell(cmd)
 	if err != nil {
-		log.Println(cmd + " error: " + err.Error())
+		log.Panicln(cmd + " error: " + err.Error())
 		return dstPsVo
 	}
 	if info == "" {
