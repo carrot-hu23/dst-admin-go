@@ -62,13 +62,18 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		if err != nil {
 			gameArchie.Meta = ""
 		} else {
-			meta, err := fileUtils.ReadFile(metaPath)
 			log.Println("meta path: ", metaPath)
-			if err != nil {
-				gameArchie.Meta = ""
+			if fileUtils.Exists(metaPath) {
+				meta, err := fileUtils.ReadFile(metaPath)
+				if err != nil {
+					gameArchie.Meta = ""
+				} else {
+					gameArchie.Meta = base64.StdEncoding.EncodeToString([]byte(meta))
+				}
 			} else {
-				gameArchie.Meta = base64.StdEncoding.EncodeToString([]byte(meta))
+				gameArchie.Meta = ""
 			}
+
 		}
 		wg.Done()
 	}()
