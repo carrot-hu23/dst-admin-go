@@ -34,8 +34,6 @@ func NewRoute() *gin.Engine {
 	initSteamRouter(router)
 	initJobTaskRouter(router)
 
-	initLobbyServer(router)
-
 	initStaticFile(app)
 
 	return app

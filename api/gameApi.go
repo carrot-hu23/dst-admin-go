@@ -5,7 +5,6 @@ import (
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/world"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -88,7 +87,6 @@ func (g *GameApi) SaveGameConfig(ctx *gin.Context) {
 
 	gameConfig := world.GameConfig{}
 	ctx.ShouldBind(&gameConfig)
-	fmt.Printf("%v", gameConfig.Caves.ServerIni)
 	gameService.SaveGameConfig(ctx, &gameConfig)
 
 	ctx.JSON(http.StatusOK, vo.Response{
