@@ -54,7 +54,7 @@ func (g *GameService) UpdateGame(clusterName string) {
 	g.stopMaster(clusterName)
 	g.stopCaves(clusterName)
 	updateGameCMd := dst.GetDstUpdateCmd(clusterName)
-	log.Println(updateGameCMd)
+	log.Println("正在更新世界", "cluster: ", "command: ", updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
 		log.Panicln("更新游戏失败: ", err)
@@ -77,6 +77,7 @@ func (g *GameService) shutdownLevel(clusterName, level string) {
 	}
 
 	shell := "screen -S \"" + screenKey.Key(clusterName, level) + "\" -p 0 -X stuff \"c_shutdown(true)\\n\""
+	log.Println("正在shutdown世界", "cluster: ", clusterName, "level: ", level, "command: ", shell)
 	_, err := shellUtils.Shell(shell)
 	if err != nil {
 		log.Println("shut down " + clusterName + " " + level + " error: " + err.Error())
@@ -93,6 +94,7 @@ func (g *GameService) killLevel(clusterName, level string) {
 		return
 	}
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' |xargs kill -9"
+	log.Println("正在kill世界", "cluster: ", clusterName, "level: ", level, "command: ", cmd)
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		// TODO 强制杀掉
@@ -106,7 +108,7 @@ func (g *GameService) launchLevel(clusterName, level string) {
 	dstInstallDir := cluster.ForceInstallDir
 
 	cmd := "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
-
+	log.Println("正在launch世界", "cluster: ", clusterName, "level: ", level, "command: ", cmd)
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		log.Panicln("启动 "+clusterName+" "+level+" error,", err)
