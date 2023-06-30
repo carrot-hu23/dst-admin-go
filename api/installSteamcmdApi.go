@@ -150,9 +150,12 @@ func installCmd(eventCh chan string, stopCh chan byte) error {
 	config := dstConfigUtils.GetDstConfig()
 	config.Steamcmd = filepath.Join(consts.HomePath, "steamcmd")
 	config.Force_install_dir = filepath.Join(consts.HomePath, "dst-dedicated-server")
-
+	config.Backup = consts.KleiDstPath
+	config.Mod_download_path = consts.KleiDstPath
+	config.Cluster = "MyDediServer"
 	dstConfigUtils.SaveDstConfig(&config)
 
+	initEvnService.InitBaseLevel(&config, "默认初始", "", true)
 	return nil
 }
 
