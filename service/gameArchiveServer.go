@@ -5,9 +5,7 @@ import (
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"encoding/base64"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -58,18 +56,18 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取天数和季节
 	go func() {
-		metaPath, err := d.FindLatestMetaFile(path.Join(basePath, "Master", "save", "session"))
-		if err != nil {
-			gameArchie.Meta = ""
-		} else {
-			meta, err := fileUtils.ReadFile(metaPath)
-			log.Println("meta path: ", metaPath)
-			if err != nil {
-				gameArchie.Meta = ""
-			} else {
-				gameArchie.Meta = base64.StdEncoding.EncodeToString([]byte(meta))
-			}
-		}
+		//metaPath, err := d.FindLatestMetaFile(path.Join(basePath, "Master", "save", "session"))
+		//if err != nil {
+		//	gameArchie.Meta = ""
+		//} else {
+		//	meta, err := fileUtils.ReadFile(metaPath)
+		//	log.Println("meta path: ", metaPath)
+		//	if err != nil {
+		//		gameArchie.Meta = ""
+		//	} else {
+		//		gameArchie.Meta = base64.StdEncoding.EncodeToString([]byte(meta))
+		//	}
+		//}
 		wg.Done()
 	}()
 

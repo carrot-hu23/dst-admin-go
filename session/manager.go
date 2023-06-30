@@ -52,27 +52,11 @@ func (m *Manager) Start(w http.ResponseWriter, r *http.Request) ISession {
 	defer m.mutex.Unlock()
 	//获取Cookie
 	cookie, err := r.Cookie(m.cookieName)
-	log.Printf("%v", cookie)
 	if err != nil || cookie.Value == "" {
 		//创建SessionID
 		sid := m.SessionID()
 		//Session初始化
 		session, _ := m.provider.Init(sid)
-		//设置Cookie到Response
-		// http.SetCookie(w, &http.Cookie{
-		// 	Name:     m.cookieName,
-		// 	Value:    url.QueryEscape(sid),
-		// 	Path:     "/",
-		// 	HttpOnly: true,
-		// 	MaxAge:   int(m.maxAge),
-		// })
-		// http.SetCookie(w, &http.Cookie{
-		// 	Name:     "sessionID",
-		// 	Value:    sid,
-		// 	Path:     "/",
-		// 	HttpOnly: true,
-		// 	MaxAge:   int(m.maxAge),
-		// })
 		c1 := http.Cookie{
 			Name:     m.cookieName,
 			Value:    url.QueryEscape(sid),

@@ -66,7 +66,7 @@ func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 	//i.InitDstConfig(initDst.DstConfig)
 	//i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, global.CLUSTER_TOKEN, false)
 
-	log.Println("创建完成")
+	log.Println("初始化用户完成")
 }
 
 func (i *InitService) InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {

@@ -71,31 +71,17 @@ func heartbeat(ws *websocket.Conn) {
 		pingTicker.Stop()
 		fileTicker.Stop()
 		ws.Close()
-		log.Println("ws 心跳检测退出")
 	}()
 
 	for {
 		//从定时器中获取数据
 		<-pingTicker.C
-		log.Println("pingTicker")
 		ws.SetWriteDeadline(time.Now().Add(writeWait))
 		if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 			log.Println(err)
 			return
 		}
 	}
-
-	// for {
-	// 	select {
-	// 	case <-pingTicker.C:
-	// 		log.Println("pingTicker")
-	// 		ws.SetWriteDeadline(time.Now().Add(writeWait))
-	// 		if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-	// 			log.Println(err)
-	// 			return
-	// 		}
-	// 	}
-	// }
 
 }
 

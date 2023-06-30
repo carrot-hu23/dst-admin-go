@@ -100,7 +100,6 @@ func (c *HomeService) GetAdminlist(clusterName string) (str []string) {
 	adminListPath := dst.GetAdminlistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(adminListPath)
 	str, err := fileUtils.ReadLnFile(adminListPath)
-	log.Println("str:", str)
 	if err != nil {
 		return []string{}
 	}
@@ -111,7 +110,6 @@ func (c *HomeService) GetBlocklist(clusterName string) (str []string) {
 	blocklistPath := dst.GetBlocklistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	str, err := fileUtils.ReadLnFile(blocklistPath)
-	log.Println("str:", str)
 	if err != nil {
 		return []string{}
 	}
