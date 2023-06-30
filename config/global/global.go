@@ -22,3 +22,5 @@ const ClusterToken = "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItv
 var CollectMap = collect.NewCollectMap()
 
 var Schedule *schedule.Schedule
+
+var Collect *collect.Collect

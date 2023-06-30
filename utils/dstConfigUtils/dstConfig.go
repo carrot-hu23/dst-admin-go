@@ -1,9 +1,11 @@
 package dstConfigUtils
 
 import (
+	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/fileUtils"
 	"log"
+	"path/filepath"
 	"strings"
 )
 
@@ -120,4 +122,5 @@ func SaveDstConfig(dstConfig *DstConfig) {
 	if err != nil {
 		log.Panicln("write dst_config error:", err)
 	}
+	global.Collect.ReCollect(filepath.Join(consts.KleiDstPath, dstConfig.Cluster))
 }

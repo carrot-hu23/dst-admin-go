@@ -99,7 +99,7 @@ func initCollect() {
 	clusterName := dstConfigUtils.GetDstConfig().Cluster
 	newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
 	newCollect.StartCollect()
-
+	global.Collect = newCollect
 }
 
 func initSchedule() {
