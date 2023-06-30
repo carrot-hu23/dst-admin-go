@@ -225,6 +225,7 @@ func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboar
 	}()
 
 	go func() {
+		defer wg.Done()
 		dashboardVO.MemInfo = systemUtils.GetMemInfo()
 	}()
 
