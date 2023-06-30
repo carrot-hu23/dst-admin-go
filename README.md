@@ -73,3 +73,6 @@ set GOOS=linux
 
 go build
 ```
+
+## QQ群 反馈交流
+![首页效果](./doc/image/饥荒开服面板交流issue群聊二维码.png)
