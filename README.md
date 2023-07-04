@@ -6,22 +6,27 @@
 使用go编写的饥荒管理面板,部署简单,占用内存少,界面美观,操作简单,提供可视化界面操作房间配置和模组在线配置,支持多房间管理
 
 ## 部署
-点击查看 [多房间部署文档](./doc/install.md)
 
 **目前多房间版本还有些bug没有修复， 萌新勿用**
 
-[萌新部署文章](https://blog.csdn.net/Dig_hoof/article/details/131296762)
-
 注意目录必须要有读写权限。
+### 二进制部署
++ 1.1.6(单房间部署)
+  
+    [萌新部署教程](https://blog.csdn.net/Dig_hoof/article/details/131296762)
 
++ 2.0.0.beta
 
-当前有两个版本，一个是可以开启多个房间，另一个是单房间的
+  点击查看 [多房间部署文档](./doc/install.md)
 
-+ 2.0.0.beta 为多房间版本（适合个人使用）
-+ 1.1.6      为单房间版本（适合docker部署）
+### docker 部署
+此版本是单房间版本
+```
+docker pull hujinbo23/dst-admin-go
+docker run -d -p8082:8082 hujinbo23/dst-admin-go
+```
+**阿里云镜像仓库**
 
-**docker 部署**
->此版本是单房间版本
 ```text
 docker pull 
 registry.cn-hangzhou.aliyuncs.com/hujinbo23/dst-admin-go:1.1.6
