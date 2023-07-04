@@ -3,6 +3,8 @@
 >
 > Date: 2023/05/11
 
+在线预览地址 http://1.12.223.51:8080/ （admin 123456）
+
 使用go编写的饥荒管理面板,部署简单,占用内存少,界面美观,操作简单,提供可视化界面操作房间配置和模组在线配置,支持多房间管理
 
 ## 部署
@@ -37,8 +39,6 @@ docker run -d -p8082:8082 registry.cn-hangzhou.aliyuncs.com/hujinbo23/dst-admin-
 
 ## 预览
 
-在线预览地址 http://1.12.223.51:8082/
-（admin 123456）
 ![首页效果](./doc/image/登录.png)
 ![首页效果](./doc/image/房间.png)
 ![首页效果](./doc/image/mod.png)
