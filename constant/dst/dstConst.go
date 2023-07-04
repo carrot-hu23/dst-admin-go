@@ -38,7 +38,7 @@ func GetMasterServerIniPath(clusterName string) string {
 }
 
 func GetCavesServerIniPath(clusterName string) string {
-	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Master", "server.ini")
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, "Caves", "server.ini")
 }
 
 func GetAdminlistPath(clusterName string) string {
