@@ -80,8 +80,8 @@ go build
 ```
 
 ## 请作者喝一杯咖啡
-![wechatpay](docs/image/wechatpay.png)
-![alipay](docs/image/alipay.jpg)
+<img src="docs/image/alipay.jpg" alt="WeChat Pay" width="200" />
+<img src="docs/image/wechatpay.png" alt="WeChat Pay" width="200" />
 
 ## QQ群 反馈交流
 ![首页效果](docs/image/饥荒开服面板交流issue群聊二维码.png)
