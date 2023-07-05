@@ -1,5 +1,8 @@
 FROM debian:buster-slim
 
+LABEL maintainer="hujinbo23 jinbohu23@outlook.com"
+LABEL description="DoNotStarveTogehter server panel written in golang.  github: https://github.com/hujinbo23/dst-admin-go"
+
 # Install packages
 RUN echo "deb http://mirrors.aliyun.com/debian/ buster main contrib non-free" > /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/debian/ buster-updates main contrib non-free" >> /etc/apt/sources.list && \

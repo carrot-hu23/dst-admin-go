@@ -19,7 +19,7 @@
 
 + 2.0.0.beta
 
-  点击查看 [多房间部署文档](./doc/install.md)
+  点击查看 [多房间部署文档](docs/install.md)
 
 ### docker 部署
 此版本是单房间版本
@@ -39,13 +39,13 @@ docker run -d -p8082:8082 registry.cn-hangzhou.aliyuncs.com/hujinbo23/dst-admin-
 
 ## 预览
 
-![首页效果](./doc/image/登录.png)
-![首页效果](./doc/image/房间.png)
-![首页效果](./doc/image/mod.png)
-![首页效果](./doc/image/mod配置.png)
-![统计效果](./doc/image/统计.png)
-![面板效果](./doc/image/面板.png)
-![日志效果](./doc/image/日志.png)
+![首页效果](docs/image/登录.png)
+![首页效果](docs/image/房间.png)
+![首页效果](docs/image/mod.png)
+![首页效果](docs/image/mod配置.png)
+![统计效果](docs/image/统计.png)
+![面板效果](docs/image/面板.png)
+![日志效果](docs/image/日志.png)
     
 
 ## 运行
@@ -79,5 +79,9 @@ set GOOS=linux
 go build
 ```
 
+## 请作者喝一杯咖啡
+![wechatpay](docs/image/wechatpay.png)
+![alipay](docs/image/alipay.jpg)
+
 ## QQ群 反馈交流
-![首页效果](./doc/image/饥荒开服面板交流issue群聊二维码.png)
+![首页效果](docs/image/饥荒开服面板交流issue群聊二维码.png)

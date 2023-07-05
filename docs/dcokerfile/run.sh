@@ -2,7 +2,7 @@
 
 # 获取传入的参数
 steam_cmd_path='/app/steamcmd'
-steam_dst_server='/app/dst'
+steam_dst_server='/app/dst-dedicated-server'
 
 # 判断 steam_cmd_path 是否存在，不存在则创建
 if [ ! -d "$steam_cmd_path" ]; then
@@ -37,11 +37,13 @@ while [ ! -e "${steam_dst_server}/bin/dontstarve_dedicated_server_nullrenderer" 
   bash $steam_cmd_path/steamcmd.sh +force_install_dir $steam_dst_server +login anonymous +app_update 343050 validate +quit
   cp $steam_cmd_path/linux32/libstdc++.so.6 $steam_dst_server/bin/lib32/
   mkdir -p $USER_DIR/.klei/DoNotStarveTogether/MyDediServer
+  mkdir -p /app/backup
+  mkdir -p /app/mod
   echo "steamcmd=$steam_cmd_path" >> /app/dst_config
   echo "force_install_dir=$steam_dst_server" >> /app/dst_config
   echo "cluster=MyDediServer" >> /app/dst_config
-  echo "backup=$USER_DIR/.klei/DoNotStarveTogether/MyDediServer" >> /app/dst_config
-  echo "mod_download_path=$USER_DIR/.klei/DoNotStarveTogether/MyDediServer" >> /app/dst_config
+  echo "backup=/app/backup" >> /app/dst_config
+  echo "mod_download_path=/app/mod" >> /app/dst_config
   echo "username=admin" >> /app/password.txt
   echo "password=123456" >> /app/password.txt
   echo "displayName=admin" >> /app/password.txt
