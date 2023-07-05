@@ -7,19 +7,19 @@
 ## 部署
 注意目录必须要有读写权限。
 
-点击查看 [部署文档](./doc/install.md)
+点击查看 [部署文档](docs/install.md)
 
 ## 预览
 
 在线预览地址 http://1.12.223.51:8082/
 （admin 123456）
-![首页效果](./doc/image/登录.png)
-![首页效果](./doc/image/房间.png)
-![首页效果](./doc/image/mod.png)
-![首页效果](./doc/image/mod配置.png)
-![统计效果](./doc/image/统计.png)
-![面板效果](./doc/image/面板.png)
-![日志效果](./doc/image/日志.png)
+![首页效果](docs/image/登录.png)
+![首页效果](docs/image/房间.png)
+![首页效果](docs/image/mod.png)
+![首页效果](docs/image/mod配置.png)
+![统计效果](docs/image/统计.png)
+![面板效果](docs/image/面板.png)
+![日志效果](docs/image/日志.png)
     
 
 ## 运行

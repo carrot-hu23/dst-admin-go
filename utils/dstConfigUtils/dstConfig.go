@@ -17,6 +17,8 @@ type DstConfig struct {
 	Cluster                    string `json:"cluster"`
 	Backup                     string `json:"backup"`
 	Mod_download_path          string `json:"mod_download_path"`
+	Bin                        int    `json:"bin"`
+	Beta                       bool   `json:"beta"`
 }
 
 const dst_config_path = "./dst_config"
@@ -103,6 +105,9 @@ func GetDstConfig() DstConfig {
 	}
 	if dstConfig.Mod_download_path == "" {
 		dstConfig.Backup = consts.KleiDstPath
+	}
+	if dstConfig.Bin == 0 {
+		dstConfig.Bin = 32
 	}
 	return *dstConfig
 }

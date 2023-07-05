@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/fileUtils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -60,6 +61,8 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 	// mod_download_path := "/root/mine/dst/dst-admin-go-1.0.0/go-mod/mod"
 	dstConfig := dstConfigUtils.GetDstConfig()
 	mod_download_path := dstConfig.Mod_download_path
+	fileUtils.CreateFileIfNotExists(mod_download_path)
+
 	mod_path := path.Join(mod_download_path, "/steamapps/workshop/content/322330/", mod_id)
 	if _, err := os.Stat(mod_path); err == nil {
 		fmt.Println("Mod already downloaded to:", mod_path)

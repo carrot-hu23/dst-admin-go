@@ -5,3 +5,4 @@ donot_starve_server_directory=
 cluster=MyDediServer
 backup=~/.klei/DoNotStarveTogether/backup
 mod_download_path=~/.klei/DoNotStarveTogether/mod_download
+bin=32

@@ -105,15 +105,19 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 
 func (m *ModApi) DeleteMod(ctx *gin.Context) {
 
-	moId := ctx.Param("modId")
+	modId := ctx.Param("modId")
 	db := database.DB
+	db.Where("modid = ?", modId).Delete(&model.ModInfo{})
 
-	db.Where("modid = ?", moId).Delete(&model.ModInfo{})
+	dstConfig := dstConfigUtils.GetDstConfig()
+	mod_download_path := dstConfig.Mod_download_path
+	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
+	fileUtils.DeleteDir(mod_path)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: moId,
+		Data: modId,
 	})
 }
 
