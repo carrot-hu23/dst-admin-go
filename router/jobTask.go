@@ -13,6 +13,8 @@ func initJobTaskRouter(router *gin.RouterGroup) {
 		task.GET("", taskApi.GetJobTaskList)
 		task.POST("", taskApi.AddJobTask)
 		task.DELETE("", taskApi.DeleteJobTask)
+
+		task.GET("/instruct", taskApi.GetInstructList)
 	}
 
 }

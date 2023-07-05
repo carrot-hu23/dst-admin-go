@@ -2,7 +2,6 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
 	"dst-admin-go/vo"
@@ -14,9 +13,17 @@ import (
 type JobTaskApi struct {
 }
 
+func (j *JobTaskApi) GetInstructList(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: schedule.ScheduleSingleton.GetInstructList(),
+	})
+}
+
 func (j *JobTaskApi) GetJobTaskList(ctx *gin.Context) {
 
-	jobs := global.Schedule.GetJobs()
+	jobs := schedule.ScheduleSingleton.GetJobs()
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -52,7 +59,7 @@ func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 		F:           schedule.StrategyMap[jobTask.Category].Execute,
 		ClusterName: jobTask.ClusterName,
 	}
-	global.Schedule.AddJob(task)
+	schedule.ScheduleSingleton.AddJob(task)
 	tx.Commit()
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -65,7 +72,7 @@ func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 func (j *JobTaskApi) DeleteJobTask(ctx *gin.Context) {
 
 	jobId, _ := strconv.Atoi(ctx.DefaultQuery("jobId", "0"))
-	global.Schedule.DeleteJob(jobId)
+	schedule.ScheduleSingleton.DeleteJob(jobId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

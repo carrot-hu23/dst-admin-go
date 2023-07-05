@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+var ScheduleSingleton *Schedule
+
 var StrategyMap = map[string]Strategy{}
 
 func init() {
@@ -28,7 +30,7 @@ type Schedule struct {
 }
 
 func NewSchedule() *Schedule {
-	c := cron.New()
+	c := cron.New(cron.WithSeconds())
 	schedule := Schedule{
 		cron: c,
 	}
@@ -58,6 +60,14 @@ func (s *Schedule) DeleteJob(jobId int) {
 		s.cron.Remove(entryId)
 		s.removeDB(taskId.(uint))
 	}
+}
+
+func (s *Schedule) GetInstructList() []map[string]string {
+	var instructList = []map[string]string{
+		{"backup": "备份"},
+		{"update": "更新"},
+	}
+	return instructList
 }
 
 func (s *Schedule) GetJobs() []map[string]interface{} {
