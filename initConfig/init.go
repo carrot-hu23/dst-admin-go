@@ -103,5 +103,5 @@ func initCollect() {
 }
 
 func initSchedule() {
-	global.Schedule = schedule.NewSchedule()
+	schedule.ScheduleSingleton = schedule.NewSchedule()
 }

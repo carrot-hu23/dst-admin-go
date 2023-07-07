@@ -218,3 +218,11 @@ func (b *BackupService) backupPath() string {
 	}
 	return backupPath
 }
+
+// TODO 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
+func (b *BackupService) GenGameBackUpName(clusterName string) string {
+	name := b.GetClusterIni(clusterName).ClusterName
+	backupName := time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
+
+	return backupName
+}

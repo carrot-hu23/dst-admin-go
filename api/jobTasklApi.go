@@ -2,11 +2,12 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -14,9 +15,17 @@ import (
 type JobTaskApi struct {
 }
 
+func (j *JobTaskApi) GetInstructList(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: schedule.ScheduleSingleton.GetInstructList(),
+	})
+}
+
 func (j *JobTaskApi) GetJobTaskList(ctx *gin.Context) {
 
-	jobs := global.Schedule.GetJobs()
+	jobs := schedule.ScheduleSingleton.GetJobs()
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -27,11 +36,14 @@ func (j *JobTaskApi) GetJobTaskList(ctx *gin.Context) {
 
 func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 
+	cluster := clusterUtils.GetClusterFromGin(ctx)
 	jobTask := &model.JobTask{}
 	if err := ctx.ShouldBindJSON(jobTask); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 	}
-
+	if jobTask.ClusterName == "" {
+		jobTask.ClusterName = cluster.ClusterName
+	}
 	db := database.DB
 	tx := db.Begin()
 	defer func() {
@@ -52,7 +64,7 @@ func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 		F:           schedule.StrategyMap[jobTask.Category].Execute,
 		ClusterName: jobTask.ClusterName,
 	}
-	global.Schedule.AddJob(task)
+	schedule.ScheduleSingleton.AddJob(task)
 	tx.Commit()
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -65,7 +77,8 @@ func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 func (j *JobTaskApi) DeleteJobTask(ctx *gin.Context) {
 
 	jobId, _ := strconv.Atoi(ctx.DefaultQuery("jobId", "0"))
-	global.Schedule.DeleteJob(jobId)
+	log.Println("jobid: ", jobId)
+	schedule.ScheduleSingleton.DeleteJob(jobId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
