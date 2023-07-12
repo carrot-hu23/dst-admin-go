@@ -20,6 +20,14 @@ import (
 
 type InstallSteamCmd struct{}
 
+// var flag int32
+// if !atomic.CompareAndSwapInt32(&flag, 0, 1) {
+// // 已经处理过请求，直接返回结果
+// ctx.JSON(200, gin.H{"message": "already handled"})
+// return
+// }
+// defer atomic.StoreInt32(&flag, 0)
+
 // 安装饥荒环境
 func (i *InstallSteamCmd) InstallSteamCmd(ctx *gin.Context) {
 
@@ -89,10 +97,13 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 	}
 
 	if strings.Contains(strings.ToLower(info.Platform), "centos") {
+
+		// 安装依赖，只兼容 centos 和 Ubuntu
+
 		// 安装依赖，只兼容 centos 和 Ubuntu
 		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
 
-		err := command(eventCh, "sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686", "")
+		err := command(eventCh, "sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen wget sudo libcurl.i686", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
@@ -114,7 +125,7 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 		if err != nil {
 			eventCh <- "安装失败 apt-get update \n\n"
 		}
-		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen", "")
+		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen wget sudo", "")
 		if err != nil {
 			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen \n\n"
 		}

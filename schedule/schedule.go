@@ -15,6 +15,9 @@ var StrategyMap = map[string]Strategy{}
 func init() {
 	StrategyMap["backup"] = &BackupStrategy{}
 	StrategyMap["update"] = &UpdateStrategy{}
+	StrategyMap["start"] = &StartStrategy{}
+	StrategyMap["stop"] = &StopStrategy{}
+	StrategyMap["restart"] = &RestartStrategy{}
 }
 
 type Task struct {

@@ -37,3 +37,25 @@ func (u *UpdateStrategy) Execute(clusterName string) {
 	log.Println("正在定时更新游戏 clusterName: ", clusterName)
 	gameService.UpdateGame(clusterName)
 }
+
+type StartStrategy struct{}
+
+func (s *StartStrategy) Execute(clusterName string) {
+	log.Println("正在定时启动游戏 clusterName: ", clusterName)
+	gameService.StartGame(clusterName, 0)
+}
+
+type StopStrategy struct{}
+
+func (s *StopStrategy) Execute(clusterName string) {
+	log.Println("正在定时关闭游戏 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, 0)
+}
+
+type RestartStrategy struct{}
+
+func (s *RestartStrategy) Execute(clusterName string) {
+	log.Println("正在定时重启游戏 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, 0)
+	gameService.StartGame(clusterName, 0)
+}
