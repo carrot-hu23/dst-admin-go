@@ -4,14 +4,10 @@ import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
-	"dst-admin-go/vo"
 	"dst-admin-go/vo/world"
 	"github.com/go-ini/ini"
 	"log"
-	"path"
-	"strconv"
 	"strings"
-	"sync"
 )
 
 type HomeService struct{}
@@ -269,87 +265,4 @@ func (c *HomeService) SaveCavesWorld(clusterName string, world *world.World) {
 	serverBuf := dstUtils.ParseTemplate(CavesServerIniTemplate, world.ServerIni)
 
 	fileUtils.WriterTXT(sPath, serverBuf)
-}
-
-func (c *HomeService) GameArchive(clusterName string) *vo.GameArchive {
-
-	var wg sync.WaitGroup
-	wg.Add(4)
-
-	gameArchie := vo.NewGameArchie()
-	basePath := dst.GetClusterBasePath(clusterName)
-
-	// 获取基础信息
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-
-		clusterIni := c.GetClusterIni(dst.GetClusterIniPath(clusterName))
-		gameArchie.ClusterName = clusterIni.ClusterName
-		gameArchie.ClusterPassword = clusterIni.ClusterPassword
-		gameArchie.GameMod = clusterIni.GameMode
-		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
-
-	}()
-
-	// 获取mod数量
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-
-		masterModoverrides, err := fileUtils.ReadFile(path.Join(basePath, "Master", "modoverrides.lua"))
-		if err != nil {
-			gameArchie.Mods = 0
-		} else {
-			gameArchie.Mods = len(dstUtils.WorkshopIds(masterModoverrides))
-		}
-	}()
-
-	// 获取天数和季节
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-		gameArchie.Meta = c.getSessionMeta()
-		wg.Done()
-	}()
-
-	// 获取直连ip
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-		serverIni := c.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
-		ipv4, err := dstUtils.GetPublicIP()
-		if err != nil {
-			gameArchie.IpConnect = ""
-		} else {
-			gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
-		}
-		wg.Done()
-	}()
-
-	wg.Wait()
-
-	return gameArchie
-}
-
-// TODO 获取存档 元数据
-func (c *HomeService) getSessionMeta() string {
-
-	return ""
 }
