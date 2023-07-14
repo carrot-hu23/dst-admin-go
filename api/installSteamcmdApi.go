@@ -98,15 +98,24 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 
 	if strings.Contains(strings.ToLower(info.Platform), "centos") {
 
-		// 安装依赖，只兼容 centos 和 Ubuntu
-
-		// 安装依赖，只兼容 centos 和 Ubuntu
-		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
-
-		err := command(eventCh, "sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen wget sudo libcurl.i686", "")
+		eventCh <- "data: 正在 sudo dpkg --add-architecture i386 \n\n"
+		err := command(eventCh, "sudo dpkg --add-architecture i386", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
+
+		eventCh <- "data: 正在 yum update \n\n"
+		err = command(eventCh, "yum update", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
+
+		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
+		err = command(eventCh, "sudo yum install -y lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
+
 		err = command(eventCh, "sudo yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
@@ -120,12 +129,19 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 
 	} else if strings.Contains(strings.ToLower(info.Platform), "ubuntu") {
 
-		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
-		err := command(eventCh, "sudo apt-get update", "")
+		eventCh <- "data: 正在 sudo dpkg --add-architecture i386 \n\n"
+		err := command(eventCh, "sudo dpkg --add-architecture i386", "")
+		if err != nil {
+			eventCh <- "安装失败 sudo dpkg --add-architecture i386 \n\n"
+		}
+
+		eventCh <- "data: 正在 apt-get update \n\n"
+		err = command(eventCh, "apt-get update", "")
 		if err != nil {
 			eventCh <- "安装失败 apt-get update \n\n"
 		}
-		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen wget sudo", "")
+
+		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 screen wget sudo", "")
 		if err != nil {
 			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen \n\n"
 		}
