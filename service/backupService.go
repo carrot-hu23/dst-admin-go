@@ -7,10 +7,12 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/zip"
 	"dst-admin-go/vo"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +20,7 @@ import (
 
 type BackupService struct {
 	HomeService
+	GameArchive
 }
 
 func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
@@ -155,9 +158,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 		log.Panicln("backup path is not exists")
 	}
 	if backupName == "" {
-		// TODO 增加存档信息
-		name := b.GetClusterIni(cluster.ClusterName).ClusterName
-		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
+		backupName = b.GenGameBackUpName(cluster.ClusterName)
 	}
 	dst := filepath.Join(backupPath, backupName)
 	log.Println("src", src, dst)
@@ -219,10 +220,27 @@ func (b *BackupService) backupPath() string {
 	return backupPath
 }
 
+var SeasonMap = map[string]string{
+	"spring": "春天",
+	"summer": "夏天",
+	"autumn": "秋天",
+	"winter": "冬天",
+}
+
 // TODO 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
 func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	name := b.GetClusterIni(clusterName).ClusterName
-	backupName := time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
+	snapshoot := b.Snapshoot(clusterName)
+
+	fmt.Printf("%v\n", snapshoot)
+
+	// 20060102150405_猜猜我是谁的世界_40天_秋季(1/20).zip
+	// 猜猜我是谁的房间_季节40天spring(1|20)_模组数量3.zip
+	days := strconv.Itoa(snapshoot.Clock.Cycles)
+	elapsedDayInSeason := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason)
+	seasonDays := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason + snapshoot.Seasons.RemainingDaysInSeason)
+	archiveDesc := days + "day_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "|" + seasonDays + ")"
+	backupName := time.Now().Format("20060102150405") + "_" + name + "_" + archiveDesc + ".zip"
 
 	return backupName
 }
