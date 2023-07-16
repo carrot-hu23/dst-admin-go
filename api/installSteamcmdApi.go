@@ -113,6 +113,12 @@ func installDependence(eventCh chan string, stopCh chan string) error {
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
+		//yum install libgcc_s.so.1
+		eventCh <- "data: yum install libgcc_s.so.1 \n\n"
+		err = command(eventCh, "yum install -y libgcc_s.so.1", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
 		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
 		err = command(eventCh, "yum install -y lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget", "")
 		if err != nil {
