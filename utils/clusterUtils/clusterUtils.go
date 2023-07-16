@@ -21,6 +21,8 @@ func GetCluster(clusterName string) *model.Cluster {
 		ClusterName:     config.Cluster,
 		Backup:          config.Backup,
 		ModDownloadPath: config.Mod_download_path,
+		Bin:             config.Bin,
+		Beta:            config.Beta,
 	}
 	return &cluster
 }
@@ -33,6 +35,8 @@ func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
 		ClusterName:     config.Cluster,
 		Backup:          config.Backup,
 		ModDownloadPath: config.Mod_download_path,
+		Bin:             config.Bin,
+		Beta:            config.Beta,
 	}
 	return &cluster
 }

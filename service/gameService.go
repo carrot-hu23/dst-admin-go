@@ -6,6 +6,9 @@ import (
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/vo/world"
 	"github.com/gin-gonic/gin"
+	"io"
+	"net/http"
+	"strconv"
 
 	"dst-admin-go/constant/screenKey"
 	"dst-admin-go/utils/clusterUtils"
@@ -26,14 +29,40 @@ type GameService struct {
 	c    HomeService
 }
 
-func GetLocalDstVersion(clusterName string) string {
+func (g *GameService) GetLastDstVersion() int64 {
+
+	url := "http://ver.tugos.cn/getLocalVersion"
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Println(err)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+	}
+	s := string(body)
+	veriosn, err := strconv.Atoi(s)
+	if err != nil {
+		veriosn = 0
+	}
+	return int64(veriosn)
+}
+
+func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
 	cluster := clusterUtils.GetCluster(clusterName)
 	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
 	version, err := fileUtils.ReadFile(versionTextPath)
 	if err != nil {
-		return ""
+		log.Println(err)
+		return 0
 	}
-	return version
+	version = strings.Replace(version, "\n", "", -1)
+	l, err := strconv.ParseInt(version, 10, 64)
+	if err != nil {
+		log.Println(err)
+		return 0
+	}
+	return l
 }
 
 func ClearScreen() bool {
@@ -45,7 +74,7 @@ func ClearScreen() bool {
 	return res != ""
 }
 
-func (g *GameService) UpdateGame(clusterName string) {
+func (g *GameService) UpdateGame(clusterName string) error {
 
 	g.lock.Lock()
 	defer g.lock.Unlock()
@@ -56,8 +85,9 @@ func (g *GameService) UpdateGame(clusterName string) {
 	log.Println("正在更新游戏", "cluster: ", clusterName, "command: ", updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
-		log.Panicln("更新游戏失败: ", err)
+		return err
 	}
+	return nil
 }
 
 func (g *GameService) GetLevelStatus(clusterName, level string) bool {
@@ -101,14 +131,21 @@ func (g *GameService) killLevel(clusterName, level string) {
 	}
 }
 
-func (g *GameService) launchLevel(clusterName, level string) {
+func (g *GameService) launchLevel(clusterName, level string, bin, beta int) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
 
-	cmd := "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
-	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", level, "command: ", cmd)
-	_, err := shellUtils.Shell(cmd)
+	var startCmd = ""
+
+	if bin == 64 {
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level + "  ;"
+	} else {
+		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
+	}
+
+	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", level, "command: ", startCmd)
+	_, err := shellUtils.Shell(startCmd)
 	if err != nil {
 		log.Panicln("启动 "+clusterName+" "+level+" error,", err)
 	}
@@ -163,17 +200,17 @@ func (g *GameService) StopGame(clusterName string, opType int) {
 	}
 }
 
-func (g *GameService) launchMaster(clusterName string) {
+func (g *GameService) launchMaster(clusterName string, bin, beta int) {
 	level := "Master"
-	g.launchLevel(clusterName, level)
+	g.launchLevel(clusterName, level, bin, beta)
 }
 
-func (g *GameService) launchCaves(clusterName string) {
+func (g *GameService) launchCaves(clusterName string, bin, beta int) {
 	level := "Caves"
-	g.launchLevel(clusterName, level)
+	g.launchLevel(clusterName, level, bin, beta)
 }
 
-func (g *GameService) StartGame(clusterName string, opType int) {
+func (g *GameService) StartGame(clusterName string, bin, beta, opType int) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	if opType == consts.StartGame {
@@ -181,18 +218,18 @@ func (g *GameService) StartGame(clusterName string, opType int) {
 		g.stopMaster(clusterName)
 		g.stopCaves(clusterName)
 
-		g.launchMaster(clusterName)
-		g.launchCaves(clusterName)
+		g.launchMaster(clusterName, bin, beta)
+		g.launchCaves(clusterName, bin, beta)
 	}
 
 	if opType == consts.StartMaster {
 		g.stopMaster(clusterName)
-		g.launchMaster(clusterName)
+		g.launchMaster(clusterName, bin, beta)
 	}
 
 	if opType == consts.StartCaves {
 		g.stopCaves(clusterName)
-		g.launchCaves(clusterName)
+		g.launchCaves(clusterName, bin, beta)
 	}
 
 	ClearScreen()
@@ -245,11 +282,11 @@ func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboar
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				dashboardVO.Version = ""
+				dashboardVO.Version = 0
 			}
 			wg.Done()
 		}()
-		dashboardVO.Version = GetLocalDstVersion(clusterName)
+		dashboardVO.Version = g.GetLocalDstVersion(clusterName)
 	}()
 
 	// 获取master进程占用情况

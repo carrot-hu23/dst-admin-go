@@ -17,7 +17,7 @@ type ClusterDashboardVO struct {
 	MemStates    uint64                `json:"memStates"`
 	MasterLog    string                `json:"masterLog"`
 	CavesLog     string                `json:"cavesLog"`
-	Version      string                `json:"version"`
+	Version      int64                 `json:"version"`
 
 	MasterPs  *DstPsVo `json:"masterPs"`
 	CavesPs   *DstPsVo `json:"cavesPs"`

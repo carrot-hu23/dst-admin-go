@@ -8,10 +8,7 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/world"
-	"fmt"
 	"log"
-	"os/exec"
-	"path"
 	"path/filepath"
 	"runtime"
 
@@ -30,42 +27,14 @@ type InitService struct {
 }
 
 type InitDstData struct {
-	// InstallDstEnv bool                      `json:"installDstEnv"`
-	// ClusterToken  string                    `json:"clusterToken"`
 	DstConfig *dstConfigUtils.DstConfig `json:"dstConfig"`
 	UserInfo  *vo.UserInfo              `json:"userInfo"`
-}
-
-func (i *InitService) InstallSteamCmd() error {
-	cmd := exec.Command("./static/install.sh")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println("执行./static/install.sh脚本失败：", err)
-		return err
-	}
-	fmt.Println("./static/install.sh脚本输出：", string(output))
-	return err
-}
-
-func (i *InitService) InstallSteamCmdAndDst() map[string]string {
-	//安装 steam cmd 和 dst
-	log.Println("installing steamcmd")
-	err := i.InstallSteamCmd()
-	if err != nil {
-		log.Panicln("安装失败")
-	}
-	steamcmdPath := path.Join(constant.HOME_PATH, "steamcmd")
-	dstPath := path.Join(constant.HOME_PATH, "dontstarve_dedicated_server")
-
-	return map[string]string{"steamcmdPath": steamcmdPath, "dstPath": dstPath}
 }
 
 func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
 	i.InitUserInfo(initDst.UserInfo)
-	//i.InitDstConfig(initDst.DstConfig)
-	//i.InitBaseLevel(initDst.DstConfig, initDst.UserInfo.Username, global.CLUSTER_TOKEN, false)
-
+	// TODO 写入默认配置
 	log.Println("初始化用户完成")
 }
 

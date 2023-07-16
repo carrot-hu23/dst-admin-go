@@ -1,6 +1,7 @@
 package initConfig
 
 import (
+	"dst-admin-go/autoCheck"
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
@@ -51,6 +52,7 @@ func initDB() {
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
+		&model.AutoCheck{},
 	)
 	if err != nil {
 		return
@@ -96,10 +98,13 @@ func initCollect() {
 	//}
 
 	home, _ := systemUtils.Home()
-	clusterName := dstConfigUtils.GetDstConfig().Cluster
+	dstConfig := dstConfigUtils.GetDstConfig()
+	clusterName := dstConfig.Cluster
 	newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
 	newCollect.StartCollect()
 	global.Collect = newCollect
+
+	autoCheck.AutoCheckObject = autoCheck.NewAutoCheckConfig(clusterName, dstConfig.Bin, dstConfig.Beta)
 }
 
 func initSchedule() {

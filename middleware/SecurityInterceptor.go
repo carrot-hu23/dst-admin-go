@@ -13,7 +13,7 @@ func ShellInjectionInterceptor() gin.HandlerFunc {
 		params := c.Request.URL.Query()
 		for _, param := range params {
 			// 检查参数是否包含 Shell 特殊字符
-			if strings.ContainsAny(param[0], "|&;<>()$`\\\"'*?#[]{}~=") {
+			if strings.ContainsAny(param[0], "&;<>$`\\\"'*?~=") {
 				// 如果包含，则返回错误信息
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid characters in parameter"})
 				c.Abort()

@@ -16,20 +16,6 @@ type InitApi struct {
 
 const first = "./first"
 
-func (f *InitApi) InstallSteamCmd(ctx *gin.Context) {
-
-	exist := fileUtils.Exists(first)
-	if exist {
-		log.Panicln("非法请求")
-	}
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: initEvnService.InstallSteamCmdAndDst(),
-	})
-}
-
 func (f *InitApi) InitFirst(ctx *gin.Context) {
 
 	exist := fileUtils.Exists(first)
