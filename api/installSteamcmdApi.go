@@ -150,9 +150,9 @@ func installDependence(eventCh chan string, stopCh chan string) error {
 			eventCh <- "安装失败 apt-get update \n\n"
 		}
 
-		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 screen wget sudo", "")
+		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget sudo", "")
 		if err != nil {
-			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen \n\n"
+			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget sudo \n\n"
 		}
 		err = command(eventCh, "sudo apt-get install -y libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-gfx1.2-dev", "")
 		if err != nil {
