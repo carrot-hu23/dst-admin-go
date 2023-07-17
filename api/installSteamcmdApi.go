@@ -145,7 +145,7 @@ func installDependence(eventCh chan string, stopCh chan string) error {
 		}
 
 		eventCh <- "data: 正在 apt-get update \n\n"
-		err = command(eventCh, "apt-get update -y", "")
+		err = command(eventCh, "sudo apt-get update", "")
 		if err != nil {
 			eventCh <- "安装失败 apt-get update \n\n"
 		}
