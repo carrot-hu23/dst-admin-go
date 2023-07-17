@@ -144,6 +144,13 @@ func installDependence(eventCh chan string, stopCh chan string) error {
 			eventCh <- "安装失败 sudo dpkg --add-architecture i386 \n\n"
 		}
 
+		// apt-get install -y sudo
+		eventCh <- "data: 正在 apt-get install -y sudo \n\n"
+		err = command(eventCh, "apt-get install -y sudo", "")
+		if err != nil {
+			eventCh <- "安装失败 apt-get install -y sudo \n\n"
+		}
+
 		eventCh <- "data: 正在 apt-get update \n\n"
 		err = command(eventCh, "sudo apt-get update", "")
 		if err != nil {
