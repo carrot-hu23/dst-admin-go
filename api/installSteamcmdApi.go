@@ -195,6 +195,7 @@ func (i *InstallSteamCmd) handle(eventCh chan string, stopCh chan string) {
 	if err != nil {
 		return
 	}
+	saveDstConfig()
 	eventCh <- "data: [successed]\n\n"
 	eventCh <- "data: end\n\n"
 }
