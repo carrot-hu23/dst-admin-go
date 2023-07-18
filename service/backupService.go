@@ -172,7 +172,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 func (b *BackupService) DownloadBackup(c *gin.Context) {
 	fileName := c.Query("fileName")
 
-	clusterName := c.GetHeader("world")
+	clusterName := c.GetHeader("level")
 	cluster := clusterUtils.GetCluster(clusterName)
 
 	filePath := filepath.Join(cluster.Backup, fileName)

@@ -4,7 +4,7 @@ import (
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
-	"dst-admin-go/vo/world"
+	"dst-admin-go/vo/level"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -326,8 +326,8 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	return dstPsVo
 }
 
-func (g *GameService) GetGameConfig(ctx *gin.Context) *world.GameConfig {
-	gameConfig := world.GameConfig{}
+func (g *GameService) GetGameConfig(ctx *gin.Context) *level.GameConfig {
+	gameConfig := level.GameConfig{}
 	var wg sync.WaitGroup
 	wg.Add(6)
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -360,7 +360,7 @@ func (g *GameService) GetGameConfig(ctx *gin.Context) *world.GameConfig {
 	return &gameConfig
 }
 
-func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *world.GameConfig) {
+func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *level.GameConfig) {
 	var wg sync.WaitGroup
 	wg.Add(6)
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -376,12 +376,12 @@ func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *world.GameCon
 	}()
 
 	go func() {
-		// SaveAdminlist(world.Adminlist)
+		// SaveAdminlist(level.Adminlist)
 		wg.Done()
 	}()
 
 	go func() {
-		// SaveBlocklist(world.Blocklist)
+		// SaveBlocklist(level.Blocklist)
 		wg.Done()
 	}()
 

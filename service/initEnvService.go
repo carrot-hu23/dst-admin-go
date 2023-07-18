@@ -7,7 +7,7 @@ import (
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"dst-admin-go/vo/world"
+	"dst-admin-go/vo/level"
 	"log"
 	"path/filepath"
 	"runtime"
@@ -81,7 +81,7 @@ func (i *InitService) InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, usernam
 func (i *InitService) InitClusterIni(basePath string, username string) {
 	cluster_ini_path := filepath.Join(basePath, "cluster.ini")
 	fileUtils.CreateFileIfNotExists(cluster_ini_path)
-	clusterIni := world.NewClusterIni()
+	clusterIni := level.NewClusterIni()
 	clusterName := ""
 	if username != "" {
 		clusterName = username + "的世界"

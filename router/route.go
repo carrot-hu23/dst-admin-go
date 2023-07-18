@@ -35,7 +35,7 @@ func NewRoute() *gin.Engine {
 	initJobTaskRouter(router)
 
 	initAutoCheck(router)
-
+	initLevel(router)
 	initStaticFile(app)
 
 	return app

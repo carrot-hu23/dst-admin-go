@@ -4,7 +4,7 @@ import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
-	"dst-admin-go/vo/world"
+	"dst-admin-go/vo/level"
 	"github.com/go-ini/ini"
 	"log"
 	"strings"
@@ -18,8 +18,8 @@ const (
 	CavesServerIniTemplate  = "./static/template/caves_server.ini"
 )
 
-func (c *HomeService) GetClusterIni(clusterName string) *world.ClusterIni {
-	newCluster := world.NewClusterIni()
+func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
+	newCluster := level.NewClusterIni()
 	// 加载 INI 文件
 	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	if !fileUtils.Exists(clusterIniPath) {
@@ -137,7 +137,7 @@ func (c *HomeService) GetModoverrides(filepath string) string {
 	return modoverrides
 }
 
-func (c *HomeService) GetServerIni(filepath string, isMaster bool) *world.ServerIni {
+func (c *HomeService) GetServerIni(filepath string, isMaster bool) *level.ServerIni {
 	fileUtils.CreateFileIfNotExists(filepath)
 	var serverPortDefault uint = 10998
 	idDefault := 10010
@@ -147,7 +147,7 @@ func (c *HomeService) GetServerIni(filepath string, isMaster bool) *world.Server
 		idDefault = 10000
 	}
 
-	serverIni := world.NewCavesServerIni()
+	serverIni := level.NewCavesServerIni()
 	// 加载 INI 文件
 	cfg, err := ini.Load(filepath)
 	if err != nil {
@@ -188,7 +188,7 @@ func (c *HomeService) SaveClusterToken(clusterName, token string) {
 	fileUtils.WriterTXT(clusterTokenPath, token)
 }
 
-func (c *HomeService) SaveClusterIni(clusterName string, cluster *world.ClusterIni) {
+func (c *HomeService) SaveClusterIni(clusterName string, cluster *level.ClusterIni) {
 	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	fileUtils.WriterTXT(clusterIniPath, dstUtils.ParseTemplate(ClusterIniTemplate, cluster))
 }
@@ -205,8 +205,8 @@ func (c *HomeService) SaveBlocklist(clusterName string, str []string) {
 	fileUtils.WriterLnFile(blocklistPath, str)
 }
 
-func (c *HomeService) GetMasterWorld(clusterName string) *world.World {
-	master := world.World{}
+func (c *HomeService) GetMasterWorld(clusterName string) *level.World {
+	master := level.World{}
 
 	master.WorldName = "Master"
 	master.IsMaster = true
@@ -218,8 +218,8 @@ func (c *HomeService) GetMasterWorld(clusterName string) *world.World {
 	return &master
 }
 
-func (c *HomeService) GetCavesWorld(clusterName string) *world.World {
-	caves := world.World{}
+func (c *HomeService) GetCavesWorld(clusterName string) *level.World {
+	caves := level.World{}
 
 	caves.WorldName = "Caves"
 	caves.IsMaster = false
@@ -231,7 +231,7 @@ func (c *HomeService) GetCavesWorld(clusterName string) *world.World {
 	return &caves
 }
 
-func (c *HomeService) SaveMasterWorld(clusterName string, world *world.World) {
+func (c *HomeService) SaveMasterWorld(clusterName string, world *level.World) {
 
 	lPath := dst.GetMasterLeveldataoverridePath(clusterName)
 	mPath := dst.GetMasterModoverridesPath(clusterName)
@@ -249,7 +249,7 @@ func (c *HomeService) SaveMasterWorld(clusterName string, world *world.World) {
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
 
-func (c *HomeService) SaveCavesWorld(clusterName string, world *world.World) {
+func (c *HomeService) SaveCavesWorld(clusterName string, world *level.World) {
 
 	lPath := dst.GetCavesLeveldataoverridePath(clusterName)
 	mPath := dst.GetCavesModoverridesPath(clusterName)

@@ -29,7 +29,7 @@ var clusterManager = service.ClusterManager{}
 //
 //func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
 //
-//	gameConfig := world.GameConfig{}
+//	gameConfig := level.GameConfig{}
 //	ctx.ShouldBind(&gameConfig)
 //	fmt.Printf("%v", gameConfig.Caves.ServerIni)
 //	clusterService.SaveGameConfig(ctx, &gameConfig)
