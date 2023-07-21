@@ -11,16 +11,17 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/glebarez/sqlite"
-	"gopkg.in/yaml.v2"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
+	"gopkg.in/yaml.v2"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -84,7 +85,6 @@ func initLog() {
 	log.SetOutput(multiWriter)
 
 	gin.ForceConsoleColor()
-	gin.SetMode(gin.DebugMode)
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
