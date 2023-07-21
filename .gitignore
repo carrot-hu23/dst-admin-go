@@ -35,11 +35,8 @@ yarn-error.log*
 /py-dst-cli/__pycache__
 /py-dst-cli/data
 
+
 /test
-
-# vscode
 __debug_*
-.vscode/
-
-# development settings
 dst_config_dev
+.vscode/
