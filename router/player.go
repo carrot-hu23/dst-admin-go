@@ -11,10 +11,12 @@ func initPlayerRouter(router *gin.RouterGroup) {
 	player := router.Group("/api/game/player")
 	{
 		player.GET("", playerApi.GetDstPlayerList)
-		player.GET("/admin", playerApi.GetDstAdminList)
-		player.POST("/admin", playerApi.SaveDstAdminList)
+		player.GET("/adminlist", playerApi.GetDstAdminList)
+		player.POST("/adminlist", playerApi.SaveDstAdminList)
 		player.GET("/blacklist", playerApi.GetDstBlcaklistPlayerList)
 		player.POST("/blacklist", playerApi.SaveDstBlacklistPlayerList)
+		player.DELETE("/blacklist", playerApi.DeleteDstBlacklistPlayerList)
+		player.DELETE("/adminlist", playerApi.DeleteDstAdminListPlayerList)
 	}
 
 	playerLogApi := api.PlayerLogApi{}

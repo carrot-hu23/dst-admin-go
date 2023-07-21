@@ -19,6 +19,30 @@ type ClusterApi struct{}
 
 var clusterManager = service.ClusterManager{}
 
+// var clusterService = service.HomeService{}
+
+//func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
+//	ctx.JSON(http.StatusOK, vo.Response{
+//		Code: 200,
+//		Msg:  "success",
+//		Data: clusterService.GetGameConfig(ctx),
+//	})
+//}
+//
+//func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
+//
+//	gameConfig := level.GameConfig{}
+//	ctx.ShouldBind(&gameConfig)
+//	fmt.Printf("%v", gameConfig.Caves.ServerIni)
+//	clusterService.SaveGameConfig(ctx, &gameConfig)
+//
+//	ctx.JSON(http.StatusOK, vo.Response{
+//		Code: 200,
+//		Msg:  "success",
+//		Data: nil,
+//	})
+//}
+
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx)
 }

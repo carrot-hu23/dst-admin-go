@@ -7,12 +7,8 @@ import (
 	"fmt"
 )
 
-func init() {
-	initConfig.Init()
-}
-
 func main() {
-
+	initConfig.Init()
 	app := router.NewRoute()
 	err := app.Run(":" + global.Config.Port)
 	if err != nil {

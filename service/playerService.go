@@ -3,6 +3,7 @@ package service
 import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/constant/screenKey"
+	"dst-admin-go/utils/collectionUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
@@ -77,9 +78,16 @@ func (p *PlayerService) SaveDstAdminList(clusterName string, adminlist []string)
 
 	path := dst.GetAdminlistPath(clusterName)
 
-	err := fileUtils.WriterLnFile(path, adminlist)
+	err := fileUtils.CreateFileIfNotExists(path)
 	if err != nil {
-		panic("write dst adminlist.txt error: \n" + err.Error())
+		panic("create dst blacklist.txt error: \n" + err.Error())
+	}
+	lnFile, err := fileUtils.ReadLnFile(path)
+	set := collectionUtils.ToSet(append(lnFile, adminlist...))
+
+	err = fileUtils.WriterLnFile(path, set)
+	if err != nil {
+		panic("write dst blacklist.txt error: \n" + err.Error())
 	}
 }
 
@@ -87,8 +95,72 @@ func (p *PlayerService) SaveDstBlacklistPlayerList(clusterName string, blacklist
 
 	path := dst.GetBlocklistPath(clusterName)
 
-	err := fileUtils.WriterLnFile(path, blacklist)
+	err := fileUtils.CreateFileIfNotExists(path)
+	if err != nil {
+		panic("create dst blacklist.txt error: \n" + err.Error())
+	}
+	lnFile, err := fileUtils.ReadLnFile(path)
+	set := collectionUtils.ToSet(append(lnFile, blacklist...))
+
+	err = fileUtils.WriterLnFile(path, set)
+	if err != nil {
+		panic("write dst blacklist.txt error: \n" + err.Error())
+	}
+}
+
+func (p *PlayerService) DeleteDstBlacklistPlayerList(clusterName string, blacklist []string) {
+
+	path := dst.GetBlocklistPath(clusterName)
+	err := fileUtils.CreateFileIfNotExists(path)
+	if err != nil {
+		panic("create dst adminlist.txt error: \n" + err.Error())
+	}
+	lnFile, err := fileUtils.ReadLnFile(path)
+	var result []string
+	for i := range lnFile {
+		isFind := false
+		for j := range blacklist {
+			if lnFile[i] == blacklist[j] {
+				isFind = true
+				break
+			}
+		}
+		if !isFind {
+			result = append(result, lnFile[i])
+		}
+	}
+
+	err = fileUtils.WriterLnFile(path, result)
 	if err != nil {
 		panic("write dst adminlist.txt error: \n" + err.Error())
 	}
+}
+
+func (p *PlayerService) DeleteDstAdminListPlayerList(clusterName string, adminlist []string) {
+
+	path := dst.GetAdminlistPath(clusterName)
+	err := fileUtils.CreateFileIfNotExists(path)
+	if err != nil {
+		panic("create dst adminlist.txt error: \n" + err.Error())
+	}
+	lnFile, err := fileUtils.ReadLnFile(path)
+	var result []string
+	for i := range lnFile {
+		isFind := false
+		for j := range adminlist {
+			if lnFile[i] == adminlist[j] {
+				isFind = true
+				break
+			}
+		}
+		if !isFind {
+			result = append(result, lnFile[i])
+		}
+	}
+
+	err = fileUtils.WriterLnFile(path, result)
+	if err != nil {
+		panic("write dst adminlist.txt error: \n" + err.Error())
+	}
+
 }

@@ -11,5 +11,6 @@ type Cluster struct {
 	Backup          string `json:"backup"`
 	ModDownloadPath string `json:"mod_download_path"`
 	Uuid            string `json:"uuid"`
-	Beta            bool   `json:"beta"`
+	Beta            int    `json:"beta"`
+	Bin             int    `json:"bin"`
 }

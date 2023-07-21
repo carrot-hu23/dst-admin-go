@@ -17,6 +17,15 @@ const (
 
 	// ClearScreenCmd 检查目前所有的screen作业，并删除已经无法使用的screen作业
 	ClearScreenCmd = "screen -wipe "
+
+	GameRunning       = "gameRunning"
+	UpdateGameVersion = "updateGameVersion"
+	UpdateGameMod     = "updateGameMod"
+
+	ServerIniTemplate = "./static/template/server.ini"
+
+	MasterLevelType = "MASTER"
+	CaveLevelType   = "CAVES"
 )
 
 var HomePath string

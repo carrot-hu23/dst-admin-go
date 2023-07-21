@@ -4,8 +4,10 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -34,11 +36,14 @@ func (j *JobTaskApi) GetJobTaskList(ctx *gin.Context) {
 
 func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 
+	cluster := clusterUtils.GetClusterFromGin(ctx)
 	jobTask := &model.JobTask{}
 	if err := ctx.ShouldBindJSON(jobTask); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 	}
-
+	if jobTask.ClusterName == "" {
+		jobTask.ClusterName = cluster.ClusterName
+	}
 	db := database.DB
 	tx := db.Begin()
 	defer func() {
@@ -72,6 +77,7 @@ func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 func (j *JobTaskApi) DeleteJobTask(ctx *gin.Context) {
 
 	jobId, _ := strconv.Atoi(ctx.DefaultQuery("jobId", "0"))
+	log.Println("jobid: ", jobId)
 	schedule.ScheduleSingleton.DeleteJob(jobId)
 
 	ctx.JSON(http.StatusOK, vo.Response{

@@ -15,6 +15,9 @@ var StrategyMap = map[string]Strategy{}
 func init() {
 	StrategyMap["backup"] = &BackupStrategy{}
 	StrategyMap["update"] = &UpdateStrategy{}
+	StrategyMap["start"] = &StartStrategy{}
+	StrategyMap["stop"] = &StopStrategy{}
+	StrategyMap["restart"] = &RestartStrategy{}
 }
 
 type Task struct {
@@ -54,11 +57,14 @@ func (s *Schedule) AddJob(task Task) {
 }
 
 func (s *Schedule) DeleteJob(jobId int) {
-	taskId, loaded := s.cache.LoadAndDelete(jobId)
+	taskId, loaded := s.cache.LoadAndDelete(cron.EntryID(jobId))
 	if loaded {
+		log.Println("找到 ", cron.EntryID(jobId))
 		var entryId = cron.EntryID(jobId)
 		s.cron.Remove(entryId)
 		s.removeDB(taskId.(uint))
+	} else {
+		log.Println("未找到 ", cron.EntryID(jobId))
 	}
 }
 
@@ -74,30 +80,20 @@ func (s *Schedule) GetJobs() []map[string]interface{} {
 
 	var results []map[string]interface{}
 	entries := s.cron.Entries()
-	var wg sync.WaitGroup
-	wg.Add(len(entries))
+	log.Println("cron size: ", len(entries))
 	for _, entry := range entries {
-		go func(entry cron.Entry, wg *sync.WaitGroup) {
-			defer func() {
-				wg.Done()
-				if r := recover(); r != nil {
-					log.Println("查询任务失败", r)
-				}
-			}()
-			taskId, _ := s.cache.Load(entry.ID)
-			task := s.findDB(taskId.(uint))
-			results = append(results, map[string]interface{}{
-				"jobId":    entry.ID,
-				"next":     entry.Next,
-				"prev":     entry.Prev,
-				"valid":    entry.Valid(),
-				"cron":     task.Cron,
-				"comment":  task.Comment,
-				"category": task.Category,
-			})
-		}(entry, &wg)
+		taskId, _ := s.cache.Load(entry.ID)
+		task := s.findDB(taskId.(uint))
+		results = append(results, map[string]interface{}{
+			"jobId":    entry.ID,
+			"next":     entry.Next,
+			"prev":     entry.Prev,
+			"valid":    entry.Valid(),
+			"cron":     task.Cron,
+			"comment":  task.Comment,
+			"category": task.Category,
+		})
 	}
-	wg.Wait()
 	return results
 }
 

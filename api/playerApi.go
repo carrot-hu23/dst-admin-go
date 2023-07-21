@@ -79,3 +79,33 @@ func (p *PlayerApi) SaveDstBlacklistPlayerList(ctx *gin.Context) {
 		Msg:  "success",
 	})
 }
+
+func (p *PlayerApi) DeleteDstBlacklistPlayerList(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	blacklistVO := vo.NewBlacklistVO()
+	ctx.BindJSON(blacklistVO)
+	playerService.DeleteDstBlacklistPlayerList(clusterName, blacklistVO.Blacklist)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+	})
+}
+
+func (p *PlayerApi) DeleteDstAdminListPlayerList(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	adminlistVO := vo.NewAdminListVO()
+	ctx.BindJSON(adminlistVO)
+	playerService.DeleteDstAdminListPlayerList(clusterName, adminlistVO.AdminList)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+	})
+}

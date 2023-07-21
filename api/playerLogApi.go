@@ -3,7 +3,6 @@ package api
 import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
-	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"net/http"
@@ -16,9 +15,6 @@ type PlayerLogApi struct {
 }
 
 func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
-
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
 
 	//获取查询参数
 	name := ctx.Query("name")
@@ -46,8 +42,6 @@ func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 	if steamId, isExist := ctx.GetQuery("steamId"); isExist {
 		db = db.Where("steamId LIKE ?", "%"+steamId+"%")
 	}
-
-	db = db.Where("cluster_name LIKE ?", clusterName)
 
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 

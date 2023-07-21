@@ -35,5 +35,33 @@ type UpdateStrategy struct{}
 
 func (u *UpdateStrategy) Execute(clusterName string) {
 	log.Println("正在定时更新游戏 clusterName: ", clusterName)
-	gameService.UpdateGame(clusterName)
+	err := gameService.UpdateGame(clusterName)
+	if err != nil {
+		log.Println("更新游戏失败: ", err)
+		return
+	}
+}
+
+type StartStrategy struct{}
+
+func (s *StartStrategy) Execute(clusterName string) {
+	log.Println("正在定时启动游戏 clusterName: ", clusterName)
+	cluster := clusterUtils.GetCluster(clusterName)
+	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, 0)
+}
+
+type StopStrategy struct{}
+
+func (s *StopStrategy) Execute(clusterName string) {
+	log.Println("正在定时关闭游戏 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, 0)
+}
+
+type RestartStrategy struct{}
+
+func (s *RestartStrategy) Execute(clusterName string) {
+	log.Println("正在定时重启游戏 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, 0)
+	cluster := clusterUtils.GetCluster(clusterName)
+	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, 0)
 }

@@ -4,14 +4,10 @@ import (
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
-	"dst-admin-go/vo"
-	"dst-admin-go/vo/world"
+	"dst-admin-go/vo/level"
 	"github.com/go-ini/ini"
 	"log"
-	"path"
-	"strconv"
 	"strings"
-	"sync"
 )
 
 type HomeService struct{}
@@ -22,8 +18,8 @@ const (
 	CavesServerIniTemplate  = "./static/template/caves_server.ini"
 )
 
-func (c *HomeService) GetClusterIni(clusterName string) *world.ClusterIni {
-	newCluster := world.NewClusterIni()
+func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
+	newCluster := level.NewClusterIni()
 	// 加载 INI 文件
 	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	if !fileUtils.Exists(clusterIniPath) {
@@ -100,7 +96,6 @@ func (c *HomeService) GetAdminlist(clusterName string) (str []string) {
 	adminListPath := dst.GetAdminlistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(adminListPath)
 	str, err := fileUtils.ReadLnFile(adminListPath)
-	log.Println("str:", str)
 	if err != nil {
 		return []string{}
 	}
@@ -111,7 +106,6 @@ func (c *HomeService) GetBlocklist(clusterName string) (str []string) {
 	blocklistPath := dst.GetBlocklistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	str, err := fileUtils.ReadLnFile(blocklistPath)
-	log.Println("str:", str)
 	if err != nil {
 		return []string{}
 	}
@@ -143,7 +137,7 @@ func (c *HomeService) GetModoverrides(filepath string) string {
 	return modoverrides
 }
 
-func (c *HomeService) GetServerIni(filepath string, isMaster bool) *world.ServerIni {
+func (c *HomeService) GetServerIni(filepath string, isMaster bool) *level.ServerIni {
 	fileUtils.CreateFileIfNotExists(filepath)
 	var serverPortDefault uint = 10998
 	idDefault := 10010
@@ -153,7 +147,7 @@ func (c *HomeService) GetServerIni(filepath string, isMaster bool) *world.Server
 		idDefault = 10000
 	}
 
-	serverIni := world.NewCavesServerIni()
+	serverIni := level.NewCavesServerIni()
 	// 加载 INI 文件
 	cfg, err := ini.Load(filepath)
 	if err != nil {
@@ -194,7 +188,7 @@ func (c *HomeService) SaveClusterToken(clusterName, token string) {
 	fileUtils.WriterTXT(clusterTokenPath, token)
 }
 
-func (c *HomeService) SaveClusterIni(clusterName string, cluster *world.ClusterIni) {
+func (c *HomeService) SaveClusterIni(clusterName string, cluster *level.ClusterIni) {
 	clusterIniPath := dst.GetClusterIniPath(clusterName)
 	fileUtils.WriterTXT(clusterIniPath, dstUtils.ParseTemplate(ClusterIniTemplate, cluster))
 }
@@ -211,8 +205,8 @@ func (c *HomeService) SaveBlocklist(clusterName string, str []string) {
 	fileUtils.WriterLnFile(blocklistPath, str)
 }
 
-func (c *HomeService) GetMasterWorld(clusterName string) *world.World {
-	master := world.World{}
+func (c *HomeService) GetMasterWorld(clusterName string) *level.World {
+	master := level.World{}
 
 	master.WorldName = "Master"
 	master.IsMaster = true
@@ -224,8 +218,8 @@ func (c *HomeService) GetMasterWorld(clusterName string) *world.World {
 	return &master
 }
 
-func (c *HomeService) GetCavesWorld(clusterName string) *world.World {
-	caves := world.World{}
+func (c *HomeService) GetCavesWorld(clusterName string) *level.World {
+	caves := level.World{}
 
 	caves.WorldName = "Caves"
 	caves.IsMaster = false
@@ -237,7 +231,7 @@ func (c *HomeService) GetCavesWorld(clusterName string) *world.World {
 	return &caves
 }
 
-func (c *HomeService) SaveMasterWorld(clusterName string, world *world.World) {
+func (c *HomeService) SaveMasterWorld(clusterName string, world *level.World) {
 
 	lPath := dst.GetMasterLeveldataoverridePath(clusterName)
 	mPath := dst.GetMasterModoverridesPath(clusterName)
@@ -255,7 +249,7 @@ func (c *HomeService) SaveMasterWorld(clusterName string, world *world.World) {
 	fileUtils.WriterTXT(sPath, serverBuf)
 }
 
-func (c *HomeService) SaveCavesWorld(clusterName string, world *world.World) {
+func (c *HomeService) SaveCavesWorld(clusterName string, world *level.World) {
 
 	lPath := dst.GetCavesLeveldataoverridePath(clusterName)
 	mPath := dst.GetCavesModoverridesPath(clusterName)
@@ -271,87 +265,4 @@ func (c *HomeService) SaveCavesWorld(clusterName string, world *world.World) {
 	serverBuf := dstUtils.ParseTemplate(CavesServerIniTemplate, world.ServerIni)
 
 	fileUtils.WriterTXT(sPath, serverBuf)
-}
-
-func (c *HomeService) GameArchive(clusterName string) *vo.GameArchive {
-
-	var wg sync.WaitGroup
-	wg.Add(4)
-
-	gameArchie := vo.NewGameArchie()
-	basePath := dst.GetClusterBasePath(clusterName)
-
-	// 获取基础信息
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-
-		clusterIni := c.GetClusterIni(dst.GetClusterIniPath(clusterName))
-		gameArchie.ClusterName = clusterIni.ClusterName
-		gameArchie.ClusterPassword = clusterIni.ClusterPassword
-		gameArchie.GameMod = clusterIni.GameMode
-		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
-
-	}()
-
-	// 获取mod数量
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-
-		masterModoverrides, err := fileUtils.ReadFile(path.Join(basePath, "Master", "modoverrides.lua"))
-		if err != nil {
-			gameArchie.Mods = 0
-		} else {
-			gameArchie.Mods = len(dstUtils.WorkshopIds(masterModoverrides))
-		}
-	}()
-
-	// 获取天数和季节
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-		gameArchie.Meta = c.getSessionMeta()
-		wg.Done()
-	}()
-
-	// 获取直连ip
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("", r)
-			}
-			wg.Done()
-		}()
-		serverIni := c.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
-		ipv4, err := dstUtils.GetPublicIP()
-		if err != nil {
-			gameArchie.IpConnect = ""
-		} else {
-			gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
-		}
-		wg.Done()
-	}()
-
-	wg.Wait()
-
-	return gameArchie
-}
-
-// TODO 获取存档 元数据
-func (c *HomeService) getSessionMeta() string {
-
-	return ""
 }

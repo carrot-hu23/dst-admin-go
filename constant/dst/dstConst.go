@@ -60,3 +60,15 @@ func GetDstUpdateCmd(clusterName string) string {
 	dst_install_dir := cluster.ForceInstallDir
 	return "cd " + steamcmd + " ; ./steamcmd.sh +force_install_dir " + dst_install_dir + " +login anonymous +app_update 343050 validate +quit"
 }
+
+func GetLevelLeveldataoverridePath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "leveldataoverride.lua")
+}
+
+func GetLevelModoverridesPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "modoverrides.lua")
+}
+
+func GetLevelServerIniPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server.ini")
+}

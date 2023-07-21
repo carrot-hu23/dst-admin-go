@@ -158,7 +158,7 @@ func ParseTemplate(templatePath string, data interface{}) string {
 	err = tmpl.Execute(buf, data)
 	if err != nil {
 		log.Println(err)
-		panic("执行template解析失败")
+		panic("模板解析错误")
 	}
 	return buf.String()
 }
