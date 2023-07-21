@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 type DstConfig struct {
@@ -24,14 +22,7 @@ type DstConfig struct {
 	Beta                       int    `json:"beta"`
 }
 
-func ConfigPath() string {
-	switch gin.Mode() {
-	case gin.DebugMode:
-		return "./dst_config_dev"
-	default:
-		return "./dst_config"
-	}
-}
+const dst_config_path = "./dst_config"
 
 func NewDstConfig() *DstConfig {
 	return &DstConfig{}
@@ -42,13 +33,13 @@ func GetDstConfig() DstConfig {
 	dstConfig := NewDstConfig()
 
 	//判断是否存在，不存在创建一个
-	if !fileUtils.Exists(ConfigPath()) {
-		if err := fileUtils.CreateFile(ConfigPath()); err != nil {
+	if !fileUtils.Exists(dst_config_path) {
+		if err := fileUtils.CreateFile(dst_config_path); err != nil {
 			log.Panicln("create dst_config error", err)
 		}
 
 	}
-	data, err := fileUtils.ReadLnFile(ConfigPath())
+	data, err := fileUtils.ReadLnFile(dst_config_path)
 	if err != nil {
 		log.Panicln("read dst_config error", err)
 	}
@@ -141,7 +132,7 @@ func GetDstConfig() DstConfig {
 func SaveDstConfig(dstConfig *DstConfig) {
 	log.Println(dstConfig)
 
-	err := fileUtils.WriterLnFile(ConfigPath(), []string{
+	err := fileUtils.WriterLnFile(dst_config_path, []string{
 		"steamcmd=" + dstConfig.Steamcmd,
 		"force_install_dir=" + dstConfig.Force_install_dir,
 		"donot_starve_server_directory=" + dstConfig.DoNotStarveServerDirectory,
