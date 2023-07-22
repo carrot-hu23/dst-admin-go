@@ -1,38 +1,62 @@
 package vo
 
-type GameArchiveVO struct {
-	ClusterName     string   `json:"clusterName"`
-	GameMode        string   `json:"gameMode"`
-	MaxPlayers      uint8    `json:"maxPlayers"`
-	ClusterPassword string   `json:"clusterPassword"`
-	PlayDay         string   `json:"playDay"`
-	Season          string   `json:"season"`
-	TotalModNum     int      `json:"totalModNum"`
-	WorkshopIds     []string `json:"workshopIds"`
-	Modoverrides    string   `json:"modoverrides"`
-}
-
-func NewGameArchieVO() *GameArchiveVO {
-	return &GameArchiveVO{}
-}
-
 type GameArchive struct {
 	ClusterName     string     `json:"clusterName"`
 	ClusterPassword string     `json:"clusterPassword"`
 	GameMod         string     `json:"gameMod"`
 	Players         []PlayerVO `json:"players"`
 	MaxPlayers      int        `json:"maxPlayers"`
-	Days            int        `json:"days"`
-	Season          string     `json:"season"`
 	Mods            int        `json:"mods"`
 	IpConnect       string     `json:"ipConnect"`
-	Meta            string     `json:"meta"`
+	Meta            Meta       `json:"meta"`
 }
 
 func NewGameArchie() *GameArchive {
-	return &GameArchive{
-		Days:   0,
-		Season: "unknown",
-		Mods:   0,
-	}
+	return &GameArchive{}
+}
+
+type Clock struct {
+	TotalTimeInPhase     int     `lua:"totaltimeinphase"`
+	Cycles               int     `lua:"cycles"`
+	Phase                string  `lua:"phase"`
+	RemainingTimeInPhase float64 `lua:"remainingtimeinphase"`
+	MooomPhaseCycle      int     `lua:"mooomphasecycle"`
+	Segs                 Segs    `lua:"segs"`
+}
+
+type Segs struct {
+	Night int `lua:"night"`
+	Day   int `lua:"day"`
+	Dusk  int `lua:"dusk"`
+}
+
+type IsRandom struct {
+	Summer bool `lua:"summer"`
+	Autumn bool `lua:"autumn"`
+	Spring bool `lua:"spring"`
+	Winter bool `lua:"winter"`
+}
+
+type Lengths struct {
+	Summer int `lua:"summer"`
+	Autumn int `lua:"autumn"`
+	Spring int `lua:"spring"`
+	Winter int `lua:"winter"`
+}
+
+type Seasons struct {
+	Premode               bool                   `lua:"premode"`
+	Season                string                 `lua:"season"`
+	ElapsedDaysInSeason   int                    `lua:"elapseddaysinseason"`
+	IsRandom              IsRandom               `lua:"israndom"`
+	Lengths               Lengths                `lua:"lengths"`
+	RemainingDaysInSeason int                    `lua:"remainingdaysinseason"`
+	Mode                  string                 `lua:"mode"`
+	TotalDaysInSeason     int                    `lua:"totaldaysinseason"`
+	Segs                  map[string]interface{} `lua:"segs"`
+}
+
+type Meta struct {
+	Clock   Clock   `lua:"clock"`
+	Seasons Seasons `lua:"seasons"`
 }

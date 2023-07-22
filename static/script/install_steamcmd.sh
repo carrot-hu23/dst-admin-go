@@ -35,6 +35,7 @@ while [ ! -e "${steam_dst_server}/dst-dedicated-server/bin/dontstarve_dedicated_
   echo "Not found Dont Starve Together Sever, start to installing, try: ${retry}"
   bash $steam_cmd_path/steamcmd/steamcmd.sh +force_install_dir $steam_dst_server/dst-dedicated-server +login anonymous +app_update 343050 validate +quit
   cp $steam_cmd_path/steamcmd/linux32/libstdc++.so.6 $steam_dst_server/dst-dedicated-server/bin/lib32/
+  ln -s /usr/lib64/libcurl.so.4 $steam_dst_server/dst-dedicated-server/bin64/lib64/libcurl-gnutls.so.4
   mkdir -p $HOME/.klei/DoNotStarveTogether/MyDediServer
   sleep 3
   ((retry++))

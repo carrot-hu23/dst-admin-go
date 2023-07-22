@@ -1,9 +1,12 @@
 package dstConfigUtils
 
 import (
+	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/fileUtils"
 	"log"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +18,8 @@ type DstConfig struct {
 	Cluster                    string `json:"cluster"`
 	Backup                     string `json:"backup"`
 	Mod_download_path          string `json:"mod_download_path"`
+	Bin                        int    `json:"bin"`
+	Beta                       int    `json:"beta"`
 }
 
 const dst_config_path = "./dst_config"
@@ -91,6 +96,22 @@ func GetDstConfig() DstConfig {
 				dstConfig.Mod_download_path = strings.Replace(s, "\\n", "", -1)
 			}
 		}
+		if strings.Contains(value, "bin") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				bin, _ := strconv.ParseInt(strings.Replace(s, "\\n", "", -1), 10, 64)
+				dstConfig.Bin = int(bin)
+			}
+		}
+		if strings.Contains(value, "beta") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				beta, _ := strconv.ParseInt(strings.Replace(s, "\\n", "", -1), 10, 64)
+				dstConfig.Beta = int(beta)
+			}
+		}
 	}
 	// 设置默认值
 	if dstConfig.Cluster == "" {
@@ -101,6 +122,9 @@ func GetDstConfig() DstConfig {
 	}
 	if dstConfig.Mod_download_path == "" {
 		dstConfig.Backup = consts.KleiDstPath
+	}
+	if dstConfig.Bin == 0 {
+		dstConfig.Bin = 32
 	}
 	return *dstConfig
 }
@@ -116,8 +140,11 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		"cluster=" + dstConfig.Cluster,
 		"backup=" + dstConfig.Backup,
 		"mod_download_path=" + dstConfig.Mod_download_path,
+		"bin=" + strconv.Itoa(dstConfig.Bin),
+		"beta=" + strconv.Itoa(dstConfig.Beta),
 	})
 	if err != nil {
 		log.Panicln("write dst_config error:", err)
 	}
+	global.Collect.ReCollect(filepath.Join(consts.KleiDstPath, dstConfig.Cluster), dstConfig.Cluster)
 }

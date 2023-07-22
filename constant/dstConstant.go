@@ -54,7 +54,7 @@ var (
 	 * 启动地面进程命令 设置名称为 DST_MASTER
 	 */
 	START_MASTER_CMD = "cd " + DST_INSTALL_DIR + "/bin ; screen -d -m -S \"" + SCREEN_WORK_MASTER_NAME + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + CLUSTER + " -shard " + DST_MASTER + "  ;"
-	// cd ~/dst/bin/ ; screen -d -m -S \"DST_MASTER\"  ./dontstarve_dedicated_server_nullrenderer -console -world MyDediServer -shard Master  ;
+	// cd ~/dst/bin/ ; screen -d -m -S \"DST_MASTER\"  ./dontstarve_dedicated_server_nullrenderer -console -level MyDediServer -shard Master  ;
 
 	/**
 	 * 启动洞穴进程命令 设置名称为 DST_CAVES
@@ -303,7 +303,7 @@ func GET_DST_USER_GAME_CONFG_PATH() string {
 	persistent_storage_root := dstConfig.Persistent_storage_root
 	if donot_starve_server_directory == "" {
 		path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
-		// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + world + "/"
+		// var path = HOME_PATH + "/.klei/DoNotStarveTogether/" + level + "/"
 		return path.Join(HOME_PATH, ".klei/DoNotStarveTogether", cluster)
 	}
 

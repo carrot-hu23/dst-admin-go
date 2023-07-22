@@ -4,7 +4,7 @@ import (
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
-	"dst-admin-go/vo/world"
+	"dst-admin-go/vo/level"
 	"log"
 	"net/http"
 	"strconv"
@@ -23,7 +23,10 @@ func (g *GameApi) UpdateGame(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	gameService.UpdateGame(clusterName)
+	err := gameService.UpdateGame(clusterName)
+	if err != nil {
+		log.Panicln("更新游戏失败: ", err)
+	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -37,13 +40,15 @@ func (g *GameApi) StartGame(ctx *gin.Context) {
 	opType, _ := strconv.Atoi(ctx.DefaultQuery("type", "0"))
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
+	bin := cluster.Bin
+	beta := cluster.Beta
 	clusterName := cluster.ClusterName
-	log.Println("正在启动指定游戏服务 type:", clusterName, opType)
-	gameService.StartGame(clusterName, opType)
+	log.Println("正在启动指定游戏服务 type:", clusterName, opType, "bin:", bin, "beta: ", beta)
+	gameService.StartGame(clusterName, bin, beta, opType)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
-		Msg:  "start " + clusterName + " world success",
+		Msg:  "start " + clusterName + " level success",
 		Data: nil,
 	})
 }
@@ -59,7 +64,7 @@ func (g *GameApi) StopGame(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
-		Msg:  "stop " + clusterName + " world success",
+		Msg:  "stop " + clusterName + " level success",
 		Data: nil,
 	})
 }
@@ -85,7 +90,7 @@ func (g *GameApi) GetGameConfig(ctx *gin.Context) {
 
 func (g *GameApi) SaveGameConfig(ctx *gin.Context) {
 
-	gameConfig := world.GameConfig{}
+	gameConfig := level.GameConfig{}
 	ctx.ShouldBind(&gameConfig)
 	gameService.SaveGameConfig(ctx, &gameConfig)
 

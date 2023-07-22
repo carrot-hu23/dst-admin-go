@@ -10,7 +10,7 @@ type ClusterVO struct {
 	Backup          string `json:"backup"`
 	ModDownloadPath string `json:"mod_download_path"`
 	Uuid            string `json:"uuid"`
-	Beta            bool   `json:"beta"`
+	Beta            int    `json:"beta"`
 	ID              uint
 	CreatedAt       time.Time
 	UpdatedAt       time.Time

@@ -2,6 +2,7 @@ package api
 
 import (
 	"bufio"
+	"dst-admin-go/autoCheck"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/shellUtils"
@@ -15,13 +16,22 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type InstallSteamCmd struct{}
 
+var flag int32
+
 // 安装饥荒环境
 func (i *InstallSteamCmd) InstallSteamCmd(ctx *gin.Context) {
+
+	//if !atomic.CompareAndSwapInt32(&flag, 0, 1) {
+	//	// 已经处理过请求，直接返回结果
+	//	ctx.JSON(200, gin.H{"message": "already handled"})
+	//	return
+	//}
+	//atomic.StoreInt32(&flag, 1)
+	//defer atomic.StoreInt32(&flag, 0)
 
 	ctx.Header("Content-Type", "text/event-stream")
 	ctx.Header("Cache-Control", "no-cache")
@@ -30,7 +40,7 @@ func (i *InstallSteamCmd) InstallSteamCmd(ctx *gin.Context) {
 
 	// 使用一个channel来接收SSE事件
 	eventCh := make(chan string)
-	stopCh := make(chan byte)
+	stopCh := make(chan string)
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -56,6 +66,10 @@ func (i *InstallSteamCmd) InstallSteamCmd(ctx *gin.Context) {
 				fmt.Println("Error writing SSE event:", err)
 				return
 			}
+			if event == "data: end\n\n" {
+				log.Println("结束安装")
+				return
+			}
 			ctx.Writer.Flush()
 		case <-stopCh:
 			return
@@ -67,16 +81,8 @@ func (i *InstallSteamCmd) InstallSteamCmd(ctx *gin.Context) {
 
 }
 
-/*
-*
-sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686
-sudo yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64
-# CentOS需要建立libcurl-gnutls.so.4软连接
-ln -s /usr/lib/libcurl.so.4 /usr/lib/libcurl-gnutls.so.4
-*/
-func installDependence(eventCh chan string, stopCh chan byte) error {
+func installDependence(eventCh chan string, stopCh chan string) error {
 	eventCh <- "data: 正在检测当前系统。。。\n\n"
-	time.Sleep(time.Second * 1)
 
 	info := systemUtils.GetHostInfo()
 	eventCh <- "data: " + "OS:" + info.Os + " hostname:" + info.HostName + " platform: " + info.Platform + " kernelArch: " + info.KernelArch + "\n\n"
@@ -89,14 +95,37 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 	}
 
 	if strings.Contains(strings.ToLower(info.Platform), "centos") {
-		// 安装依赖，只兼容 centos 和 Ubuntu
-		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
 
-		err := command(eventCh, "sudo yum install -y glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686", "")
+		eventCh <- "data: 正在 sudo dpkg --add-architecture i386 \n\n"
+		err := command(eventCh, "sudo dpkg --add-architecture i386", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
-		err = command(eventCh, "sudo yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64", "")
+
+		eventCh <- "data: 正在安装 yum update \n\n"
+		err = command(eventCh, "yum update -y", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
+		// yum install glibc.i686
+		eventCh <- "data: yum install glibc.i686 \n\n"
+		err = command(eventCh, "yum install -y glibc.i686", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
+		//yum install libgcc_s.so.1
+		eventCh <- "data: yum install libgcc_s.so.1 \n\n"
+		err = command(eventCh, "yum install -y libgcc_s.so.1", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
+		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
+		err = command(eventCh, "yum install -y lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget", "")
+		if err != nil {
+			eventCh <- "安装失败 \n\n"
+		}
+		eventCh <- "data: 正在安装 yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64 \n\n"
+		err = command(eventCh, "yum install -y SDL2.x86_64 SDL2_gfx-devel.x86_64 SDL2_image-devel.x86_64 SDL2_ttf-devel.x86_64", "")
 		if err != nil {
 			eventCh <- "安装失败 \n\n"
 		}
@@ -109,14 +138,28 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 
 	} else if strings.Contains(strings.ToLower(info.Platform), "ubuntu") {
 
-		eventCh <- "data: 正在安装 glibc.i686 libstdc++.i686 ncurses-libs.i686 screen libcurl.i686 依赖 \n\n"
-		err := command(eventCh, "sudo apt-get update", "")
+		eventCh <- "data: 正在 sudo dpkg --add-architecture i386 \n\n"
+		err := command(eventCh, "sudo dpkg --add-architecture i386", "")
+		if err != nil {
+			eventCh <- "安装失败 sudo dpkg --add-architecture i386 \n\n"
+		}
+
+		// apt-get install -y sudo
+		eventCh <- "data: 正在 apt-get install -y sudo \n\n"
+		err = command(eventCh, "apt-get install -y sudo", "")
+		if err != nil {
+			eventCh <- "安装失败 apt-get install -y sudo \n\n"
+		}
+
+		eventCh <- "data: 正在 apt-get update \n\n"
+		err = command(eventCh, "sudo apt-get update", "")
 		if err != nil {
 			eventCh <- "安装失败 apt-get update \n\n"
 		}
-		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen", "")
+
+		err = command(eventCh, "sudo apt-get install -y lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget sudo", "")
 		if err != nil {
-			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 libsdl2-2.0 libsdl2-dev screen \n\n"
+			eventCh <- "安装失败 lib32gcc1 libcurl4-gnutls-dev:i386 glibc screen wget sudo \n\n"
 		}
 		err = command(eventCh, "sudo apt-get install -y libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-gfx1.2-dev", "")
 		if err != nil {
@@ -132,7 +175,7 @@ func installDependence(eventCh chan string, stopCh chan byte) error {
 }
 
 // 检测是否已经安装了 steamcmd
-func installCmd(eventCh chan string, stopCh chan byte) error {
+func installCmd(eventCh chan string, stopCh chan string) error {
 
 	eventCh <- "data: 正在安装steamcmd。。。\n\n"
 
@@ -144,48 +187,39 @@ func installCmd(eventCh chan string, stopCh chan byte) error {
 		eventCh <- "data: 安装steamcmd失败！！！ \n\n"
 		return err
 	}
-	eventCh <- "data: 安装steamcmd成功！！！ \n\n"
-
-	// 写入到配置文件里面
-	config := dstConfigUtils.GetDstConfig()
-	config.Steamcmd = filepath.Join(consts.HomePath, "steamcmd")
-	config.Force_install_dir = filepath.Join(consts.HomePath, "dst-dedicated-server")
-
-	dstConfigUtils.SaveDstConfig(&config)
 
 	return nil
 }
 
-// 检测是否已经安装了 dont_starve_dedicated_server
-func installDstDedicatedServer(eventCh chan string, stopCh chan byte) error {
-	eventCh <- "data: 正在安装 dont_starve_dedicated_server。。。\n\n"
-
-	time.Sleep(time.Second * 10)
-	eventCh <- "data: 环境安装成功！！！\n\n"
-	return nil
-}
-
-func (i *InstallSteamCmd) handle(eventCh chan string, stopCh chan byte) {
+func (i *InstallSteamCmd) handle(eventCh chan string, stopCh chan string) {
 
 	err := installDependence(eventCh, stopCh)
 	if err != nil {
-		stopCh <- 1
 		return
 	}
 
 	err = installCmd(eventCh, stopCh)
 	if err != nil {
-		stopCh <- 1
 		return
 	}
+	saveDstConfig()
+	eventCh <- "data: [successed]\n\n"
+	eventCh <- "data: end\n\n"
+}
 
-	err = installDstDedicatedServer(eventCh, stopCh)
-	if err != nil {
-		stopCh <- 1
-		return
-	}
+func saveDstConfig() {
+	// 写入到配置文件里面
+	config := dstConfigUtils.GetDstConfig()
+	config.Steamcmd = filepath.Join(consts.HomePath, "steamcmd")
+	config.Force_install_dir = filepath.Join(consts.HomePath, "dst-dedicated-server")
+	config.Backup = consts.KleiDstPath
+	config.Mod_download_path = consts.KleiDstPath
+	config.Cluster = "MyDediServer"
 
-	stopCh <- 1
+	dstConfigUtils.SaveDstConfig(&config)
+	autoCheck.AutoCheckObject.RestartAutoCheck(config.Cluster, config.Bin, config.Beta)
+
+	initEvnService.InitBaseLevel(&config, "默认初始", "", true)
 }
 
 func commandShell(eventCh chan string, name string, arg ...string) error {
@@ -195,24 +229,24 @@ func commandShell(eventCh chan string, name string, arg ...string) error {
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println("Error creating StdoutPipe:", err)
-		return nil
+		return err
 	}
 	stderrPipe, err := cmd.StderrPipe()
 	if err != nil {
 		fmt.Println("Error creating StderrPipe:", err)
-		return nil
+		return err
 	}
 
 	// 启动命令
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
-		return nil
+		return err
 	}
 
 	// 创建字符串通道来接收输出
-	stdoutCh := make(chan string)
+	stdoutCh := make(chan string, 1)
 
-	errputCh := make(chan string)
+	errputCh := make(chan string, 1)
 
 	// 创建协程读取并处理标准输出
 	go readAndSend(stdoutPipe, stdoutCh)

@@ -2,16 +2,19 @@ package service
 
 import (
 	"dst-admin-go/constant"
-	"dst-admin-go/constant/consts"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/zip"
 	"dst-admin-go/vo"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +22,7 @@ import (
 
 type BackupService struct {
 	HomeService
+	GameArchive
 }
 
 func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
@@ -144,6 +148,14 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 			fileUtils.Copy(fp, clusterPath)
 		}
 	}
+
+	// 安装mod
+	modoverride, err := fileUtils.ReadFile(dst.GetMasterModoverridesPath(cluster.ClusterName))
+	if err != nil {
+		log.Println("设置模组失败")
+	}
+	dstUtils.DedicatedServerModsSetup(cluster.ClusterName, modoverride)
+
 }
 
 func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
@@ -151,14 +163,12 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
 
-	src := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+	src := constant.GET_DST_USER_GAME_CONFG_PATH()
 	if !fileUtils.Exists(backupPath) {
 		log.Panicln("backup path is not exists")
 	}
 	if backupName == "" {
-		// TODO 增加存档信息
-		name := b.GetClusterIni(cluster.ClusterName).ClusterName
-		backupName = time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
+		backupName = b.GenGameBackUpName(cluster.ClusterName)
 	}
 	dst := filepath.Join(backupPath, backupName)
 	log.Println("src", src, dst)
@@ -172,7 +182,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 func (b *BackupService) DownloadBackup(c *gin.Context) {
 	fileName := c.Query("fileName")
 
-	clusterName := c.GetHeader("world")
+	clusterName := c.GetHeader("level")
 	cluster := clusterUtils.GetCluster(clusterName)
 
 	filePath := filepath.Join(cluster.Backup, fileName)
@@ -196,7 +206,7 @@ func (b *BackupService) UploadBackup(c *gin.Context) {
 
 	cluster := clusterUtils.GetClusterFromGin(c)
 	dst := filepath.Join(cluster.Backup, file.Filename)
-	log.Println("备份保存在: ", dst)
+
 	if fileUtils.Exists(dst) {
 		log.Panicln("backup is existed")
 	}
@@ -220,10 +230,27 @@ func (b *BackupService) backupPath() string {
 	return backupPath
 }
 
+var SeasonMap = map[string]string{
+	"spring": "春天",
+	"summer": "夏天",
+	"autumn": "秋天",
+	"winter": "冬天",
+}
+
 // TODO 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
 func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	name := b.GetClusterIni(clusterName).ClusterName
-	backupName := time.Now().Format("2006-01-02 15:04:05") + "_" + name + ".zip"
+	snapshoot := b.Snapshoot(clusterName)
+
+	fmt.Printf("%v\n", snapshoot)
+
+	// 20060102150405_猜猜我是谁的世界_40天_秋季(1/20).zip
+	// 猜猜我是谁的房间_季节40天spring(1|20)_模组数量3.zip
+	days := strconv.Itoa(snapshoot.Clock.Cycles)
+	elapsedDayInSeason := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason)
+	seasonDays := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason + snapshoot.Seasons.RemainingDaysInSeason)
+	archiveDesc := days + "day_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "|" + seasonDays + ")"
+	backupName := time.Now().Format("20060102150405") + "_" + name + "_" + archiveDesc + ".zip"
 
 	return backupName
 }

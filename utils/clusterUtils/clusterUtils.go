@@ -2,8 +2,8 @@ package clusterUtils
 
 import (
 	"bytes"
-	"dst-admin-go/config/database"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/dstConfigUtils"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -14,19 +14,31 @@ import (
 )
 
 func GetCluster(clusterName string) *model.Cluster {
-	db := database.DB
-	cluster := &model.Cluster{}
-	db.Where("cluster_name=?", clusterName).First(cluster)
-	return cluster
+	config := dstConfigUtils.GetDstConfig()
+	cluster := model.Cluster{
+		SteamCmd:        config.Steamcmd,
+		ForceInstallDir: config.Force_install_dir,
+		ClusterName:     config.Cluster,
+		Backup:          config.Backup,
+		ModDownloadPath: config.Mod_download_path,
+		Bin:             config.Bin,
+		Beta:            config.Beta,
+	}
+	return &cluster
 }
 
 func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
-	clusterName := ctx.GetHeader("Cluster")
-	log.Println(ctx.Request.RequestURI, "cluster: ", clusterName)
-	db := database.DB
-	cluster := &model.Cluster{}
-	db.Where("cluster_name=?", clusterName).First(cluster)
-	return cluster
+	config := dstConfigUtils.GetDstConfig()
+	cluster := model.Cluster{
+		SteamCmd:        config.Steamcmd,
+		ForceInstallDir: config.Force_install_dir,
+		ClusterName:     config.Cluster,
+		Backup:          config.Backup,
+		ModDownloadPath: config.Mod_download_path,
+		Bin:             config.Bin,
+		Beta:            config.Beta,
+	}
+	return &cluster
 }
 
 func GetDstServerInfo(clusterName string) []DstHomeInfo {
@@ -39,6 +51,7 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 
 	d := "{\"page\": 1,\"paginate\": 10,\"sort_type\": \"name\",\"sort_way\": 1,\"search_type\": 1,\"search_content\": \"%s\",\"mod\": 1}"
 	d2 := fmt.Sprintf(d, clusterName)
+	log.Println("查询: ", d2)
 	data := []byte(d2)
 	// 创建HTTP请求
 	url := "https://dst.liuyh.com/index/serverlist/getserverlist.html"
@@ -65,6 +78,7 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 	s := string(body)
 	s = s[1 : len(s)-1]
 	s = strings.Replace(s, "\\", "", -1)
+	fmt.Println(s)
 
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(s), &result)

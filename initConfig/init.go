@@ -1,12 +1,15 @@
 package initConfig
 
 import (
-	"dst-admin-go/api"
+	"dst-admin-go/autoCheck"
+	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
+	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/systemUtils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -14,8 +17,10 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -43,10 +48,11 @@ func initDB() {
 		&model.Spawn{},
 		&model.PlayerLog{},
 		&model.Connect{},
+		&model.Proxy{},
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
-		&api.SystemConfig{},
+		&model.AutoCheck{},
 	)
 	if err != nil {
 		return
@@ -54,7 +60,7 @@ func initDB() {
 }
 
 func initConfig() {
-	yamlFile, err := os.ReadFile("./config.yml")
+	yamlFile, err := ioutil.ReadFile("./config.yml")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -85,12 +91,20 @@ func initLog() {
 
 func initCollect() {
 
-	var clusters []model.Cluster
-	database.DB.Find(&clusters)
-	for _, cluster := range clusters {
-		global.CollectMap.AddNewCollect(cluster.ClusterName)
-	}
+	//var clusters []model.Cluster
+	//database.DB.Find(&clusters)
+	//for _, cluster := range clusters {
+	//	global.CollectMap.AddNewCollect(cluster.ClusterName)
+	//}
 
+	home, _ := systemUtils.Home()
+	dstConfig := dstConfigUtils.GetDstConfig()
+	clusterName := dstConfig.Cluster
+	newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
+	newCollect.StartCollect()
+	global.Collect = newCollect
+
+	autoCheck.AutoCheckObject = autoCheck.NewAutoCheckConfig(clusterName, dstConfig.Bin, dstConfig.Beta)
 }
 
 func initSchedule() {
