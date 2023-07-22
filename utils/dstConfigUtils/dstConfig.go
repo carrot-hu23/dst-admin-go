@@ -146,5 +146,5 @@ func SaveDstConfig(dstConfig *DstConfig) {
 	if err != nil {
 		log.Panicln("write dst_config error:", err)
 	}
-	global.Collect.ReCollect(filepath.Join(consts.KleiDstPath, dstConfig.Cluster))
+	global.Collect.ReCollect(filepath.Join(consts.KleiDstPath, dstConfig.Cluster), dstConfig.Cluster)
 }
