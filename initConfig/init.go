@@ -48,7 +48,6 @@ func initDB() {
 		&model.Spawn{},
 		&model.PlayerLog{},
 		&model.Connect{},
-		&model.Proxy{},
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
