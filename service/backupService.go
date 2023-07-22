@@ -2,8 +2,10 @@ package service
 
 import (
 	"dst-admin-go/constant"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/zip"
 	"dst-admin-go/vo"
@@ -146,6 +148,14 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 			fileUtils.Copy(fp, clusterPath)
 		}
 	}
+
+	// 安装mod
+	modoverride, err := fileUtils.ReadFile(dst.GetMasterModoverridesPath(cluster.ClusterName))
+	if err != nil {
+		log.Println("设置模组失败")
+	}
+	dstUtils.DedicatedServerModsSetup(cluster.ClusterName, modoverride)
+
 }
 
 func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
