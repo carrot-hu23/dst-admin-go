@@ -44,7 +44,10 @@ func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 	// }
 
 	param := third.NewDstHomeServerParam()
-	c.Bind(param)
+	err := c.ShouldBind(param)
+	if err != nil {
+		log.Println("参数解析错误", err)
+	}
 
 	query_data := map[string]any{}
 	query_data["page"] = param.Page
@@ -93,7 +96,10 @@ func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 func (t *ThirdPartyApi) GetDstHomeDetailList(c *gin.Context) {
 
 	param := third.NewDstHomeDetailParam()
-	c.Bind(param)
+	err := c.ShouldBind(param)
+	if err != nil {
+		log.Println("参数解析错误", err)
+	}
 
 	bytesData, err := json.Marshal(param)
 	if err != nil {
