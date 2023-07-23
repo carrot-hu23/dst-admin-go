@@ -2,6 +2,7 @@ package api
 
 import (
 	"dst-admin-go/config/database"
+	"dst-admin-go/model"
 	"dst-admin-go/utils"
 	"dst-admin-go/vo"
 	"fmt"
@@ -269,4 +270,23 @@ func endDate(ctx *gin.Context) time.Time {
 		date, _ = time.Parse("2006-01-02T15:04:05.000Z", t)
 	}
 	return date
+}
+
+func (s *StatisticsApi) LastThNRegenerate(ctx *gin.Context) {
+
+	N := ctx.Query("N")
+	db := database.DB
+
+	//本天，本周，本月
+	var data []model.Regenerate
+	sql := `
+	select * from regenerates order by created_at DESC limit ?
+	`
+	db.Raw(sql, N).Scan(&data)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: data,
+	})
 }

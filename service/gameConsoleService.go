@@ -29,7 +29,7 @@ func (c *GameConsoleService) SentBroadcast(clusterName string, message string) {
 	broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
 	broadcast += message
 	broadcast += "\\\")\\n\""
-
+	log.Println(broadcast)
 	shellUtils.Shell(broadcast)
 }
 

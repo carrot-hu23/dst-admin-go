@@ -16,6 +16,7 @@ func initStatisticsRouter(router *gin.RouterGroup) {
 		statistics.GET("/top/active", statisticsApi.TopUserActiveTimes)
 
 		statistics.GET("/rate/role", statisticsApi.CountRoleRate)
+		statistics.GET("regenerate", statisticsApi.LastThNRegenerate)
 	}
 
 }

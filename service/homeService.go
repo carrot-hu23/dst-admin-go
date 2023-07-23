@@ -122,6 +122,9 @@ func (c *HomeService) GetLeveldataoverride(filepath string) string {
 	if err != nil {
 		return "return {}"
 	}
+	if leveldataoverride == "" {
+		return "return {}"
+	}
 	return leveldataoverride
 }
 
@@ -132,6 +135,9 @@ func (c *HomeService) GetModoverrides(filepath string) string {
 	}
 	modoverrides, err := fileUtils.ReadFile(filepath)
 	if err != nil {
+		return "return {}"
+	}
+	if modoverrides == "" {
 		return "return {}"
 	}
 	return modoverrides

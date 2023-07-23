@@ -23,6 +23,8 @@ func InitGameRouter(router *gin.RouterGroup) {
 
 		gameConsole.GET("/archive", gameConsoleApi.GetGameArchive)
 		gameConsole.GET("/clean", gameConsoleApi.CleanWorld)
+		gameConsole.GET("/announce/setting", gameConsoleApi.GetAnnounceSetting)
+		gameConsole.POST("/announce/setting", gameConsoleApi.SaveAnnounceSetting)
 	}
 
 	gameConfigApi := api.GameConfigApi{}

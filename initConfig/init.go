@@ -8,6 +8,7 @@ import (
 	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
+	"dst-admin-go/service"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
@@ -48,11 +49,13 @@ func initDB() {
 		&model.Spawn{},
 		&model.PlayerLog{},
 		&model.Connect{},
+		&model.Regenerate{},
 		&model.Proxy{},
 		&model.ModInfo{},
 		&model.Cluster{},
 		&model.JobTask{},
 		&model.AutoCheck{},
+		&model.Announce{},
 	)
 	if err != nil {
 		return
@@ -109,4 +112,5 @@ func initCollect() {
 
 func initSchedule() {
 	schedule.ScheduleSingleton = schedule.NewSchedule()
+	service.InitAnnounce()
 }
