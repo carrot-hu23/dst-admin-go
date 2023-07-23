@@ -9,7 +9,7 @@
 
 ## 部署
 
-**目前多房间版本还有些bug没有修复， 萌新勿用**
+**目前多房间版本还有些bug没有修复(等单房间功能稳定后在迁移过来)， 萌新勿用**
 
 注意目录必须要有读写权限。
 ### 二进制部署
@@ -21,20 +21,18 @@
 
   点击查看 [多房间部署文档](docs/install.md)
 
+### 一键部署
+目前只支持 `centos`。感谢 [SubTel](https://github.com/SubTel)提供的脚本
+[dst-admin-go一键部署脚本centos版本.sh](docs/dst-admin-go一键部署脚本centos版本.sh)
+支持 systemctl 命令
+```sh
+wget https://github.com/hujinbo23/dst-admin-go/releases/download/1.1.6.hotfix/dst-admin-go.centos.sh
+```
 ### docker 部署
-此版本是单房间版本
+此版本是单房间版本，安装后记得在页面`系统设置`把64位改成32启动，64位启动暂时还有问题
 ```
 docker pull hujinbo23/dst-admin-go
 docker run -d -p8082:8082 hujinbo23/dst-admin-go
-```
-**阿里云镜像仓库**
-
-```text
-docker pull 
-registry.cn-hangzhou.aliyuncs.com/hujinbo23/dst-admin-go:1.1.6
-
-docker run -d -p8082:8082 registry.cn-hangzhou.aliyuncs.com/hujinbo23/dst-admin-go:1.1.6
-
 ```
 
 ## 预览
