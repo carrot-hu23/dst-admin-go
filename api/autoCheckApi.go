@@ -39,15 +39,34 @@ func (m *AutoCheckApi) EnableAutoCheckUpdateVersion(ctx *gin.Context) {
 	})
 }
 
-func (m *AutoCheckApi) EnableAutoCheckRun(ctx *gin.Context) {
+func (m *AutoCheckApi) EnableAutoCheckMasterRun(ctx *gin.Context) {
 	lock.Lock()
 	defer lock.Unlock()
 
 	enable, _ := strconv.Atoi(ctx.DefaultQuery("enable", "0"))
 	db := database.DB
 	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.GameRunning).Find(&autoCheck)
-	autoCheck.Name = consts.GameRunning
+	db.Where("name = ?", consts.MasterRunning).Find(&autoCheck)
+	autoCheck.Name = consts.MasterRunning
+	autoCheck.Enable = enable
+
+	db.Save(&autoCheck)
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func (m *AutoCheckApi) EnableAutoCheckCavesRun(ctx *gin.Context) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	enable, _ := strconv.Atoi(ctx.DefaultQuery("enable", "0"))
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", consts.CavesRunning).Find(&autoCheck)
+	autoCheck.Name = consts.CavesRunning
 	autoCheck.Enable = enable
 
 	db.Save(&autoCheck)
@@ -80,7 +99,7 @@ func (m *AutoCheckApi) GetAutoCheckStatus(ctx *gin.Context) {
 
 	db1 := database.DB
 	autoCheck1 := model.AutoCheck{}
-	db1.Where("name = ?", consts.GameRunning).Find(&autoCheck1)
+	db1.Where("name = ?", consts.MasterRunning).Find(&autoCheck1)
 
 	db2 := database.DB
 	autoCheck2 := model.AutoCheck{}
@@ -90,10 +109,15 @@ func (m *AutoCheckApi) GetAutoCheckStatus(ctx *gin.Context) {
 	autoCheck3 := model.AutoCheck{}
 	db3.Where("name = ?", consts.UpdateGameMod).Find(&autoCheck3)
 
+	db4 := database.DB
+	autoCheck4 := model.AutoCheck{}
+	db4.Where("name = ?", consts.CavesRunning).Find(&autoCheck4)
+
 	res := map[string]int{}
-	res[consts.GameRunning] = autoCheck1.Enable
+	res[consts.MasterRunning] = autoCheck1.Enable
 	res[consts.UpdateGameVersion] = autoCheck2.Enable
 	res[consts.UpdateGameMod] = autoCheck3.Enable
+	res[consts.CavesRunning] = autoCheck4.Enable
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

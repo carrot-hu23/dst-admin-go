@@ -23,7 +23,6 @@ type Monitor struct {
 }
 
 func NewMonitor(clusterName string, t string, bin int, beta int, checkFunc func(string2 string, int2 int, int3 int) bool, checkInterval time.Duration, startFunc func(string2 string, int2 int, int3 int) error) *Monitor {
-	log.Println("bin: ", bin, "beta: ", beta)
 	return &Monitor{
 		t:             t,
 		beta:          beta,
@@ -66,23 +65,43 @@ func (m *Monitor) Stop() {
 	m.stopCh <- 1
 }
 
-func IsGameRunning(clusterName string, bin, beta int) bool {
+func IsMasterRunning(clusterName string, bin, beta int) bool {
 	db := database.DB
 	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.GameRunning).Find(&autoCheck)
+	db.Where("name = ?", consts.MasterRunning).Find(&autoCheck)
 	if autoCheck.Enable == 1 {
 		return gameService.GetLevelStatus(clusterName, "Master")
 	}
 	return true
 }
 
-func StartGameProcess(clusterName string, bin, beta int) error {
+func IsCavesRunning(clusterName string, bin, beta int) bool {
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", consts.CavesRunning).Find(&autoCheck)
+	if autoCheck.Enable == 1 {
+		return gameService.GetLevelStatus(clusterName, "Caves")
+	}
+	return true
+}
+
+func StartMasterProcess(clusterName string, bin, beta int) error {
 	defer func() {
 		if r := recover(); r != nil {
 			return
 		}
 	}()
-	gameService.StartGame(clusterName, bin, beta, consts.StartGame)
+	gameService.StartGame(clusterName, bin, beta, consts.StartMaster)
+	return nil
+}
+
+func StartCavesProcess(clusterName string, bin, beta int) error {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+	gameService.StartGame(clusterName, bin, beta, consts.StartCaves)
 	return nil
 }
 
@@ -116,6 +135,8 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 
 // TODO
 func IsGameModUpdateProcess(clusterName string, bin, beta int) bool {
+
+	// 找到当前存档的modId, 然后根据判断当前存档的
 
 	return true
 }

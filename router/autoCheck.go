@@ -11,7 +11,8 @@ func initAutoCheck(router *gin.RouterGroup) {
 	autoCheck := router.Group("/api/auto/check")
 	{
 		autoCheck.GET("/status", autoCheckApi.GetAutoCheckStatus)
-		autoCheck.GET("/run", autoCheckApi.EnableAutoCheckRun)
+		autoCheck.GET("/master", autoCheckApi.EnableAutoCheckMasterRun)
+		autoCheck.GET("/caves", autoCheckApi.EnableAutoCheckCavesRun)
 		autoCheck.GET("/version", autoCheckApi.EnableAutoCheckUpdateVersion)
 		autoCheck.GET("/mod", autoCheckApi.EnableAutoCheckGameMod)
 	}
