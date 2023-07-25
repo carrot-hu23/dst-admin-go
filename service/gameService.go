@@ -388,6 +388,7 @@ func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *level.GameCon
 	go func() {
 		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
 		dstUtils.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
+		dstUtils.DedicatedServerModsSetup2(clusterName, gameConfig.Caves.Modoverrides)
 		wg.Done()
 	}()
 
