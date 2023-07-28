@@ -66,12 +66,19 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取直连ip
 	go func() {
+		clusterIni := d.GetClusterIni(clusterName)
+		password := clusterIni.ClusterPassword
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
 		ipv4, err := d.GetPublicIP()
 		if err != nil {
 			gameArchie.IpConnect = ""
 		} else {
-			gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
+			// c_connect("IP address", port, "password")
+			if password != "" {
+				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ",\"" + password + "\"" + ")"
+			} else {
+				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
+			}
 		}
 		wg.Done()
 	}()

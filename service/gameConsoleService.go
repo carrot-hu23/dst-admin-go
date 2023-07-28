@@ -130,3 +130,23 @@ func PsAux(processName string) string {
 	}
 	return res
 }
+
+func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, length uint) []string {
+	// levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	serverLogPath := dst.GetLevelServerLogPath(clusterName, levelName)
+	lines, err := fileUtils.ReverseRead(serverLogPath, length)
+	if err != nil {
+		log.Panicln("读取日志server_log失败")
+	}
+	return lines
+}
+
+func (c *GameConsoleService) ReadLevelServerChatLog(clusterName, levelName string, length uint) []string {
+	// levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	serverChatLogPath := dst.GetLevelServerChatLogPath(clusterName, levelName)
+	lines, err := fileUtils.ReverseRead(serverChatLogPath, length)
+	if err != nil {
+		log.Panicln("读取日志server_chat_log失败")
+	}
+	return lines
+}

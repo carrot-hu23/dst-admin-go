@@ -36,6 +36,8 @@ func NewRoute() *gin.Engine {
 
 	initAutoCheck(router)
 	initLevel(router)
+	initWebLinkRouter(router)
+
 	initStaticFile(app)
 
 	return app

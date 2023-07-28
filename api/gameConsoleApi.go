@@ -258,3 +258,39 @@ func (g *GameConsoleApi) SaveAnnounceSetting(ctx *gin.Context) {
 	})
 
 }
+
+func (g *GameConsoleApi) ReadLevelServeLog(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	lines, _ := strconv.Atoi(ctx.DefaultQuery("lines", "100"))
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		log.Panicln("levelName 不能为空")
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: consoleService.ReadLevelServerLog(clusterName, levelName, uint(lines)),
+	})
+}
+
+func (g *GameConsoleApi) ReadLevelServeChatLog(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	lines, _ := strconv.Atoi(ctx.DefaultQuery("lines", "100"))
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		log.Panicln("levelName 不能为空")
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: consoleService.ReadLevelServerChatLog(clusterName, levelName, uint(lines)),
+	})
+}

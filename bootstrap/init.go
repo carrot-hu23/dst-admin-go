@@ -1,4 +1,4 @@
-package initConfig
+package bootstrap
 
 import (
 	"dst-admin-go/autoCheck"
@@ -56,6 +56,7 @@ func initDB() {
 		&model.JobTask{},
 		&model.AutoCheck{},
 		&model.Announce{},
+		&model.WebLink{},
 	)
 	if err != nil {
 		return

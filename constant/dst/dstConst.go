@@ -72,3 +72,11 @@ func GetLevelModoverridesPath(clusterName string, levelName string) string {
 func GetLevelServerIniPath(clusterName string, levelName string) string {
 	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server.ini")
 }
+
+func GetLevelServerLogPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server_log.txt")
+}
+
+func GetLevelServerChatLogPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server_chat_log.txt")
+}
