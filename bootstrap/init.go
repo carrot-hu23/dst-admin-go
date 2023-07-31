@@ -73,6 +73,22 @@ func initConfig() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	if _config.AutoCheck.MasterInterval == 0 {
+		_config.AutoCheck.MasterInterval = 5
+	}
+	if _config.AutoCheck.CavesInterval == 0 {
+		_config.AutoCheck.CavesInterval = 5
+	}
+	if _config.AutoCheck.MasterModInterval == 0 {
+		_config.AutoCheck.MasterModInterval = 10
+	}
+	if _config.AutoCheck.CavesModInterval == 0 {
+		_config.AutoCheck.CavesModInterval = 10
+	}
+	if _config.AutoCheck.GameUpdateInterval == 0 {
+		_config.AutoCheck.GameUpdateInterval = 20
+	}
+	log.Println("config: ", _config)
 	global.Config = _config
 }
 

@@ -22,11 +22,16 @@ const (
 	CavesRunning      = "cavesRunning"
 	UpdateGameVersion = "updateGameVersion"
 	UpdateGameMod     = "updateGameMod"
+	UpdateMasterMod   = "updateMasterMod"
+	UpdateCavesMod    = "updateCavesMod"
 
 	ServerIniTemplate = "./static/template/server.ini"
 
 	MasterLevelType = "MASTER"
 	CaveLevelType   = "CAVES"
+
+	Master = "Master"
+	Caves  = "Caves"
 )
 
 var HomePath string

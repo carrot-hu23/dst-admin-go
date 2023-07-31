@@ -14,7 +14,8 @@ func initAutoCheck(router *gin.RouterGroup) {
 		autoCheck.GET("/master", autoCheckApi.EnableAutoCheckMasterRun)
 		autoCheck.GET("/caves", autoCheckApi.EnableAutoCheckCavesRun)
 		autoCheck.GET("/version", autoCheckApi.EnableAutoCheckUpdateVersion)
-		autoCheck.GET("/mod", autoCheckApi.EnableAutoCheckGameMod)
+		autoCheck.GET("/master/mod", autoCheckApi.EnableAutoCheckMasterMod)
+		autoCheck.GET("/caves/mod", autoCheckApi.EnableAutoCheckCavesMod)
 	}
 
 }

@@ -2,14 +2,24 @@ package autoCheck
 
 import (
 	"dst-admin-go/config/database"
+	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
+	"dst-admin-go/mod"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
+	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
+	"dst-admin-go/utils/fileUtils"
 	"log"
+	"path/filepath"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
 var gameService = service.GameService{}
+var gameConsoleService = service.GameConsoleService{}
 
 type Monitor struct {
 	t             string
@@ -125,6 +135,10 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 			return
 		}
 	}()
+	for i := 0; i < 3; i++ {
+		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.GameUpdatePrompt)
+		time.Sleep(3 * time.Second)
+	}
 	err := gameService.UpdateGame(clusterName)
 	if err != nil {
 		return err
@@ -133,14 +147,83 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 	return nil
 }
 
-// TODO
-func IsGameModUpdateProcess(clusterName string, bin, beta int) bool {
-
-	// 找到当前存档的modId, 然后根据判断当前存档的
-
-	return true
+func IsMasterModUpdateProcess(clusterName string, bin, beta int) bool {
+	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Master)
 }
 
-func UpdateGameModUpdateProcess(clusterName string, bin, beta int) error {
+func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
+	for i := 0; i < 3; i++ {
+		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.ModUpdatePrompt)
+		time.Sleep(3 * time.Second)
+	}
+	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartMaster)
+}
+
+func IsCavesModUpdateProcess(clusterName string, bin, beta int) bool {
+	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Caves)
+}
+
+func UpdateCavesModUpdateProcess(clusterName string, bin, beta int) error {
+	for i := 0; i < 3; i++ {
+		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.ModUpdatePrompt)
+		time.Sleep(3 * time.Second)
+	}
+	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartMaster)
+}
+
+func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string) bool {
+
+	// 找到当前存档的modId, 然后根据判断当前存档的
+	dstConfig := dstConfigUtils.GetDstConfig()
+	cluster := dstConfig.Cluster
+	masterAcfPath := filepath.Join(dstConfig.Force_install_dir, "ugc_mods", cluster, levelName)
+	acfWorkShops := dstUtils.ParseACFFile(masterAcfPath)
+
+	var needUpdate atomic.Bool
+	var wg sync.WaitGroup
+	for key := range acfWorkShops {
+		wg.Add(1)
+		go func(key string) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+				wg.Done()
+			}()
+			acfWorkShop := acfWorkShops[key]
+			modInfo, err, _ := mod.GetModInfo(key)
+			log.Println(key, acfWorkShop.TimeUpdated, modInfo.LastTime)
+			if err == nil {
+				if float64(acfWorkShop.TimeUpdated) != modInfo.LastTime {
+					needUpdate.Store(true)
+				}
+			}
+		}(key)
+	}
+	wg.Wait()
+	return needUpdate.Load()
+}
+
+func updateLevelModUpdateProcess(clusterName string, bin, beta int, startOpt int) error {
+	log.Println("开始更新mod", clusterName)
+	dstPath := dstConfigUtils.GetDstConfig().Force_install_dir
+	modsPath := filepath.Join(dstPath, "mods")
+	directories, err := fileUtils.ListDirectories(modsPath)
+	if err != nil {
+		log.Println("delete dst workshop file error", err)
+	}
+	var workshopList []string
+	for _, directory := range directories {
+		if strings.Contains(directory, "workshop") {
+			workshopList = append(workshopList, directory)
+		}
+	}
+	for _, workshop := range workshopList {
+		err := fileUtils.DeleteDir(workshop)
+		if err != nil {
+			log.Println("删除mod失败", err)
+		}
+	}
+	gameService.StartGame(clusterName, bin, beta, startOpt)
 	return nil
 }

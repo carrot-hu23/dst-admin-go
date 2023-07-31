@@ -32,7 +32,6 @@ func InitAnnounce() {
 			db := database.DB
 			var announce model.Announce
 			db.First(&announce)
-			log.Println(announce)
 			if !announce.Enable {
 				time.Sleep(1 * time.Minute)
 				continue

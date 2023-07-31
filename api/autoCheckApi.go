@@ -77,15 +77,33 @@ func (m *AutoCheckApi) EnableAutoCheckCavesRun(ctx *gin.Context) {
 	})
 }
 
-func (m *AutoCheckApi) EnableAutoCheckGameMod(ctx *gin.Context) {
+func (m *AutoCheckApi) EnableAutoCheckMasterMod(ctx *gin.Context) {
 	lock.Lock()
 	defer lock.Unlock()
 	enable, _ := strconv.Atoi(ctx.DefaultQuery("enable", "0"))
 	db := database.DB
 	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.UpdateGameMod).Find(&autoCheck)
+	db.Where("name = ?", consts.UpdateMasterMod).Find(&autoCheck)
 	autoCheck.Enable = enable
-	autoCheck.Name = consts.UpdateGameVersion
+	autoCheck.Name = consts.UpdateMasterMod
+	db.Save(&autoCheck)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func (m *AutoCheckApi) EnableAutoCheckCavesMod(ctx *gin.Context) {
+	lock.Lock()
+	defer lock.Unlock()
+	enable, _ := strconv.Atoi(ctx.DefaultQuery("enable", "0"))
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", consts.UpdateCavesMod).Find(&autoCheck)
+	autoCheck.Enable = enable
+	autoCheck.Name = consts.UpdateCavesMod
 	db.Save(&autoCheck)
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -113,11 +131,21 @@ func (m *AutoCheckApi) GetAutoCheckStatus(ctx *gin.Context) {
 	autoCheck4 := model.AutoCheck{}
 	db4.Where("name = ?", consts.CavesRunning).Find(&autoCheck4)
 
+	db5 := database.DB
+	autoCheck5 := model.AutoCheck{}
+	db5.Where("name = ?", consts.UpdateMasterMod).Find(&autoCheck5)
+
+	db6 := database.DB
+	autoCheck6 := model.AutoCheck{}
+	db6.Where("name = ?", consts.UpdateCavesMod).Find(&autoCheck6)
+
 	res := map[string]int{}
 	res[consts.MasterRunning] = autoCheck1.Enable
 	res[consts.UpdateGameVersion] = autoCheck2.Enable
 	res[consts.UpdateGameMod] = autoCheck3.Enable
 	res[consts.CavesRunning] = autoCheck4.Enable
+	res[consts.UpdateMasterMod] = autoCheck5.Enable
+	res[consts.UpdateCavesMod] = autoCheck6.Enable
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
