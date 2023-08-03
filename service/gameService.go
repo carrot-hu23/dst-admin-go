@@ -273,7 +273,6 @@ func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboar
 
 	go func() {
 		defer wg.Done()
-		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 		dashboardVO.MemStates = m.Alloc / 1024

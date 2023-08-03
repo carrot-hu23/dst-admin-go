@@ -149,3 +149,70 @@ func (m *ModApi) DeleteSetupWorkshop(ctx *gin.Context) {
 		Data: nil,
 	})
 }
+
+func (m *ModApi) GetModInfoFile(ctx *gin.Context) {
+	modId := ctx.Param("modId")
+	var modInfos model.ModInfo
+	db := database.DB
+	db.Where("modid = ?", modId).Find(&modInfos)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: modInfos,
+	})
+}
+
+func (m *ModApi) SaveModInfoFile(ctx *gin.Context) {
+
+	var modInfos model.ModInfo
+	err := ctx.ShouldBind(&modInfos)
+	if err != nil {
+		log.Panicln("参数解析失败")
+	}
+	db := database.DB
+	db.Save(&modInfos)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: modInfos,
+	})
+}
+
+func (m *ModApi) UpdateMod(ctx *gin.Context) {
+
+	modId := ctx.Param("modId")
+	db := database.DB
+	db.Where("modid = ?", modId).Delete(&model.ModInfo{})
+
+	dstConfig := dstConfigUtils.GetDstConfig()
+	mod_download_path := dstConfig.Mod_download_path
+	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
+	fileUtils.DeleteDir(mod_path)
+
+	modinfo, err, status := mod.GetModInfo(modId)
+	if err != nil {
+		log.Panicln("模组下载失败", "status: ", status)
+	}
+	var mod_config map[string]interface{}
+	json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
+	mod := map[string]interface{}{
+		"auth":          modinfo.Auth,
+		"consumer_id":   modinfo.ConsumerAppid,
+		"creator_appid": modinfo.CreatorAppid,
+		"description":   modinfo.Description,
+		"file_url":      modinfo.FileUrl,
+		"modid":         modinfo.Modid,
+		"img":           modinfo.Img,
+		"last_time":     modinfo.LastTime,
+		"name":          modinfo.Name,
+		"v":             modinfo.V,
+		"mod_config":    mod_config,
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: mod,
+	})
+}

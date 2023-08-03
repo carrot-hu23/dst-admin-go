@@ -55,9 +55,7 @@ func (m *Monitor) Start() {
 		default:
 			if !m.checkFunc(m.clusterName, m.bin, m.beta) {
 				log.Println(m.clusterName, m.t, " is not running, waiting for ", m.checkInterval)
-				log.Println("start sleep")
 				time.Sleep(m.checkInterval)
-				log.Println("end sleep")
 				if !m.checkFunc(m.clusterName, m.bin, m.beta) {
 					log.Println(m.clusterName, m.t, "has not started, starting it...")
 					err := m.startFunc(m.clusterName, m.bin, m.beta)
@@ -176,12 +174,15 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 	// 找到当前存档的modId, 然后根据判断当前存档的
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
-	masterAcfPath := filepath.Join(dstConfig.Force_install_dir, "ugc_mods", cluster, levelName)
-	acfWorkShops := dstUtils.ParseACFFile(masterAcfPath)
-
+	acfPath := filepath.Join(dstConfig.Force_install_dir, "ugc_mods", cluster, levelName, "appworkshop_322330.acf")
+	acfWorkshops := dstUtils.ParseACFFile(acfPath)
+	// log.Println("acf path: ", acfPath)
+	// log.Println("acf workshops: ", acfWorkshops)
 	var needUpdate atomic.Bool
+	needUpdate.Store(true)
 	var wg sync.WaitGroup
-	for key := range acfWorkShops {
+	// log.Println("开始检测 mod 版本")
+	for key := range acfWorkshops {
 		wg.Add(1)
 		go func(key string) {
 			defer func() {
@@ -190,21 +191,31 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 				}
 				wg.Done()
 			}()
-			acfWorkShop := acfWorkShops[key]
+			// log.Println("key:", key)
+			acfWorkshop := acfWorkshops[key]
 			modInfo, err, _ := mod.GetModInfo(key)
-			log.Println(key, acfWorkShop.TimeUpdated, modInfo.LastTime)
+			if err != nil {
+				log.Println("获取mod信息失败", err)
+			}
+			// log.Println("模组: ", key, float64(acfWorkshop.TimeUpdated), modInfo.LastTime)
 			if err == nil {
-				if float64(acfWorkShop.TimeUpdated) != modInfo.LastTime {
-					needUpdate.Store(true)
+				if float64(acfWorkshop.TimeUpdated) != modInfo.LastTime {
+					needUpdate.Store(false)
 				}
 			}
 		}(key)
 	}
 	wg.Wait()
+	// log.Println("开始检测 mod 版本结束", needUpdate.Load())
 	return needUpdate.Load()
 }
 
 func updateLevelModUpdateProcess(clusterName string, bin, beta int, startOpt int) error {
+	defer func() {
+		if r := recover(); r != nil {
+
+		}
+	}()
 	log.Println("开始更新mod", clusterName)
 	dstPath := dstConfigUtils.GetDstConfig().Force_install_dir
 	modsPath := filepath.Join(dstPath, "mods")

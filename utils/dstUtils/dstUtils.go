@@ -246,7 +246,10 @@ func ParseACFFile(filePath string) map[string]WorkshopItem {
 			replace = strings.Replace(replace, "\"", "", -1)
 			if _, err := strconv.Atoi(replace); err == nil {
 				// This line contains the Workshop Item ID
-				currentItemID = line
+				// currentItemID = line
+				fields := strings.Fields(line)
+				value := strings.Replace(fields[0], "\"", "", -1)
+				currentItemID = value
 			} else {
 				// This line contains the Workshop Item details
 				fields := strings.Fields(line)

@@ -4,17 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
 	"os"
 	"os/exec"
 	"os/user"
 	"runtime"
 	"strings"
-	"time"
-
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/host"
-	"github.com/shirou/gopsutil/mem"
 )
 
 // Home returns the home directory for the executing user.
@@ -90,13 +88,16 @@ type HostInfo struct {
 
 type MemInfo struct {
 	Total       uint64  `json:"total"`
-	Free        uint64  `json:"free"`
+	Available   uint64  `json:"available"`
+	Used        uint64  `json:"used"`
 	UsedPercent float64 `json:"usedPercent"`
 }
 
 type CpuInfo struct {
-	Cores      int     `json:"cores"`
-	CpuPercent float64 `json:"cpuPercent"`
+	Cores          int       `json:"cores"`
+	CpuPercent     []float64 `json:"cpuPercent"`
+	CpuUsedPercent float64   `json:"cpuUsedPercent"`
+	CpuUsed        float64   `json:"cpuUsed"`
 }
 
 type DiskInfo struct {
@@ -144,13 +145,15 @@ func GetDiskInfo() *DiskInfo {
 }
 
 func GetCpuInfo() *CpuInfo {
-
-	cpuPercent, _ := cpu.Percent(time.Duration(time.Millisecond*100), false)
-	cpuNumber, _ := cpu.Counts(false)
-	return &CpuInfo{
-		Cores:      cpuNumber,
-		CpuPercent: cpuPercent[0],
+	cpuInfo := &CpuInfo{}
+	cpuPercent, _ := cpu.Percent(0, false)
+	cpuInfo.Cores, _ = cpu.Counts(true)
+	if len(cpuPercent) == 1 {
+		cpuInfo.CpuUsedPercent = cpuPercent[0]
+		cpuInfo.CpuUsed = cpuInfo.CpuUsedPercent * 0.01 * float64(cpuInfo.Cores)
 	}
+	cpuInfo.CpuPercent, _ = cpu.Percent(0, true)
+	return cpuInfo
 }
 
 func GetHostInfo() *HostInfo {
@@ -174,7 +177,8 @@ func GetMemInfo() *MemInfo {
 
 	return &MemInfo{
 		Total:       v.Total,
-		Free:        v.Free,
+		Available:   v.Available,
+		Used:        v.Used,
 		UsedPercent: v.UsedPercent,
 	}
 }
