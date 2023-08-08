@@ -146,7 +146,13 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 }
 
 func IsMasterModUpdateProcess(clusterName string, bin, beta int) bool {
-	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Master)
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", consts.UpdateMasterMod).Find(&autoCheck)
+	if autoCheck.Enable == 1 {
+		return isLevelModUpdateProcess(clusterName, bin, beta, consts.Master)
+	}
+	return true
 }
 
 func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
@@ -158,7 +164,13 @@ func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
 }
 
 func IsCavesModUpdateProcess(clusterName string, bin, beta int) bool {
-	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Caves)
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", consts.UpdateCavesMod).Find(&autoCheck)
+	if autoCheck.Enable == 1 {
+		return isLevelModUpdateProcess(clusterName, bin, beta, consts.Caves)
+	}
+	return true
 }
 
 func UpdateCavesModUpdateProcess(clusterName string, bin, beta int) error {
@@ -166,9 +178,10 @@ func UpdateCavesModUpdateProcess(clusterName string, bin, beta int) error {
 		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.ModUpdatePrompt)
 		time.Sleep(3 * time.Second)
 	}
-	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartMaster)
+	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartCaves)
 }
 
+// TODO 有问题
 func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string) bool {
 
 	// 找到当前存档的modId, 然后根据判断当前存档的
@@ -176,12 +189,12 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 	cluster := dstConfig.Cluster
 	acfPath := filepath.Join(dstConfig.Force_install_dir, "ugc_mods", cluster, levelName, "appworkshop_322330.acf")
 	acfWorkshops := dstUtils.ParseACFFile(acfPath)
-	// log.Println("acf path: ", acfPath)
-	// log.Println("acf workshops: ", acfWorkshops)
+	log.Println("acf path: ", acfPath)
+	log.Println("acf workshops: ", acfWorkshops)
 	var needUpdate atomic.Bool
 	needUpdate.Store(true)
 	var wg sync.WaitGroup
-	// log.Println("开始检测 mod 版本")
+	log.Println("开始检测 mod 版本")
 	for key := range acfWorkshops {
 		wg.Add(1)
 		go func(key string) {
@@ -191,13 +204,12 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 				}
 				wg.Done()
 			}()
-			// log.Println("key:", key)
 			acfWorkshop := acfWorkshops[key]
 			modInfo, err, _ := mod.GetModInfo(key)
 			if err != nil {
 				log.Println("获取mod信息失败", err)
 			}
-			// log.Println("模组: ", key, float64(acfWorkshop.TimeUpdated), modInfo.LastTime)
+			log.Println("模组: ", key, float64(acfWorkshop.TimeUpdated), modInfo.LastTime)
 			if err == nil {
 				if float64(acfWorkshop.TimeUpdated) != modInfo.LastTime {
 					needUpdate.Store(false)
@@ -206,19 +218,21 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 		}(key)
 	}
 	wg.Wait()
-	// log.Println("开始检测 mod 版本结束", needUpdate.Load())
+	log.Println("开始检测 mod 版本结束", needUpdate.Load())
 	return needUpdate.Load()
 }
 
+// TODO 有问题
 func updateLevelModUpdateProcess(clusterName string, bin, beta int, startOpt int) error {
 	defer func() {
 		if r := recover(); r != nil {
-
+			log.Println(r)
 		}
 	}()
 	log.Println("开始更新mod", clusterName)
 	dstPath := dstConfigUtils.GetDstConfig().Force_install_dir
 	modsPath := filepath.Join(dstPath, "mods")
+	log.Println("mods path ", modsPath)
 	directories, err := fileUtils.ListDirectories(modsPath)
 	if err != nil {
 		log.Println("delete dst workshop file error", err)
@@ -229,6 +243,7 @@ func updateLevelModUpdateProcess(clusterName string, bin, beta int, startOpt int
 			workshopList = append(workshopList, directory)
 		}
 	}
+	log.Println("workshopList ", workshopList)
 	for _, workshop := range workshopList {
 		err := fileUtils.DeleteDir(workshop)
 		if err != nil {
