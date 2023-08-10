@@ -1,38 +1,32 @@
 # dst-admin-go
-> 饥荒联机版管理后台Go版本
+> Don't Starve Together Server management panel
 >
 > Date: 2023/05/11
 
-在线预览地址 http://1.12.223.51:8080/ （admin 123456）
+Preview Demo: http://1.12.223.51:8080/ （admin 123456）
 
-使用go编写的饥荒管理面板,部署简单,占用内存少,界面美观,操作简单,提供可视化界面操作房间配置和模组在线配置,支持多房间管理
+This is a management panel for Don't Starve Together, developed in Go. It offers simple deployment, low memory usage, an aesthetically pleasing interface, and user-friendly operations. The panel provides a visual interface for easily configuring game rooms and managing online mods. It also supports the management of multiple rooms. All of these features are designed to provide a smoother and more streamlined user experience.
 
-## 部署
+这是一个使用 Go 编写的饥荒管理面板，它具有简单的部署流程、低内存占用、美观的界面和简洁的操作方式。该管理面板提供了直观的可视化界面，方便用户进行房间配置和在线模组配置，同时支持多房间的便捷管理。这一切旨在提供更加流畅的使用体验。
+
+## Deployment/部署
 
 **目前多房间版本还有些bug没有修复(等单房间功能稳定后在迁移过来)， 萌新勿用**
 
 注意目录必须要有读写权限。
+
+
 ### 二进制部署
-+ 1.1.6(单房间部署)
-  
-    [萌新部署教程](https://blog.csdn.net/Dig_hoof/article/details/131296762)
 
-+ 2.0.0.beta
+[部署教程](https://blog.csdn.net/Dig_hoof/article/details/131296762)
 
-  点击查看 [多房间部署文档](docs/install.md)
+[视频教程](https://www.bilibili.com/read/cv25125509)
 
-### 一键部署
-目前只支持 `centos`。感谢 [SubTel](https://github.com/SubTel)提供的脚本
-[dst-admin-go一键部署脚本centos版本.sh](docs/dst-admin-go一键部署脚本centos版本.sh)
-支持 systemctl 命令
-```sh
-wget https://github.com/hujinbo23/dst-admin-go/releases/download/1.1.6.hotfix/dst-admin-go.centos.sh
+### docker
+
 ```
-### docker 部署
-此版本是单房间版本，安装后记得在页面`系统设置`把64位改成32启动，64位启动暂时还有问题
-```
-docker pull hujinbo23/dst-admin-go
-docker run -d -p8082:8082 hujinbo23/dst-admin-go
+docker pull hujinbo23/dst-admin-go:1.1.8
+docker run -d -p8082:8082 hujinbo23/dst-admin-go:1.1.8
 ```
 
 ## 预览
