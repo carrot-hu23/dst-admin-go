@@ -43,7 +43,7 @@ type Schedule struct {
 }
 
 func NewSchedule() *Schedule {
-	c := cron.New(cron.WithSeconds())
+	c := cron.New()
 	schedule := Schedule{
 		cron: c,
 	}

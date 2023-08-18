@@ -199,7 +199,7 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 	acfWorkshops := dstUtils.ParseACFFile(acfPath)
 
 	log.Println("acf path: ", acfPath)
-	log.Println("acf workshops: ", acfWorkshops)
+	// log.Println("acf workshops: ", acfWorkshops)
 
 	activeModMap := make(map[string]dstUtils.WorkshopItem)
 	for i := range workshopIds {
