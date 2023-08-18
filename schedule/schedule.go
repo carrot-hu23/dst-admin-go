@@ -3,8 +3,10 @@ package schedule
 import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
+	"dst-admin-go/service"
 	"github.com/robfig/cron/v3"
 	"log"
+	"strings"
 	"sync"
 )
 
@@ -12,12 +14,20 @@ var ScheduleSingleton *Schedule
 
 var StrategyMap = map[string]Strategy{}
 
+var gameConsoleService = service.GameConsoleService{}
+
 func init() {
 	StrategyMap["backup"] = &BackupStrategy{}
 	StrategyMap["update"] = &UpdateStrategy{}
 	StrategyMap["start"] = &StartStrategy{}
 	StrategyMap["stop"] = &StopStrategy{}
 	StrategyMap["restart"] = &RestartStrategy{}
+	StrategyMap["startMaster"] = &StartMasterStrategy{}
+	StrategyMap["stopMaster"] = &StartMasterStrategy{}
+	StrategyMap["startCaves"] = &StartCavesStrategy{}
+	StrategyMap["stopCaves"] = &StopCavesStrategy{}
+	StrategyMap["restartMaster"] = &RestartMasterStrategy{}
+	StrategyMap["restartCaves"] = &RestartCavesStrategy{}
 }
 
 type Task struct {
@@ -85,13 +95,14 @@ func (s *Schedule) GetJobs() []map[string]interface{} {
 		taskId, _ := s.cache.Load(entry.ID)
 		task := s.findDB(taskId.(uint))
 		results = append(results, map[string]interface{}{
-			"jobId":    entry.ID,
-			"next":     entry.Next,
-			"prev":     entry.Prev,
-			"valid":    entry.Valid(),
-			"cron":     task.Cron,
-			"comment":  task.Comment,
-			"category": task.Category,
+			"jobId":        entry.ID,
+			"next":         entry.Next,
+			"prev":         entry.Prev,
+			"valid":        entry.Valid(),
+			"cron":         task.Cron,
+			"comment":      task.Comment,
+			"category":     task.Category,
+			"announcement": task.Announcement,
 		})
 	}
 	return results
@@ -105,8 +116,10 @@ func (s *Schedule) initDBTask() {
 	db.Find(&jobTaskList)
 
 	for _, task := range jobTaskList {
-		// TODO 根据类型不同 执行不同的函数
+		// 根据类型不同 执行不同的函数
 		entryID, err := s.cron.AddFunc(task.Cron, func() {
+			// 发送公告
+			s.SendAnnouncement(task.ClusterName, task.Announcement)
 			StrategyMap[task.Category].Execute(task.ClusterName)
 		})
 		if err != nil {
@@ -127,4 +140,14 @@ func (s *Schedule) findDB(taskId uint) *model.JobTask {
 	db.Where("ID = ?", taskId).First(&task)
 
 	return &task
+}
+
+func (s *Schedule) SendAnnouncement(clusterName string, announcement string) {
+	if announcement == "" {
+		return
+	}
+	lines := strings.Split(announcement, "\n")
+	for i := range lines {
+		gameConsoleService.SentBroadcast(clusterName, lines[i])
+	}
 }

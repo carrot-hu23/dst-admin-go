@@ -31,6 +31,13 @@ func (c *GameConsoleService) SentBroadcast(clusterName string, message string) {
 	broadcast += "\\\")\\n\""
 	log.Println(broadcast)
 	shellUtils.Shell(broadcast)
+
+	broadcast2 := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"c_announce(\\\""
+	broadcast2 += message
+	broadcast2 += "\\\")\\n\""
+	log.Println(broadcast2)
+	shellUtils.Shell(broadcast2)
+
 }
 
 func (c *GameConsoleService) KickPlayer(clusterName, KuId string) {

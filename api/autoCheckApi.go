@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/vo"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -20,6 +21,38 @@ const (
 )
 
 var lock = sync.Mutex{}
+
+func (m *AutoCheckApi) SaveAutoCheck(ctx *gin.Context) {
+	lock.Lock()
+	defer lock.Unlock()
+	var autoCheck model.AutoCheck
+	err := ctx.ShouldBind(&autoCheck)
+	if err != nil {
+		log.Panicln("参数错误", err)
+	}
+	db := database.DB
+	db.Save(&autoCheck)
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func (m *AutoCheckApi) GetAutoCheck(ctx *gin.Context) {
+
+	name := ctx.Query("name")
+
+	db1 := database.DB
+	autoCheck1 := model.AutoCheck{}
+	db1.Where("name = ?", name).Find(&autoCheck1)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: autoCheck1,
+	})
+}
 
 func (m *AutoCheckApi) EnableAutoCheckUpdateVersion(ctx *gin.Context) {
 	lock.Lock()

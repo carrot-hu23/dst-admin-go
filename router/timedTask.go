@@ -5,9 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func initJobTaskRouter(router *gin.RouterGroup) {
+func initTimedTaskRouter(router *gin.RouterGroup) {
 
-	taskApi := api.JobTaskApi{}
+	taskApi := api.TimedTaskApi{}
 	task := router.Group("/api/task")
 	{
 		task.GET("", taskApi.GetJobTaskList)

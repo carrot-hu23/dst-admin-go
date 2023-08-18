@@ -12,5 +12,5 @@ func initThirdPartyRouter(router *gin.RouterGroup) {
 	router.GET("/api/dst/version", thirdPartyApi.GetDstVersion)
 	router.POST("/api/dst/home/server", thirdPartyApi.GetDstHomeServerList)
 	router.POST("/api/dst/home/server/detail", thirdPartyApi.GetDstHomeDetailList)
-
+	router.GET("/api/dst/lobby/server/detail", thirdPartyApi.QueryLobbyServerDetail)
 }

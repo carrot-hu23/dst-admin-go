@@ -12,10 +12,10 @@ import (
 	"strconv"
 )
 
-type JobTaskApi struct {
+type TimedTaskApi struct {
 }
 
-func (j *JobTaskApi) GetInstructList(ctx *gin.Context) {
+func (j *TimedTaskApi) GetInstructList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -23,7 +23,7 @@ func (j *JobTaskApi) GetInstructList(ctx *gin.Context) {
 	})
 }
 
-func (j *JobTaskApi) GetJobTaskList(ctx *gin.Context) {
+func (j *TimedTaskApi) GetJobTaskList(ctx *gin.Context) {
 
 	jobs := schedule.ScheduleSingleton.GetJobs()
 
@@ -34,7 +34,7 @@ func (j *JobTaskApi) GetJobTaskList(ctx *gin.Context) {
 	})
 }
 
-func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
+func (j *TimedTaskApi) AddJobTask(ctx *gin.Context) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	jobTask := &model.JobTask{}
@@ -74,7 +74,7 @@ func (j *JobTaskApi) AddJobTask(ctx *gin.Context) {
 	})
 }
 
-func (j *JobTaskApi) DeleteJobTask(ctx *gin.Context) {
+func (j *TimedTaskApi) DeleteJobTask(ctx *gin.Context) {
 
 	jobId, _ := strconv.Atoi(ctx.DefaultQuery("jobId", "0"))
 	log.Println("jobid: ", jobId)

@@ -4,17 +4,20 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/mod"
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
+	"encoding/json"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -133,10 +136,7 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 			return
 		}
 	}()
-	for i := 0; i < 3; i++ {
-		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.GameUpdatePrompt)
-		time.Sleep(3 * time.Second)
-	}
+	SendAnnouncement(clusterName, consts.UpdateGameVersion)
 	err := gameService.UpdateGame(clusterName)
 	if err != nil {
 		return err
@@ -156,10 +156,7 @@ func IsMasterModUpdateProcess(clusterName string, bin, beta int) bool {
 }
 
 func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
-	for i := 0; i < 3; i++ {
-		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.ModUpdatePrompt)
-		time.Sleep(3 * time.Second)
-	}
+	SendAnnouncement(clusterName, consts.UpdateMasterMod)
 	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartMaster)
 }
 
@@ -174,6 +171,7 @@ func IsCavesModUpdateProcess(clusterName string, bin, beta int) bool {
 }
 
 func UpdateCavesModUpdateProcess(clusterName string, bin, beta int) error {
+	SendAnnouncement(clusterName, consts.UpdateCavesMod)
 	for i := 0; i < 3; i++ {
 		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.ModUpdatePrompt)
 		time.Sleep(3 * time.Second)
@@ -187,39 +185,106 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 	// 找到当前存档的modId, 然后根据判断当前存档的
 	dstConfig := dstConfigUtils.GetDstConfig()
 	cluster := dstConfig.Cluster
+	modoverridesPath := dst.GetLevelModoverridesPath(clusterName, levelName)
+	content, err := fileUtils.ReadFile(modoverridesPath)
+	if err != nil {
+		return true
+	}
+	workshopIds := dstUtils.WorkshopIds(content)
+	if len(workshopIds) == 0 {
+		return true
+	}
+
 	acfPath := filepath.Join(dstConfig.Force_install_dir, "ugc_mods", cluster, levelName, "appworkshop_322330.acf")
 	acfWorkshops := dstUtils.ParseACFFile(acfPath)
+
 	log.Println("acf path: ", acfPath)
 	log.Println("acf workshops: ", acfWorkshops)
-	var needUpdate atomic.Bool
-	needUpdate.Store(true)
-	var wg sync.WaitGroup
-	log.Println("开始检测 mod 版本")
-	for key := range acfWorkshops {
-		wg.Add(1)
-		go func(key string) {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println(r)
-				}
-				wg.Done()
-			}()
-			acfWorkshop := acfWorkshops[key]
-			modInfo, err, _ := mod.GetModInfo(key)
-			if err != nil {
-				log.Println("获取mod信息失败", err)
-			}
-			log.Println("模组: ", key, float64(acfWorkshop.TimeUpdated), modInfo.LastTime)
-			if err == nil {
-				if float64(acfWorkshop.TimeUpdated) != modInfo.LastTime {
-					needUpdate.Store(false)
-				}
-			}
-		}(key)
+
+	activeModMap := make(map[string]dstUtils.WorkshopItem)
+	for i := range workshopIds {
+		key := workshopIds[i]
+		value, ok := acfWorkshops[key]
+		if ok {
+			activeModMap[key] = value
+		}
 	}
-	wg.Wait()
-	log.Println("开始检测 mod 版本结束", needUpdate.Load())
-	return needUpdate.Load()
+	return diffFetchModInfo(activeModMap)
+}
+
+const (
+	steamAPIKey = "73DF9F781D195DFD3D19DED1CB72EEE6"
+	appID       = 322330
+	language    = 6
+)
+
+func diffFetchModInfo(activeModMap map[string]dstUtils.WorkshopItem) bool {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
+
+	var modIds []string
+	for key := range activeModMap {
+		modIds = append(modIds, key)
+	}
+
+	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
+	data := url.Values{}
+	data.Set("key", steamAPIKey)
+	data.Set("language", "6")
+	for i := range modIds {
+		data.Set("publishedfileids["+strconv.Itoa(i)+"]", modIds[i])
+	}
+	urlStr = urlStr + "?" + data.Encode()
+
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		return true
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return true
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(resp.Body)
+
+	var result map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return true
+	}
+
+	dataList, ok := result["response"].(map[string]interface{})["publishedfiledetails"].([]interface{})
+	if !ok {
+		return true
+	}
+	for i := range dataList {
+
+		data2 := dataList[i].(map[string]interface{})
+		_, find := data2["time_updated"]
+		if find {
+			timeUpdated := data2["time_updated"].(float64)
+			modId := data2["publishedfileid"].(string)
+			value, ok := activeModMap[modId]
+			if ok {
+				if timeUpdated > float64(value.TimeUpdated) {
+					return false
+				}
+			}
+		}
+
+	}
+
+	return true
 }
 
 // TODO 有问题
@@ -229,27 +294,25 @@ func updateLevelModUpdateProcess(clusterName string, bin, beta int, startOpt int
 			log.Println(r)
 		}
 	}()
-	log.Println("开始更新mod", clusterName)
-	dstPath := dstConfigUtils.GetDstConfig().Force_install_dir
-	modsPath := filepath.Join(dstPath, "mods")
-	log.Println("mods path ", modsPath)
-	directories, err := fileUtils.ListDirectories(modsPath)
-	if err != nil {
-		log.Println("delete dst workshop file error", err)
-	}
-	var workshopList []string
-	for _, directory := range directories {
-		if strings.Contains(directory, "workshop") {
-			workshopList = append(workshopList, directory)
-		}
-	}
-	log.Println("workshopList ", workshopList)
-	for _, workshop := range workshopList {
-		err := fileUtils.DeleteDir(workshop)
-		if err != nil {
-			log.Println("删除mod失败", err)
-		}
-	}
+	log.Println("更新模组")
 	gameService.StartGame(clusterName, bin, beta, startOpt)
 	return nil
+}
+
+func SendAnnouncement(clusterName string, name string) {
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", name).Find(&autoCheck)
+	size := autoCheck.Times
+	for i := 0; i < size; i++ {
+		announcement := autoCheck.Announcement
+		if announcement != "" {
+			lines := strings.Split(announcement, "\n")
+			for j := range lines {
+				gameConsoleService.SentBroadcast(clusterName, lines[j])
+				time.Sleep(300 * time.Millisecond)
+			}
+		}
+		time.Sleep(time.Duration(autoCheck.Sleep) * time.Second)
+	}
 }
