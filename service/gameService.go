@@ -127,7 +127,7 @@ func (g *GameService) killLevel(clusterName, level string) {
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		// TODO 强制杀掉
-		log.Panicln("kill "+clusterName+" "+level+" error: ", err)
+		log.Println("kill "+clusterName+" "+level+" error: ", err)
 	}
 }
 

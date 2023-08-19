@@ -13,6 +13,7 @@ import (
 )
 
 type GameConsoleService struct {
+	GameService
 }
 
 func (c *GameConsoleService) ClearScreen() bool {
@@ -26,17 +27,21 @@ func (c *GameConsoleService) ClearScreen() bool {
 
 func (c *GameConsoleService) SentBroadcast(clusterName string, message string) {
 
-	broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
-	broadcast += message
-	broadcast += "\\\")\\n\""
-	log.Println(broadcast)
-	shellUtils.Shell(broadcast)
+	if c.GetLevelStatus(clusterName, "Master") {
+		broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
+		broadcast += message
+		broadcast += "\\\")\\n\""
+		log.Println(broadcast)
+		shellUtils.Shell(broadcast)
+	}
 
-	broadcast2 := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"c_announce(\\\""
-	broadcast2 += message
-	broadcast2 += "\\\")\\n\""
-	log.Println(broadcast2)
-	shellUtils.Shell(broadcast2)
+	if c.GetLevelStatus(clusterName, "Caves") {
+		broadcast2 := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"c_announce(\\\""
+		broadcast2 += message
+		broadcast2 += "\\\")\\n\""
+		log.Println(broadcast2)
+		shellUtils.Shell(broadcast2)
+	}
 
 }
 

@@ -1,10 +1,8 @@
 package autoCheck
 
 import (
-	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
 	"log"
-	"time"
 )
 
 var AutoCheckObject *AutoCheckConfig
@@ -25,13 +23,13 @@ type AutoCheckConfig struct {
 
 func (a *AutoCheckConfig) InitAutoCheck(clusterName string, bin, beta int) {
 	log.Println("开始初始化循检", clusterName)
-	config := global.Config
 	if clusterName != "" {
-		a.MasterRunning = NewMonitor(clusterName, consts.MasterRunning, bin, beta, IsMasterRunning, time.Duration(config.AutoCheck.MasterInterval)*time.Minute, StartMasterProcess)
-		a.CavesRunning = NewMonitor(clusterName, consts.CavesRunning, bin, beta, IsCavesRunning, time.Duration(config.AutoCheck.CavesInterval)*time.Minute, StartCavesProcess)
-		a.UpdateGameVersionM = NewMonitor(clusterName, consts.UpdateGameVersion, bin, beta, IsGameUpdateVersionProcess, time.Duration(config.AutoCheck.GameUpdateInterval)*time.Minute, UpdateGameVersionProcess)
-		a.MasterModUpdate = NewMonitor(clusterName, consts.UpdateMasterMod, bin, beta, IsMasterModUpdateProcess, time.Duration(config.AutoCheck.MasterModInterval)*time.Minute, UpdateMasterModUpdateProcess)
-		a.CavesModUpdate = NewMonitor(clusterName, consts.UpdateCavesMod, bin, beta, IsCavesModUpdateProcess, time.Duration(config.AutoCheck.CavesModInterval)*time.Minute, UpdateCavesModUpdateProcess)
+
+		a.MasterRunning = NewMonitor(clusterName, consts.MasterRunning, bin, beta, IsMasterRunning, StartMasterProcess)
+		a.CavesRunning = NewMonitor(clusterName, consts.CavesRunning, bin, beta, IsCavesRunning, StartCavesProcess)
+		a.UpdateGameVersionM = NewMonitor(clusterName, consts.UpdateGameVersion, bin, beta, IsGameUpdateVersionProcess, UpdateGameVersionProcess)
+		a.MasterModUpdate = NewMonitor(clusterName, consts.UpdateMasterMod, bin, beta, IsMasterModUpdateProcess, UpdateMasterModUpdateProcess)
+		a.CavesModUpdate = NewMonitor(clusterName, consts.UpdateCavesMod, bin, beta, IsCavesModUpdateProcess, UpdateCavesModUpdateProcess)
 
 		go a.MasterRunning.Start()
 		go a.CavesRunning.Start()

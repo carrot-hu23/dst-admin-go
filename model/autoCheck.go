@@ -9,4 +9,5 @@ type AutoCheck struct {
 	Announcement string `json:"announcement"`
 	Times        int    `json:"times"`
 	Sleep        int    `json:"sleep"`
+	Interval     int    `json:"interval"`
 }

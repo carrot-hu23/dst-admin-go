@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 )
 
 var ScheduleSingleton *Schedule
@@ -31,10 +32,13 @@ func init() {
 }
 
 type Task struct {
-	Id          uint
-	Corn        string
-	F           func(string)
-	ClusterName string
+	Id           uint
+	Corn         string
+	F            func(string)
+	ClusterName  string
+	Announcement string
+	Sleep        int
+	Times        int
 }
 
 type Schedule struct {
@@ -58,6 +62,8 @@ func (s *Schedule) Stop() {
 
 func (s *Schedule) AddJob(task Task) {
 	jobId, err := s.cron.AddFunc(task.Corn, func() {
+		// 发送公告
+		s.SendAnnouncement(task.ClusterName, task.Announcement, task.Sleep, task.Times)
 		task.F(task.ClusterName)
 	})
 	if err != nil {
@@ -119,7 +125,7 @@ func (s *Schedule) initDBTask() {
 		// 根据类型不同 执行不同的函数
 		entryID, err := s.cron.AddFunc(task.Cron, func() {
 			// 发送公告
-			s.SendAnnouncement(task.ClusterName, task.Announcement)
+			s.SendAnnouncement(task.ClusterName, task.Announcement, task.Sleep, task.Times)
 			StrategyMap[task.Category].Execute(task.ClusterName)
 		})
 		if err != nil {
@@ -142,12 +148,18 @@ func (s *Schedule) findDB(taskId uint) *model.JobTask {
 	return &task
 }
 
-func (s *Schedule) SendAnnouncement(clusterName string, announcement string) {
+func (s *Schedule) SendAnnouncement(clusterName string, announcement string, sleep int, times int) {
 	if announcement == "" {
 		return
 	}
-	lines := strings.Split(announcement, "\n")
-	for i := range lines {
-		gameConsoleService.SentBroadcast(clusterName, lines[i])
+	for i := 0; i < times; i++ {
+		log.Println("开始发送公告")
+		lines := strings.Split(announcement, "\n")
+		log.Println(lines)
+		for i := range lines {
+			gameConsoleService.SentBroadcast(clusterName, lines[i])
+		}
+		time.Sleep(time.Duration(sleep) * time.Second)
+		log.Println("结束发送公告")
 	}
 }

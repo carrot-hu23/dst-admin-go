@@ -25,49 +25,54 @@ var gameService = service.GameService{}
 var gameConsoleService = service.GameConsoleService{}
 
 type Monitor struct {
-	t             string
-	beta          int
-	bin           int
-	clusterName   string
-	checkFunc     func(clusterName string, int2 int, int3 int) bool
-	checkInterval time.Duration
-	startFunc     func(clusterName string, int2 int, int3 int) error
-	stopCh        chan int
+	name        string
+	beta        int
+	bin         int
+	clusterName string
+	checkFunc   func(clusterName string, int2 int, int3 int) bool
+	startFunc   func(clusterName string, int2 int, int3 int) error
+	stopCh      chan int
 }
 
-func NewMonitor(clusterName string, t string, bin int, beta int, checkFunc func(string2 string, int2 int, int3 int) bool, checkInterval time.Duration, startFunc func(string2 string, int2 int, int3 int) error) *Monitor {
+func NewMonitor(clusterName string, name string, bin int, beta int, checkFunc func(string2 string, int2 int, int3 int) bool, startFunc func(string2 string, int2 int, int3 int) error) *Monitor {
 	return &Monitor{
-		t:             t,
-		beta:          beta,
-		bin:           bin,
-		clusterName:   clusterName,
-		checkFunc:     checkFunc,
-		checkInterval: checkInterval,
-		startFunc:     startFunc,
-		stopCh:        make(chan int, 1),
+		name:        name,
+		beta:        beta,
+		bin:         bin,
+		clusterName: clusterName,
+		checkFunc:   checkFunc,
+		startFunc:   startFunc,
+		stopCh:      make(chan int, 1),
 	}
 }
 
 func (m *Monitor) Start() {
-	log.Println("Starting monitor cluster: ", m.clusterName, m.t, "bin:", m.bin, "beta:", m.beta)
+	log.Println("Starting monitor cluster: ", m.clusterName, m.name, "bin:", m.bin, "beta:", m.beta)
 	for {
 		select {
 		case <-m.stopCh:
-			log.Println("Stopping monitor cluster: ", m.clusterName, m.t)
+			log.Println("Stopping monitor cluster: ", m.clusterName, m.name)
 			return
 		default:
-			if !m.checkFunc(m.clusterName, m.bin, m.beta) {
-				log.Println(m.clusterName, m.t, " is not running, waiting for ", m.checkInterval)
-				time.Sleep(m.checkInterval)
+			autoCheck := GetAutoCheckByName(m.name)
+			if autoCheck.Enable != 1 {
+				time.Sleep(10 * time.Second)
+			} else {
+				checkInterval := time.Duration(autoCheck.Interval) * time.Minute
 				if !m.checkFunc(m.clusterName, m.bin, m.beta) {
-					log.Println(m.clusterName, m.t, "has not started, starting it...")
-					err := m.startFunc(m.clusterName, m.bin, m.beta)
-					if err != nil {
-						log.Fatal(err)
+					log.Println(m.clusterName, m.name, " is not running, waiting for ", checkInterval)
+					time.Sleep(checkInterval)
+					if !m.checkFunc(m.clusterName, m.bin, m.beta) {
+						log.Println(m.clusterName, m.name, "has not started, starting it...")
+						err := m.startFunc(m.clusterName, m.bin, m.beta)
+						if err != nil {
+							log.Fatal(err)
+						}
 					}
 				}
+				time.Sleep(checkInterval)
 			}
-			time.Sleep(m.checkInterval)
+
 		}
 	}
 }
@@ -77,23 +82,11 @@ func (m *Monitor) Stop() {
 }
 
 func IsMasterRunning(clusterName string, bin, beta int) bool {
-	db := database.DB
-	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.MasterRunning).Find(&autoCheck)
-	if autoCheck.Enable == 1 {
-		return gameService.GetLevelStatus(clusterName, "Master")
-	}
-	return true
+	return gameService.GetLevelStatus(clusterName, "Master")
 }
 
 func IsCavesRunning(clusterName string, bin, beta int) bool {
-	db := database.DB
-	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.CavesRunning).Find(&autoCheck)
-	if autoCheck.Enable == 1 {
-		return gameService.GetLevelStatus(clusterName, "Caves")
-	}
-	return true
+	return gameService.GetLevelStatus(clusterName, "Caves")
 }
 
 func StartMasterProcess(clusterName string, bin, beta int) error {
@@ -117,17 +110,11 @@ func StartCavesProcess(clusterName string, bin, beta int) error {
 }
 
 func IsGameUpdateVersionProcess(clusterName string, bin, beta int) bool {
-	db := database.DB
-	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.UpdateGameVersion).Find(&autoCheck)
-	if autoCheck.Enable == 1 {
-		// diff dst version
-		localVersion := gameService.GetLocalDstVersion(clusterName)
-		version := gameService.GetLastDstVersion()
-		log.Println("localVersion: ", localVersion, "lastVersion: ", version)
-		return localVersion == version
-	}
-	return true
+	// diff dst version
+	localVersion := gameService.GetLocalDstVersion(clusterName)
+	version := gameService.GetLastDstVersion()
+	log.Println("localVersion: ", localVersion, "lastVersion: ", version)
+	return localVersion == version
 }
 
 func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
@@ -146,13 +133,7 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 }
 
 func IsMasterModUpdateProcess(clusterName string, bin, beta int) bool {
-	db := database.DB
-	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.UpdateMasterMod).Find(&autoCheck)
-	if autoCheck.Enable == 1 {
-		return isLevelModUpdateProcess(clusterName, bin, beta, consts.Master)
-	}
-	return true
+	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Master)
 }
 
 func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
@@ -161,13 +142,7 @@ func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
 }
 
 func IsCavesModUpdateProcess(clusterName string, bin, beta int) bool {
-	db := database.DB
-	autoCheck := model.AutoCheck{}
-	db.Where("name = ?", consts.UpdateCavesMod).Find(&autoCheck)
-	if autoCheck.Enable == 1 {
-		return isLevelModUpdateProcess(clusterName, bin, beta, consts.Caves)
-	}
-	return true
+	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Caves)
 }
 
 func UpdateCavesModUpdateProcess(clusterName string, bin, beta int) error {
@@ -315,4 +290,14 @@ func SendAnnouncement(clusterName string, name string) {
 		}
 		time.Sleep(time.Duration(autoCheck.Sleep) * time.Second)
 	}
+}
+
+func GetAutoCheckByName(name string) *model.AutoCheck {
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("name = ?", name).Find(&autoCheck)
+	if autoCheck.Interval == 0 {
+		autoCheck.Interval = 10
+	}
+	return &autoCheck
 }

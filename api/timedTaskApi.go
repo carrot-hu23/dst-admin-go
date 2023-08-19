@@ -59,10 +59,13 @@ func (j *TimedTaskApi) AddJobTask(ctx *gin.Context) {
 
 	tx.Create(jobTask)
 	task := schedule.Task{
-		Id:          jobTask.ID,
-		Corn:        jobTask.Cron,
-		F:           schedule.StrategyMap[jobTask.Category].Execute,
-		ClusterName: jobTask.ClusterName,
+		Id:           jobTask.ID,
+		Corn:         jobTask.Cron,
+		F:            schedule.StrategyMap[jobTask.Category].Execute,
+		ClusterName:  jobTask.ClusterName,
+		Announcement: jobTask.Announcement,
+		Sleep:        jobTask.Sleep,
+		Times:        jobTask.Times,
 	}
 	schedule.ScheduleSingleton.AddJob(task)
 	tx.Commit()
