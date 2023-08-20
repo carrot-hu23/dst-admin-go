@@ -79,7 +79,7 @@ func (w *WebhookApi) Webhook(ctx *gin.Context) {
 		})
 		break
 	case OnlinePlayers:
-		playerList := playerService.GetPlayerList(clusterName)
+		playerList := playerService.GetPlayerList(clusterName, "Master")
 		ctx.JSON(http.StatusOK, vo.Response{
 			Code: 200,
 			Msg:  "success",

@@ -52,7 +52,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 				log.Println(r)
 			}
 		}()
-		gameArchie.Players = d.GetPlayerList(clusterName)
+		gameArchie.Players = d.GetPlayerList(clusterName, "Master")
 	}()
 
 	// 获取mod数量

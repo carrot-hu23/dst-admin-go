@@ -17,12 +17,12 @@ import (
 type PlayerService struct {
 }
 
-func (p *PlayerService) GetPlayerList(clusterName string) []vo.PlayerVO {
+func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo.PlayerVO {
 	id := strconv.FormatInt(time.Now().Unix(), 10)
 
 	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 
-	playerCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+	playerCMD := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
 
 	shellUtils.Shell(playerCMD)
 
@@ -60,7 +60,7 @@ func (p *PlayerService) GetDstAdminList(clusterName string) (str []string) {
 	return
 }
 
-func (p *PlayerService) GetDstBlcaklistPlayerList(clusterName string) (str []string) {
+func (p *PlayerService) GetDstBlacklistPlayerList(clusterName string) (str []string) {
 	path := dst.GetBlocklistPath(clusterName)
 	if !fileUtils.Exists(path) {
 		log.Println("路径不存在", path)
@@ -70,6 +70,20 @@ func (p *PlayerService) GetDstBlcaklistPlayerList(clusterName string) (str []str
 	log.Println("str:", str)
 	if err != nil {
 		panic("read dst blocklist.txt error: \n" + err.Error())
+	}
+	return
+}
+
+func (p *PlayerService) GetDstWhitelistPlayerList(clusterName string) (str []string) {
+	path := dst.GetWhitelistPath(clusterName)
+	if !fileUtils.Exists(path) {
+		log.Println("路径不存在", path)
+		return
+	}
+	str, err := fileUtils.ReadLnFile(path)
+	log.Println("str:", str)
+	if err != nil {
+		panic("read dst whitelist.txt error: \n" + err.Error())
 	}
 	return
 }
@@ -163,4 +177,49 @@ func (p *PlayerService) DeleteDstAdminListPlayerList(clusterName string, adminli
 		panic("write dst adminlist.txt error: \n" + err.Error())
 	}
 
+}
+
+func (p *PlayerService) SaveBlacklist(clusterName string, list []string) {
+
+	path := dst.GetBlacklistPath(clusterName)
+
+	err := fileUtils.CreateFileIfNotExists(path)
+	if err != nil {
+		panic("create blacklist.txt error: \n" + err.Error())
+	}
+
+	err = fileUtils.WriterLnFile(path, list)
+	if err != nil {
+		panic("write dst blacklist.txt error: \n" + err.Error())
+	}
+}
+
+func (p *PlayerService) SaveWhitelist(clusterName string, list []string) {
+
+	path := dst.GetWhitelistPath(clusterName)
+
+	err := fileUtils.CreateFileIfNotExists(path)
+	if err != nil {
+		panic("create blacklist.txt error: \n" + err.Error())
+	}
+
+	err = fileUtils.WriterLnFile(path, list)
+	if err != nil {
+		panic("write dst blacklist.txt error: \n" + err.Error())
+	}
+}
+
+func (p *PlayerService) SaveAdminlist(clusterName string, list []string) {
+
+	path := dst.GetAdminlistPath(clusterName)
+
+	err := fileUtils.CreateFileIfNotExists(path)
+	if err != nil {
+		panic("create blacklist.txt error: \n" + err.Error())
+	}
+
+	err = fileUtils.WriterLnFile(path, list)
+	if err != nil {
+		panic("write dst blacklist.txt error: \n" + err.Error())
+	}
 }

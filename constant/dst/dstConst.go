@@ -46,7 +46,15 @@ func GetAdminlistPath(clusterName string) string {
 }
 
 func GetBlocklistPath(clusterName string) string {
-	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blocklist.txt")
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blacklist.txt")
+}
+
+func GetBlacklistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blacklist.txt")
+}
+
+func GetWhitelistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "whitelist.txt")
 }
 
 func GetModSetup(clusterName string) string {

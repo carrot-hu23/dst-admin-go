@@ -16,6 +16,7 @@ const (
 	ClusterIniTemplate      = "./static/template/cluster2.ini"
 	MasterServerIniTemplate = "./static/template/master_server.ini"
 	CavesServerIniTemplate  = "./static/template/caves_server.ini"
+	ServerIniTemplate       = "./static/template/server.ini"
 )
 
 func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
@@ -268,6 +269,37 @@ func (c *HomeService) SaveCavesWorld(clusterName string, world *level.World) {
 	fileUtils.WriterTXT(mPath, world.Modoverrides)
 
 	serverBuf := dstUtils.ParseTemplate(CavesServerIniTemplate, world.ServerIni)
+
+	fileUtils.WriterTXT(sPath, serverBuf)
+}
+
+func (c *HomeService) GetLevel(clusterName string, levelName string) *level.World {
+	level := level.World{}
+
+	level.WorldName = levelName
+	level.IsMaster = false
+
+	level.Leveldataoverride = c.GetLeveldataoverride(dst.GetLevelLeveldataoverridePath(clusterName, levelName))
+	level.Modoverrides = c.GetModoverrides(dst.GetLevelModoverridesPath(clusterName, levelName))
+	level.ServerIni = c.GetServerIni(dst.GetLevelServerIniPath(clusterName, levelName), false)
+
+	return &level
+}
+
+func (c *HomeService) SaveLevel(clusterName string, levelName string, world *level.World) {
+
+	lPath := dst.GetLevelLeveldataoverridePath(clusterName, levelName)
+	mPath := dst.GetLevelModoverridesPath(clusterName, levelName)
+	sPath := dst.GetLevelServerIniPath(clusterName, levelName)
+
+	fileUtils.CreateFileIfNotExists(lPath)
+	fileUtils.CreateFileIfNotExists(mPath)
+	fileUtils.CreateFileIfNotExists(sPath)
+
+	fileUtils.WriterTXT(lPath, world.Leveldataoverride)
+	fileUtils.WriterTXT(mPath, world.Modoverrides)
+
+	serverBuf := dstUtils.ParseTemplate(ServerIniTemplate, world.ServerIni)
 
 	fileUtils.WriterTXT(sPath, serverBuf)
 }

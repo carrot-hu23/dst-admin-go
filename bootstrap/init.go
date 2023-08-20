@@ -8,7 +8,6 @@ import (
 	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
-	"dst-admin-go/service"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
@@ -129,5 +128,5 @@ func initCollect() {
 
 func initSchedule() {
 	schedule.ScheduleSingleton = schedule.NewSchedule()
-	service.InitAnnounce()
+	// service.InitAnnounce()
 }

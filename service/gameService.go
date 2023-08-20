@@ -131,7 +131,7 @@ func (g *GameService) killLevel(clusterName, level string) {
 	}
 }
 
-func (g *GameService) launchLevel(clusterName, level string, bin, beta int) {
+func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
@@ -154,16 +154,16 @@ func (g *GameService) launchLevel(clusterName, level string, bin, beta int) {
 
 func (g *GameService) stopMaster(clusterName string) {
 	level := "Master"
-	g.stopLevel(clusterName, level)
+	g.StopLevel(clusterName, level)
 }
 
 func (g *GameService) stopCaves(clusterName string) {
 
 	level := "Caves"
-	g.stopLevel(clusterName, level)
+	g.StopLevel(clusterName, level)
 }
 
-func (g *GameService) stopLevel(clusterName, level string) {
+func (g *GameService) StopLevel(clusterName, level string) {
 	g.shutdownLevel(clusterName, level)
 
 	time.Sleep(3 * time.Second)
@@ -202,12 +202,12 @@ func (g *GameService) StopGame(clusterName string, opType int) {
 
 func (g *GameService) launchMaster(clusterName string, bin, beta int) {
 	level := "Master"
-	g.launchLevel(clusterName, level, bin, beta)
+	g.LaunchLevel(clusterName, level, bin, beta)
 }
 
 func (g *GameService) launchCaves(clusterName string, bin, beta int) {
 	level := "Caves"
-	g.launchLevel(clusterName, level, bin, beta)
+	g.LaunchLevel(clusterName, level, bin, beta)
 }
 
 func (g *GameService) StartGame(clusterName string, bin, beta, opType int) {

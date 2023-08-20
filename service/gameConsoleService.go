@@ -162,3 +162,9 @@ func (c *GameConsoleService) ReadLevelServerChatLog(clusterName, levelName strin
 	}
 	return lines
 }
+
+func (c *GameConsoleService) SendCommand(clusterName string, levelName string, command string) {
+
+	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
+	shellUtils.Shell(cmd)
+}
