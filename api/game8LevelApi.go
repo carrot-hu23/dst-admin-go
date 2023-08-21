@@ -139,11 +139,11 @@ func (g *Game8LevelApi) GetStatus(ctx *gin.Context) {
 		levelStatus.Slave7Status = gameService.GetLevelStatus(clusterName, "Slave7")
 		levelStatus.Slave7ps = gameService.PsAuxSpecified(clusterName, "Slave7")
 	}()
-
+	wg.Wait()
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: levelStatus,
+		Data: &levelStatus,
 	})
 }
 
@@ -242,8 +242,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Master = homeService.GetLevel(clusterName, "Master")
 		}()
+		levelConfig.Master = homeService.GetLevel(clusterName, "Master")
 	}()
 
 	go func() {
@@ -252,8 +252,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave1 = homeService.GetLevel(clusterName, "Slave1")
 		}()
+		levelConfig.Slave1 = homeService.GetLevel(clusterName, "Slave1")
 	}()
 	go func() {
 		defer func() {
@@ -261,8 +261,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave2 = homeService.GetLevel(clusterName, "Slave2")
 		}()
+		levelConfig.Slave2 = homeService.GetLevel(clusterName, "Slave2")
 	}()
 	go func() {
 		defer func() {
@@ -270,8 +270,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave3 = homeService.GetLevel(clusterName, "Slave3")
 		}()
+		levelConfig.Slave3 = homeService.GetLevel(clusterName, "Slave3")
 	}()
 	go func() {
 		defer func() {
@@ -279,8 +279,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave4 = homeService.GetLevel(clusterName, "Slave4")
 		}()
+		levelConfig.Slave4 = homeService.GetLevel(clusterName, "Slave4")
 	}()
 	go func() {
 		defer func() {
@@ -288,8 +288,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave5 = homeService.GetLevel(clusterName, "Slave5")
 		}()
+		levelConfig.Slave5 = homeService.GetLevel(clusterName, "Slave5")
 	}()
 	go func() {
 		defer func() {
@@ -297,8 +297,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave6 = homeService.GetLevel(clusterName, "Slave6")
 		}()
+		levelConfig.Slave6 = homeService.GetLevel(clusterName, "Slave6")
 	}()
 	go func() {
 		defer func() {
@@ -306,8 +306,8 @@ func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
 				log.Println(r)
 			}
 			wg.Done()
-			levelConfig.Slave7 = homeService.GetLevel(clusterName, "Slave7")
 		}()
+		levelConfig.Slave7 = homeService.GetLevel(clusterName, "Slave7")
 	}()
 	wg.Wait()
 	ctx.JSON(http.StatusOK, vo.Response{

@@ -50,8 +50,8 @@ type ServerIni struct {
 	EncodeUserPath bool `json:"encode_user_path"`
 
 	// [STEAM]
-	AuthenticationPort string `json:"authentication_port"`
-	MasterServerPort   string `json:"master_server_port"`
+	AuthenticationPort uint `json:"authentication_port"`
+	MasterServerPort   uint `json:"master_server_port"`
 }
 
 func NewClusterIni() *ClusterIni {
@@ -94,8 +94,8 @@ func NewCavesServerIni() *ServerIni {
 		Name:               "Caves",
 		Id:                 10010,
 		EncodeUserPath:     true,
-		AuthenticationPort: "8766",
-		MasterServerPort:   "27016",
+		AuthenticationPort: 8766,
+		MasterServerPort:   27016,
 	}
 }
 

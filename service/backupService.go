@@ -98,7 +98,7 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 	}
 	log.Println("正在恢复存档", filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"))
 	// 先解压到临时目录
-	tmpDir := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", "tmp_613e78awhjkdhjkasjkldaso")
+	tmpDir := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", "tmp_613e78awhjkdhjkasjkldaso47184901")
 	defer func(path string) {
 		err := fileUtils.DeleteDir(path)
 		if err != nil {
@@ -137,11 +137,19 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	pathList := []string{
 		"Master",
+		"Slave1",
+		"Slave2",
+		"Slave3",
+		"Slave4",
+		"Slave5",
+		"Slave6",
+		"Slave7",
 		"Caves",
 		"cluster.ini",
 		"cluster_token.txt",
 		"blacklist.txt",
 		"adminlist.txt",
+		"whitelist.txt",
 	}
 	for _, p := range pathList {
 		fp := filepath.Join(basePath, p)
