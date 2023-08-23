@@ -31,7 +31,7 @@ func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo
 	// TODO 如果只启动了洞穴，应该去读取洞穴的日志
 
 	// 读取日志
-	dstLogs := dstUtils.ReadMasterLog(clusterName, 100)
+	dstLogs := dstUtils.ReadLevelLog(clusterName, levelName, 100)
 	playerVOList := make([]vo.PlayerVO, 0)
 
 	for _, line := range dstLogs {

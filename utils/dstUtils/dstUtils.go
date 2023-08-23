@@ -97,6 +97,15 @@ func ReadMasterLog(clusterName string, lineNum uint) []string {
 	return logs
 }
 
+func ReadLevelLog(clusterName string, levelName string, lineNum uint) []string {
+	logPath := path.Join(GetClusterBasePath(clusterName), levelName, "server_log.txt")
+	logs, err := fileUtils.ReverseRead(logPath, lineNum)
+	if err != nil {
+		log.Panicln("read dst master log error:", err)
+	}
+	return logs
+}
+
 func ReadCavesLog(clusterName string, lineNum uint) []string {
 
 	logPath := path.Join(GetClusterBasePath(clusterName), "Caves", "server_log.txt")
