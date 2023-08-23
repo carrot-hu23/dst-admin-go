@@ -302,4 +302,8 @@ func (c *HomeService) SaveLevel(clusterName string, levelName string, world *lev
 	serverBuf := dstUtils.ParseTemplate(ServerIniTemplate, world.ServerIni)
 
 	fileUtils.WriterTXT(sPath, serverBuf)
+
+	// 写入 dedicated_server_mods_setup.lua
+	dstUtils.DedicatedServerModsSetup2(clusterName, world.Modoverrides)
+
 }
