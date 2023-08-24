@@ -2,7 +2,6 @@ package autoCheck
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
@@ -29,17 +28,19 @@ type Monitor struct {
 	beta        int
 	bin         int
 	clusterName string
-	checkFunc   func(clusterName string, int2 int, int3 int) bool
-	startFunc   func(clusterName string, int2 int, int3 int) error
+	levelName   string
+	checkFunc   func(clusterName string, levelName string, int2 int, int3 int) bool
+	startFunc   func(clusterName string, levelName string, int2 int, int3 int) error
 	stopCh      chan int
 }
 
-func NewMonitor(clusterName string, name string, bin int, beta int, checkFunc func(string2 string, int2 int, int3 int) bool, startFunc func(string2 string, int2 int, int3 int) error) *Monitor {
+func NewMonitor(clusterName, levelName string, name string, bin int, beta int, checkFunc func(string2 string, string3 string, int2 int, int3 int) bool, startFunc func(string2 string, string3 string, int2 int, int3 int) error) *Monitor {
 	return &Monitor{
 		name:        name,
 		beta:        beta,
 		bin:         bin,
 		clusterName: clusterName,
+		levelName:   levelName,
 		checkFunc:   checkFunc,
 		startFunc:   startFunc,
 		stopCh:      make(chan int, 1),
@@ -59,12 +60,12 @@ func (m *Monitor) Start() {
 				time.Sleep(10 * time.Second)
 			} else {
 				checkInterval := time.Duration(autoCheck.Interval) * time.Minute
-				if !m.checkFunc(m.clusterName, m.bin, m.beta) {
+				if !m.checkFunc(m.clusterName, m.levelName, m.bin, m.beta) {
 					log.Println(m.clusterName, m.name, " is not running, waiting for ", checkInterval)
 					time.Sleep(checkInterval)
-					if !m.checkFunc(m.clusterName, m.bin, m.beta) {
+					if !m.checkFunc(m.clusterName, m.levelName, m.bin, m.beta) {
 						log.Println(m.clusterName, m.name, "has not started, starting it...")
-						err := m.startFunc(m.clusterName, m.bin, m.beta)
+						err := m.startFunc(m.clusterName, m.levelName, m.bin, m.beta)
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -81,35 +82,21 @@ func (m *Monitor) Stop() {
 	m.stopCh <- 1
 }
 
-func IsMasterRunning(clusterName string, bin, beta int) bool {
-	return gameService.GetLevelStatus(clusterName, "Master")
+func IsLevelRunning(clusterName string, levelName string, bin, beta int) bool {
+	return gameService.GetLevelStatus(clusterName, levelName)
 }
 
-func IsCavesRunning(clusterName string, bin, beta int) bool {
-	return gameService.GetLevelStatus(clusterName, "Caves")
-}
-
-func StartMasterProcess(clusterName string, bin, beta int) error {
+func StartLevelProcess(clusterName string, levelName string, bin, beta int) error {
 	defer func() {
 		if r := recover(); r != nil {
 			return
 		}
 	}()
-	gameService.StartGame(clusterName, bin, beta, consts.StartMaster)
+	gameService.LaunchLevel(clusterName, levelName, bin, beta)
 	return nil
 }
 
-func StartCavesProcess(clusterName string, bin, beta int) error {
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
-	gameService.StartGame(clusterName, bin, beta, consts.StartCaves)
-	return nil
-}
-
-func IsGameUpdateVersionProcess(clusterName string, bin, beta int) bool {
+func IsGameUpdateVersionProcess(clusterName string, levelName string, bin, beta int) bool {
 	// diff dst version
 	localVersion := gameService.GetLocalDstVersion(clusterName)
 	version := gameService.GetLastDstVersion()
@@ -117,13 +104,13 @@ func IsGameUpdateVersionProcess(clusterName string, bin, beta int) bool {
 	return localVersion == version
 }
 
-func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
+func UpdateGameVersionProcess(clusterName string, levelName string, bin, beta int) error {
 	defer func() {
 		if r := recover(); r != nil {
 			return
 		}
 	}()
-	SendAnnouncement(clusterName, consts.UpdateGameVersion)
+	SendAnnouncement(clusterName, levelName, consts.UpdateGameVersion)
 	err := gameService.UpdateGame(clusterName)
 	if err != nil {
 		return err
@@ -132,30 +119,7 @@ func UpdateGameVersionProcess(clusterName string, bin, beta int) error {
 	return nil
 }
 
-func IsMasterModUpdateProcess(clusterName string, bin, beta int) bool {
-	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Master)
-}
-
-func UpdateMasterModUpdateProcess(clusterName string, bin, beta int) error {
-	SendAnnouncement(clusterName, consts.UpdateMasterMod)
-	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartMaster)
-}
-
-func IsCavesModUpdateProcess(clusterName string, bin, beta int) bool {
-	return isLevelModUpdateProcess(clusterName, bin, beta, consts.Caves)
-}
-
-func UpdateCavesModUpdateProcess(clusterName string, bin, beta int) error {
-	SendAnnouncement(clusterName, consts.UpdateCavesMod)
-	for i := 0; i < 3; i++ {
-		gameConsoleService.SentBroadcast(clusterName, global.Config.AutoCheck.ModUpdatePrompt)
-		time.Sleep(3 * time.Second)
-	}
-	return updateLevelModUpdateProcess(clusterName, bin, beta, consts.StartCaves)
-}
-
-// TODO 有问题
-func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string) bool {
+func IsLevelModUpdateProcess(clusterName string, levelName string, bin, beta int) bool {
 
 	// 找到当前存档的modId, 然后根据判断当前存档的
 	dstConfig := dstConfigUtils.GetDstConfig()
@@ -185,6 +149,18 @@ func isLevelModUpdateProcess(clusterName string, bin, beta int, levelName string
 		}
 	}
 	return diffFetchModInfo(activeModMap)
+}
+
+func UpdateModProcess(clusterName string, levelName string, bin, beta int) error {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+	gameService.StopLevel(clusterName, levelName)
+	gameService.LaunchLevel(clusterName, levelName, bin, beta)
+	SendAnnouncement(clusterName, levelName, levelName+"Mod")
+	return nil
 }
 
 const (
@@ -262,19 +238,7 @@ func diffFetchModInfo(activeModMap map[string]dstUtils.WorkshopItem) bool {
 	return true
 }
 
-// TODO 有问题
-func updateLevelModUpdateProcess(clusterName string, bin, beta int, startOpt int) error {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println(r)
-		}
-	}()
-	log.Println("更新模组")
-	gameService.StartGame(clusterName, bin, beta, startOpt)
-	return nil
-}
-
-func SendAnnouncement(clusterName string, name string) {
+func SendAnnouncement(clusterName string, levelName string, name string) {
 	db := database.DB
 	autoCheck := model.AutoCheck{}
 	db.Where("name = ?", name).Find(&autoCheck)
@@ -284,7 +248,7 @@ func SendAnnouncement(clusterName string, name string) {
 		if announcement != "" {
 			lines := strings.Split(announcement, "\n")
 			for j := range lines {
-				gameConsoleService.SentBroadcast(clusterName, lines[j])
+				gameConsoleService.SentBroadcast2(clusterName, levelName, lines[j])
 				time.Sleep(300 * time.Millisecond)
 			}
 		}
