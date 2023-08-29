@@ -150,6 +150,7 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 		"blacklist.txt",
 		"adminlist.txt",
 		"whitelist.txt",
+		"blocklist.txt",
 	}
 	for _, p := range pathList {
 		fp := filepath.Join(basePath, p)
