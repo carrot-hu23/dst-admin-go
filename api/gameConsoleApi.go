@@ -1,12 +1,15 @@
 package api
 
 import (
+	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"log"
 	"net/http"
+	"path"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -129,6 +132,36 @@ func (g *GameConsoleApi) CleanWorld(ctx *gin.Context) {
 	clusterName := cluster.ClusterName
 
 	consoleService.CleanWorld(clusterName)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
+func (g *GameConsoleApi) CleanLevel(ctx *gin.Context) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panicln("删除世界存档失败", r)
+		}
+	}()
+
+	log.Println("删除世界level......")
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	basePath := dst.GetClusterBasePath(clusterName)
+	levels := ctx.QueryArray("level")
+
+	for _, level := range levels {
+		fileUtils.DeleteDir(path.Join(basePath, level, "backup"))
+		fileUtils.DeleteDir(path.Join(basePath, level, "save"))
+		fileUtils.DeleteDir(path.Join(basePath, level, "server_chat_log.txt"))
+		fileUtils.DeleteDir(path.Join(basePath, level, "server_log.txt"))
+	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
