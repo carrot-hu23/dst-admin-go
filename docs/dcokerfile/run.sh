@@ -35,7 +35,6 @@ while [ ! -e "${steam_dst_server}/bin/dontstarve_dedicated_server_nullrenderer" 
   fi
   echo "Not found Dont Starve Together Sever, start to installing, try: ${retry}"
   bash $steam_cmd_path/steamcmd.sh +force_install_dir $steam_dst_server +login anonymous +app_update 343050 validate +quit
-  cp $steam_cmd_path/linux32/libstdc++.so.6 $steam_dst_server/bin/lib32/
   mkdir -p $USER_DIR/.klei/DoNotStarveTogether/MyDediServer
   mkdir -p /app/backup
   mkdir -p /app/mod
