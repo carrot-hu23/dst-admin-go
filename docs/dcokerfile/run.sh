@@ -58,4 +58,4 @@ echo "SteamDST server installed at $steam_dst_server"
 
 
 cd /app
-./dst-admin-go
+exec ./dst-admin-go
