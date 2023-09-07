@@ -2,7 +2,7 @@
 注意目录必须要有读写权限
 
 ### 脚本一键部署
-[点击下载文件](docs/install/一键部署脚本v4.6版本.sh.x)
+[点击下载文件](https://github.com/hujinbo23/dst-admin-go/blob/main/docs/install/%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2%E8%84%9A%E6%9C%ACv4.6%E7%89%88%E6%9C%AC.sh.x)
 
 ### 二进制部署
 请下载最新的release版本
