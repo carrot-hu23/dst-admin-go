@@ -16,7 +16,7 @@ func NewRoute() *gin.Engine {
 	// app.Use(middleware.CheckDstHandler())
 
 	app.GET("/hello", func(ctx *gin.Context) {
-		ctx.String(200, "Hello! Dont starve together 20230716")
+		ctx.String(200, "Hello! Dont starve together 1.1.9.2 20230816")
 	})
 	router := app.Group("")
 	initBackupRouter(router)
@@ -32,10 +32,13 @@ func NewRoute() *gin.Engine {
 	initThirdPartyRouter(router)
 	initWsRouter(router)
 	initSteamRouter(router)
-	initJobTaskRouter(router)
+	initTimedTaskRouter(router)
 
 	initAutoCheck(router)
 	initLevel(router)
+	initWebLinkRouter(router)
+	initWebhookRouter(router)
+
 	initStaticFile(app)
 
 	return app

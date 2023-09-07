@@ -65,3 +65,51 @@ func (s *RestartStrategy) Execute(clusterName string) {
 	cluster := clusterUtils.GetCluster(clusterName)
 	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, 0)
 }
+
+type RestartMasterStrategy struct{}
+
+func (s *RestartMasterStrategy) Execute(clusterName string) {
+	log.Println("正在定时重启森林 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, consts.StopMaster)
+	cluster := clusterUtils.GetCluster(clusterName)
+	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartMaster)
+}
+
+type RestartCavesStrategy struct{}
+
+func (s *RestartCavesStrategy) Execute(clusterName string) {
+	log.Println("正在定时重启洞穴 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, consts.StopCaves)
+	cluster := clusterUtils.GetCluster(clusterName)
+	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartCaves)
+}
+
+type StartMasterStrategy struct{}
+
+func (s *StartMasterStrategy) Execute(clusterName string) {
+	log.Println("正在定时启动森林 clusterName: ", clusterName)
+	cluster := clusterUtils.GetCluster(clusterName)
+	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartMaster)
+}
+
+type StartCavesStrategy struct{}
+
+func (s *StartCavesStrategy) Execute(clusterName string) {
+	log.Println("正在定时启动洞穴 clusterName: ", clusterName)
+	cluster := clusterUtils.GetCluster(clusterName)
+	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartCaves)
+}
+
+type StopMasterStrategy struct{}
+
+func (s *StopMasterStrategy) Execute(clusterName string) {
+	log.Println("正在定时关闭森林 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, consts.StopMaster)
+}
+
+type StopCavesStrategy struct{}
+
+func (s *StopCavesStrategy) Execute(clusterName string) {
+	log.Println("正在定时关闭洞穴 clusterName: ", clusterName)
+	gameService.StopGame(clusterName, consts.StopCaves)
+}

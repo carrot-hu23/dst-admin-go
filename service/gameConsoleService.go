@@ -13,6 +13,7 @@ import (
 )
 
 type GameConsoleService struct {
+	GameService
 }
 
 func (c *GameConsoleService) ClearScreen() bool {
@@ -26,11 +27,22 @@ func (c *GameConsoleService) ClearScreen() bool {
 
 func (c *GameConsoleService) SentBroadcast(clusterName string, message string) {
 
-	broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
-	broadcast += message
-	broadcast += "\\\")\\n\""
+	if c.GetLevelStatus(clusterName, "Master") {
+		broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
+		broadcast += message
+		broadcast += "\\\")\\n\""
+		log.Println(broadcast)
+		shellUtils.Shell(broadcast)
+	}
 
-	shellUtils.Shell(broadcast)
+	if c.GetLevelStatus(clusterName, "Caves") {
+		broadcast2 := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"c_announce(\\\""
+		broadcast2 += message
+		broadcast2 += "\\\")\\n\""
+		log.Println(broadcast2)
+		shellUtils.Shell(broadcast2)
+	}
+
 }
 
 func (c *GameConsoleService) KickPlayer(clusterName, KuId string) {
@@ -129,4 +141,24 @@ func PsAux(processName string) string {
 		return ""
 	}
 	return res
+}
+
+func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, length uint) []string {
+	// levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	serverLogPath := dst.GetLevelServerLogPath(clusterName, levelName)
+	lines, err := fileUtils.ReverseRead(serverLogPath, length)
+	if err != nil {
+		log.Panicln("读取日志server_log失败")
+	}
+	return lines
+}
+
+func (c *GameConsoleService) ReadLevelServerChatLog(clusterName, levelName string, length uint) []string {
+	// levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	serverChatLogPath := dst.GetLevelServerChatLogPath(clusterName, levelName)
+	lines, err := fileUtils.ReverseRead(serverChatLogPath, length)
+	if err != nil {
+		log.Panicln("读取日志server_chat_log失败")
+	}
+	return lines
 }

@@ -23,6 +23,10 @@ func InitGameRouter(router *gin.RouterGroup) {
 
 		gameConsole.GET("/archive", gameConsoleApi.GetGameArchive)
 		gameConsole.GET("/clean", gameConsoleApi.CleanWorld)
+		gameConsole.GET("/announce/setting", gameConsoleApi.GetAnnounceSetting)
+		gameConsole.POST("/announce/setting", gameConsoleApi.SaveAnnounceSetting)
+		gameConsole.GET("/level/server/log", gameConsoleApi.ReadLevelServeLog)
+		gameConsole.GET("/level/server/chat/log", gameConsoleApi.ReadLevelServeChatLog)
 	}
 
 	gameConfigApi := api.GameConfigApi{}

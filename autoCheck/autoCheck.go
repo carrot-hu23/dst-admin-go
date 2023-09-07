@@ -3,7 +3,6 @@ package autoCheck
 import (
 	"dst-admin-go/constant/consts"
 	"log"
-	"time"
 )
 
 var AutoCheckObject *AutoCheckConfig
@@ -15,30 +14,39 @@ func NewAutoCheckConfig(clusterName string, bin, beta int) *AutoCheckConfig {
 }
 
 type AutoCheckConfig struct {
-	GameRunningM       *Monitor
+	MasterRunning      *Monitor
+	CavesRunning       *Monitor
+	MasterModUpdate    *Monitor
+	CavesModUpdate     *Monitor
 	UpdateGameVersionM *Monitor
-	UpdateGameModM     *Monitor
 }
 
 func (a *AutoCheckConfig) InitAutoCheck(clusterName string, bin, beta int) {
 	log.Println("开始初始化循检", clusterName)
 	if clusterName != "" {
-		a.GameRunningM = NewMonitor(clusterName, consts.GameRunning, bin, beta, IsGameRunning, 5*time.Minute, StartGameProcess)
-		a.UpdateGameVersionM = NewMonitor(clusterName, consts.UpdateGameVersion, bin, beta, IsGameUpdateVersionProcess, 10*time.Minute, UpdateGameVersionProcess)
-		a.UpdateGameModM = NewMonitor(clusterName, consts.UpdateGameMod, bin, beta, IsGameModUpdateProcess, 10*time.Minute, UpdateGameVersionProcess)
 
-		go a.GameRunningM.Start()
+		a.MasterRunning = NewMonitor(clusterName, consts.MasterRunning, bin, beta, IsMasterRunning, StartMasterProcess)
+		a.CavesRunning = NewMonitor(clusterName, consts.CavesRunning, bin, beta, IsCavesRunning, StartCavesProcess)
+		a.UpdateGameVersionM = NewMonitor(clusterName, consts.UpdateGameVersion, bin, beta, IsGameUpdateVersionProcess, UpdateGameVersionProcess)
+		a.MasterModUpdate = NewMonitor(clusterName, consts.UpdateMasterMod, bin, beta, IsMasterModUpdateProcess, UpdateMasterModUpdateProcess)
+		a.CavesModUpdate = NewMonitor(clusterName, consts.UpdateCavesMod, bin, beta, IsCavesModUpdateProcess, UpdateCavesModUpdateProcess)
+
+		go a.MasterRunning.Start()
+		go a.CavesRunning.Start()
 		go a.UpdateGameVersionM.Start()
-		go a.UpdateGameModM.Start()
+		go a.MasterModUpdate.Start()
+		go a.CavesModUpdate.Start()
 	}
 
 }
 
 func (a *AutoCheckConfig) RestartAutoCheck(clusterName string, bin, beta int) {
 	log.Println("停止自动巡检")
-	a.GameRunningM.Stop()
+	a.MasterRunning.Stop()
+	a.CavesRunning.Stop()
 	a.UpdateGameVersionM.Stop()
-	a.UpdateGameModM.Stop()
+	a.MasterModUpdate.Stop()
+	a.CavesModUpdate.Stop()
 	a.InitAutoCheck(clusterName, bin, beta)
 	log.Println("重新自动巡检")
 }

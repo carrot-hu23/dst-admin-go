@@ -66,7 +66,7 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	// [SHARD]
 	SHARD := cfg.Section("SHARD")
 
-	newCluster.ShardEnabled = SHARD.Key("shard_enabled").MustBool(false)
+	newCluster.ShardEnabled = SHARD.Key("shard_enabled").MustBool(true)
 	newCluster.BindIp = SHARD.Key("bind_ip").MustString("127.0.0.1")
 	newCluster.MasterIp = SHARD.Key("master_ip").MustString("127.0.0.1")
 	newCluster.MasterPort = SHARD.Key("master_port").MustUint(10888)
@@ -122,6 +122,9 @@ func (c *HomeService) GetLeveldataoverride(filepath string) string {
 	if err != nil {
 		return "return {}"
 	}
+	if leveldataoverride == "" {
+		return "return {}"
+	}
 	return leveldataoverride
 }
 
@@ -132,6 +135,9 @@ func (c *HomeService) GetModoverrides(filepath string) string {
 	}
 	modoverrides, err := fileUtils.ReadFile(filepath)
 	if err != nil {
+		return "return {}"
+	}
+	if modoverrides == "" {
 		return "return {}"
 	}
 	return modoverrides
@@ -207,7 +213,6 @@ func (c *HomeService) SaveBlocklist(clusterName string, str []string) {
 
 func (c *HomeService) GetMasterWorld(clusterName string) *level.World {
 	master := level.World{}
-
 	master.WorldName = "Master"
 	master.IsMaster = true
 

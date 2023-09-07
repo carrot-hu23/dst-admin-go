@@ -12,9 +12,12 @@ func initModRouter(router *gin.RouterGroup) {
 	{
 		mod.GET("/search", modApi.SearchModList)
 		mod.GET("/:modId", modApi.GetModInfo)
+		mod.PUT("/:modId", modApi.UpdateMod)
 		mod.GET("", modApi.GetMyModList)
 		mod.DELETE("/:modId", modApi.DeleteMod)
 		mod.DELETE("/setup/workshop", modApi.DeleteSetupWorkshop)
+		mod.GET("/modinfo/:modId", modApi.GetModInfoFile)
+		mod.POST("/modinfo", modApi.SaveModInfoFile)
 	}
 
 }

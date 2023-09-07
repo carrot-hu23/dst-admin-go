@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -152,10 +153,32 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 	// 安装mod
 	modoverride, err := fileUtils.ReadFile(dst.GetMasterModoverridesPath(cluster.ClusterName))
 	if err != nil {
-		log.Println("设置模组失败")
+		log.Println("读取模组失败", err)
 	}
 	dstUtils.DedicatedServerModsSetup(cluster.ClusterName, modoverride)
 
+	//去掉 leveldataoverride 文件的 \n
+	masterLeveldataoverridePath := dst.GetMasterLeveldataoverridePath(cluster.ClusterName)
+	masterLeveldataoverride, err := fileUtils.ReadFile(masterLeveldataoverridePath)
+	if err != nil {
+		log.Println("读取 Master leveldataoverride 文件失败", err)
+	}
+	newMasterLeveldataoverride := strings.Replace(masterLeveldataoverride, "\n", "", -1)
+	err = fileUtils.WriterTXT(masterLeveldataoverridePath, newMasterLeveldataoverride)
+	if err != nil {
+		log.Println("写入 Master leveldataoverride 文件失败", err)
+	}
+
+	cavesLeveldataoverridePath := dst.GetCavesLeveldataoverridePath(cluster.ClusterName)
+	cavesLeveldataoverride, err := fileUtils.ReadFile(cavesLeveldataoverridePath)
+	if err != nil {
+		log.Println("读取 Caves leveldataoverride 文件失败", err)
+	}
+	newCavesLeveldataoverride := strings.Replace(cavesLeveldataoverride, "\n", "", -1)
+	err = fileUtils.WriterTXT(cavesLeveldataoverridePath, newCavesLeveldataoverride)
+	if err != nil {
+		log.Println("写入 Caves leveldataoverride 文件失败", err)
+	}
 }
 
 func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {

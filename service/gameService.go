@@ -127,7 +127,7 @@ func (g *GameService) killLevel(clusterName, level string) {
 	_, err := shellUtils.Shell(cmd)
 	if err != nil {
 		// TODO 强制杀掉
-		log.Panicln("kill "+clusterName+" "+level+" error: ", err)
+		log.Println("kill "+clusterName+" "+level+" error: ", err)
 	}
 }
 
@@ -273,7 +273,6 @@ func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboar
 
 	go func() {
 		defer wg.Done()
-		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 		dashboardVO.MemStates = m.Alloc / 1024
@@ -388,6 +387,7 @@ func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *level.GameCon
 	go func() {
 		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
 		dstUtils.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
+		dstUtils.DedicatedServerModsSetup2(clusterName, gameConfig.Caves.Modoverrides)
 		wg.Done()
 	}()
 

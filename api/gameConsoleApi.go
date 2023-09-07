@@ -1,6 +1,7 @@
 package api
 
 import (
+	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
@@ -16,6 +17,7 @@ type GameConsoleApi struct {
 
 var consoleService = service.GameConsoleService{}
 var gameArchiveService = service.GameArchive{}
+var announceService = service.AnnounceService{}
 
 func (g *GameConsoleApi) SentBroadcast(ctx *gin.Context) {
 	message := ctx.Query("message")
@@ -222,5 +224,73 @@ func (g *GameConsoleApi) GetGameArchive(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: gameArchiveService.GetGameArchive(clusterName),
+	})
+}
+
+func (g *GameConsoleApi) GetAnnounceSetting(ctx *gin.Context) {
+
+	//cluster := clusterUtils.GetClusterFromGin(ctx)
+	//clusterName := cluster.ClusterName
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: announceService.GetAnnounceSetting(),
+	})
+}
+
+func (g *GameConsoleApi) SaveAnnounceSetting(ctx *gin.Context) {
+
+	//cluster := clusterUtils.GetClusterFromGin(ctx)
+	//clusterName := cluster.ClusterName
+
+	var announce model.Announce
+	err := ctx.ShouldBind(&announce)
+	log.Println(announce)
+	if err != nil {
+		log.Println("参数错误", err)
+	}
+	announceService.SaveAnnounceSetting(&announce)
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: announce,
+	})
+
+}
+
+func (g *GameConsoleApi) ReadLevelServeLog(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	lines, _ := strconv.Atoi(ctx.DefaultQuery("lines", "100"))
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		log.Panicln("levelName 不能为空")
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: consoleService.ReadLevelServerLog(clusterName, levelName, uint(lines)),
+	})
+}
+
+func (g *GameConsoleApi) ReadLevelServeChatLog(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	lines, _ := strconv.Atoi(ctx.DefaultQuery("lines", "100"))
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		log.Panicln("levelName 不能为空")
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: consoleService.ReadLevelServerChatLog(clusterName, levelName, uint(lines)),
 	})
 }

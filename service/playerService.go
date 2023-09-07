@@ -32,7 +32,7 @@ func (p *PlayerService) GetPlayerList(clusterName string) []vo.PlayerVO {
 
 	// 读取日志
 	dstLogs := dstUtils.ReadMasterLog(clusterName, 100)
-	var playerVOList []vo.PlayerVO
+	playerVOList := make([]vo.PlayerVO, 0)
 
 	for _, line := range dstLogs {
 		if strings.Contains(line, id) && strings.Contains(line, "KU") && !strings.Contains(line, "Host") {
