@@ -66,7 +66,7 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	// [SHARD]
 	SHARD := cfg.Section("SHARD")
 
-	newCluster.ShardEnabled = SHARD.Key("shard_enabled").MustBool(true)
+	newCluster.ShardEnabled = SHARD.Key("shard_enabled").MustBool(false)
 	newCluster.BindIp = SHARD.Key("bind_ip").MustString("127.0.0.1")
 	newCluster.MasterIp = SHARD.Key("master_ip").MustString("127.0.0.1")
 	newCluster.MasterPort = SHARD.Key("master_port").MustUint(10888)

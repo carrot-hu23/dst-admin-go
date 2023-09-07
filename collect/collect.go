@@ -41,7 +41,7 @@ func (c *Collect) Stop() {
 	close(c.stop)
 }
 
-func (c *Collect) ReCollect(baseLogPath string) {
+func (c *Collect) ReCollect(baseLogPath, clusterName string) {
 	for i := 0; i < c.length; i++ {
 		c.stop <- true
 	}
@@ -51,6 +51,7 @@ func (c *Collect) ReCollect(baseLogPath string) {
 	c.serverChatLogList = []string{
 		filepath.Join(baseLogPath, "Master", "server_chat_log.txt"),
 	}
+	c.clusterName = clusterName
 	c.state <- 1
 }
 

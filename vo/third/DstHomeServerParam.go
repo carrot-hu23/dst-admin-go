@@ -7,7 +7,7 @@ type DstHomeServerParam struct {
 	SortWay        int    `json:"sort_way"`
 	Search_type    int    `json:"search_type"`
 	Search_content string `json:"search_content"`
-	Mod            int    `json:"mod"`
+	Mod            string `json:"mod"`
 }
 
 func NewDstHomeServerParam() *DstHomeServerParam {

@@ -44,9 +44,24 @@ func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 	// }
 
 	param := third.NewDstHomeServerParam()
-	c.Bind(param)
+	err := c.ShouldBind(param)
+	if err != nil {
+		log.Println("参数解析错误", err)
+	}
 
-	bytesData, err := json.Marshal(param)
+	query_data := map[string]any{}
+	query_data["page"] = param.Page
+	query_data["paginate"] = param.Paginate
+	query_data["sort_type"] = param.SortType
+	query_data["sort_way"] = param.SortWay
+	query_data["search_type"] = param.Search_type
+	query_data["search_content"] = param.Search_content
+	if param.Mod != "" {
+		// 不区分是否使用mod
+		query_data["mod"] = param.Mod
+	}
+
+	bytesData, err := json.Marshal(query_data)
 	if err != nil {
 		log.Println("josn 解析异常")
 	}
@@ -81,7 +96,10 @@ func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 func (t *ThirdPartyApi) GetDstHomeDetailList(c *gin.Context) {
 
 	param := third.NewDstHomeDetailParam()
-	c.Bind(param)
+	err := c.ShouldBind(param)
+	if err != nil {
+		log.Println("参数解析错误", err)
+	}
 
 	bytesData, err := json.Marshal(param)
 	if err != nil {
