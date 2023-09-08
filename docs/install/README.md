@@ -20,22 +20,7 @@ docker pull hujinbo23/dst-admin-go:1.2.0
 docker run -d -p8082:8082 hujinbo23/dst-admin-go:1.2.0
 
 **路径挂载参考**
-docker 存档目录挂载 命令参考
-
-docker run -d --name dst-admin-go \
-  -p8080:8082 \
-    -v /root/dstsave:/root/.klei/DoNotStarveTogether \
-    -v /root/dstbackup:/app/backup \
-    -v /root/dstmod:/app/mod \
-    hujinbo23/dst-admin-go:1.2.0
-
-容器存档启动路径: /root/.klei/DoNotStarveTogether
-容器存档备份路径: /app/backup
-容器存档模组路径: /app/mod
-容器玩家日志路径: /app/dst-db
-容器服务日志路径: /app/dst-admin-go.log
-容器steamcmd路径: /app/steamcmd
-容器饥荒服务器路径: /app/dst-dedicated-server
+由于很多白嫖怪暂时不提供
 ```
 
 **多房间版本 萌新勿用**
