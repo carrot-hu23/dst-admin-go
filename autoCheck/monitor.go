@@ -109,12 +109,21 @@ func StartCavesProcess(clusterName string, bin, beta int) error {
 	return nil
 }
 
-func IsGameUpdateVersionProcess(clusterName string, bin, beta int) bool {
+func IsGameUpdateVersionProcess(clusterName string, bin, beta int) (result bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+			result = false
+		}
+	}()
+
 	// diff dst version
 	localVersion := gameService.GetLocalDstVersion(clusterName)
 	version := gameService.GetLastDstVersion()
 	log.Println("localVersion: ", localVersion, "lastVersion: ", version)
-	return localVersion == version
+	result = localVersion == version
+
+	return
 }
 
 func UpdateGameVersionProcess(clusterName string, bin, beta int) error {

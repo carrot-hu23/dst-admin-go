@@ -7,6 +7,7 @@ import (
 	"dst-admin-go/utils/zip"
 	"log"
 	"path/filepath"
+	"time"
 )
 
 var backupService = service.BackupService{}
@@ -24,6 +25,11 @@ func (b *BackupStrategy) Execute(clusterName string) {
 
 	dst := filepath.Join(cluster.Backup, backupService.GenGameBackUpName(clusterName))
 	log.Println("正在定时创建游戏备份", "src: ", src, "dst: ", dst)
+
+	gameConsoleService.MasterConsole(clusterName, "c_save()")
+
+	// 等待一分钟在备份
+	time.Sleep(1 * time.Minute)
 	err := zip.Zip(src, dst)
 	if err != nil {
 		log.Panicln("create backup error", err)
