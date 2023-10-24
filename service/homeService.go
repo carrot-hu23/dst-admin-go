@@ -77,7 +77,7 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	STEAM := cfg.Section("STEAM")
 
 	newCluster.SteamGroupOnly = STEAM.Key("steam_group_only").MustBool(false)
-	newCluster.SteamGroupId = STEAM.Key("steam_group_id").MustUint(0)
+	newCluster.SteamGroupId = STEAM.Key("steam_group_id").MustString("")
 	newCluster.SteamGroupAdmins = STEAM.Key("steam_group_admins").MustString("")
 
 	return newCluster

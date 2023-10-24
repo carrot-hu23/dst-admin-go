@@ -157,9 +157,10 @@ func UpdateModProcess(clusterName string, levelName string, bin, beta int) error
 			return
 		}
 	}()
+
+	SendAnnouncement(clusterName, levelName, levelName+"Mod")
 	gameService.StopLevel(clusterName, levelName)
 	gameService.LaunchLevel(clusterName, levelName, bin, beta)
-	SendAnnouncement(clusterName, levelName, levelName+"Mod")
 	return nil
 }
 
