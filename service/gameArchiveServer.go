@@ -68,8 +68,13 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取天数和季节
 	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+
+			}
+		}()
 		gameArchie.Meta = d.Snapshoot(clusterName)
-		wg.Done()
 	}()
 
 	// 获取直连ip

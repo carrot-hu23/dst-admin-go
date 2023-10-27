@@ -23,19 +23,14 @@ func init() {
 	StrategyMap["start"] = &StartStrategy{}
 	StrategyMap["stop"] = &StopStrategy{}
 	StrategyMap["restart"] = &RestartStrategy{}
-	StrategyMap["startMaster"] = &StartMasterStrategy{}
-	StrategyMap["stopMaster"] = &StartMasterStrategy{}
-	StrategyMap["startCaves"] = &StartCavesStrategy{}
-	StrategyMap["stopCaves"] = &StopCavesStrategy{}
-	StrategyMap["restartMaster"] = &RestartMasterStrategy{}
-	StrategyMap["restartCaves"] = &RestartCavesStrategy{}
 }
 
 type Task struct {
 	Id           uint
 	Corn         string
-	F            func(string)
+	F            func(string, string)
 	ClusterName  string
+	LevelName    string
 	Announcement string
 	Sleep        int
 	Times        int
@@ -64,7 +59,7 @@ func (s *Schedule) AddJob(task Task) {
 	jobId, err := s.cron.AddFunc(task.Corn, func() {
 		// 发送公告
 		s.SendAnnouncement(task.ClusterName, task.Announcement, task.Sleep, task.Times)
-		task.F(task.ClusterName)
+		task.F(task.ClusterName, task.ClusterName)
 	})
 	if err != nil {
 		log.Panicln("创建任务失败，cron:", task.Corn, err)
@@ -126,7 +121,7 @@ func (s *Schedule) initDBTask() {
 		entryID, err := s.cron.AddFunc(task.Cron, func() {
 			// 发送公告
 			s.SendAnnouncement(task.ClusterName, task.Announcement, task.Sleep, task.Times)
-			StrategyMap[task.Category].Execute(task.ClusterName)
+			StrategyMap[task.Category].Execute(task.ClusterName, task.LevelName)
 		})
 		if err != nil {
 			log.Println("初始化任务失败", err)

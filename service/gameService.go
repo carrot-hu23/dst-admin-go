@@ -78,7 +78,7 @@ func (g *GameService) UpdateGame(clusterName string) error {
 
 	g.lock.Lock()
 	defer g.lock.Unlock()
-
+	// TODO 关闭相应的世界
 	g.stopMaster(clusterName)
 	g.stopCaves(clusterName)
 	updateGameCMd := dst.GetDstUpdateCmd(clusterName)

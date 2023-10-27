@@ -100,8 +100,9 @@ func NewCavesServerIni() *ServerIni {
 }
 
 type World struct {
-	WorldName         string     `json:"world_name"`
+	LevelName         string     `json:"levelName"`
 	IsMaster          bool       `json:"is_master"`
+	Uuid              string     `json:"uuid"`
 	Leveldataoverride string     `json:"leveldataoverride"`
 	Modoverrides      string     `json:"modoverrides"`
 	ServerIni         *ServerIni `json:"server_ini"`

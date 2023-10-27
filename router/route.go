@@ -39,7 +39,7 @@ func NewRoute() *gin.Engine {
 	initWebLinkRouter(router)
 	initWebhookRouter(router)
 	init8Level(router)
-
+	initLevel2(router)
 	initStaticFile(app)
 
 	return app

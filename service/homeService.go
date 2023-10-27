@@ -214,7 +214,7 @@ func (c *HomeService) SaveBlocklist(clusterName string, str []string) {
 
 func (c *HomeService) GetMasterWorld(clusterName string) *level.World {
 	master := level.World{}
-	master.WorldName = "Master"
+	master.LevelName = "Master"
 	master.IsMaster = true
 
 	master.Leveldataoverride = c.GetLeveldataoverride(dst.GetMasterLeveldataoverridePath(clusterName))
@@ -227,7 +227,7 @@ func (c *HomeService) GetMasterWorld(clusterName string) *level.World {
 func (c *HomeService) GetCavesWorld(clusterName string) *level.World {
 	caves := level.World{}
 
-	caves.WorldName = "Caves"
+	caves.LevelName = "Caves"
 	caves.IsMaster = false
 
 	caves.Leveldataoverride = c.GetLeveldataoverride(dst.GetCavesLeveldataoverridePath(clusterName))
@@ -276,7 +276,7 @@ func (c *HomeService) SaveCavesWorld(clusterName string, world *level.World) {
 func (c *HomeService) GetLevel(clusterName string, levelName string) *level.World {
 	level := level.World{}
 
-	level.WorldName = levelName
+	level.LevelName = levelName
 	level.IsMaster = false
 
 	level.Leveldataoverride = c.GetLeveldataoverride(dst.GetLevelLeveldataoverridePath(clusterName, levelName))
