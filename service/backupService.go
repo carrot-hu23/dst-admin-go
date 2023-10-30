@@ -86,7 +86,7 @@ func (b *BackupService) DeleteBackup(ctx *gin.Context, fileNames []string) {
 
 }
 
-// RestoreBackup TODO: 恢复存档
+// RestoreBackup TODO: 恢复存档 这里要改
 func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)

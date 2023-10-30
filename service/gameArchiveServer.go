@@ -9,7 +9,6 @@ import (
 	"dst-admin-go/vo"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -30,7 +29,7 @@ type GameArchive struct {
 func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(4)
 
 	gameArchie := vo.NewGameArchie()
 	basePath := dst.GetClusterBasePath(clusterName)
@@ -43,16 +42,6 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		gameArchie.GameMod = clusterIni.GameMode
 		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
 		wg.Done()
-	}()
-
-	go func() {
-		defer func() {
-			wg.Done()
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-		}()
-		gameArchie.Players = d.GetPlayerList(clusterName, "Master")
 	}()
 
 	// 获取mod数量
@@ -71,7 +60,6 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		defer func() {
 			wg.Done()
 			if r := recover(); r != nil {
-
 			}
 		}()
 		gameArchie.Meta = d.Snapshoot(clusterName)
@@ -79,6 +67,12 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取直连ip
 	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+
+			}
+		}()
 		clusterIni := d.GetClusterIni(clusterName)
 		password := clusterIni.ClusterPassword
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
@@ -93,7 +87,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
 			}
 		}
-		wg.Done()
+
 	}()
 
 	wg.Wait()

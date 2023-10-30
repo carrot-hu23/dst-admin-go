@@ -17,9 +17,6 @@ func init8Level(router *gin.RouterGroup) {
 		group.GET("/clusterIni", game8LevelApi.GetClusterIni)
 		group.POST("/clusterIni", game8LevelApi.SaveClusterIni)
 
-		group.GET("/config", game8LevelApi.GetLevelConfig)
-		group.POST("/config", game8LevelApi.SaveLevelConfig)
-
 		group.GET("/players", game8LevelApi.GetOnlinePlayers)
 		group.GET("/adminilist", game8LevelApi.GetAdministrators)
 		group.GET("/whitelist", game8LevelApi.GetWhitelist)

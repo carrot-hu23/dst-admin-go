@@ -16,134 +16,59 @@ var homeService = service.HomeService{}
 type Game8LevelApi struct {
 }
 
-type LevelStatus struct {
-	MasterStatus bool `json:"masterStatus"`
-	Slave1Status bool `json:"slave1Status"`
-	Slave2Status bool `json:"slave2Status"`
-	Slave3Status bool `json:"slave3Status"`
-	Slave4Status bool `json:"slave4Status"`
-	Slave5Status bool `json:"slave5Status"`
-	Slave6Status bool `json:"slave6Status"`
-	Slave7Status bool `json:"slave7Status"`
-
-	MasterPs *vo.DstPsVo `json:"masterPs"`
-	Slave1ps *vo.DstPsVo `json:"slave1ps"`
-	Slave2ps *vo.DstPsVo `json:"slave2ps"`
-	Slave3ps *vo.DstPsVo `json:"slave3ps"`
-	Slave4ps *vo.DstPsVo `json:"slave4ps"`
-	Slave5ps *vo.DstPsVo `json:"slave5ps"`
-	Slave6ps *vo.DstPsVo `json:"slave6ps"`
-	Slave7ps *vo.DstPsVo `json:"slave7ps"`
-}
-
-type LevelConfig struct {
-	Master *level.World `json:"master"`
-	Slave1 *level.World `json:"slave1"`
-	Slave2 *level.World `json:"slave2"`
-	Slave3 *level.World `json:"slave3"`
-	Slave4 *level.World `json:"slave4"`
-	Slave5 *level.World `json:"slave5"`
-	Slave6 *level.World `json:"slave6"`
-	Slave7 *level.World `json:"slave7"`
-}
-
 type ClusterIni struct {
 	Cluster *level.ClusterIni `json:"cluster"`
 	Token   string            `json:"token"`
+}
+
+type LevelInfo struct {
+	Ps                *vo.DstPsVo      `json:"Ps"`
+	Status            bool             `json:"status"`
+	LevelName         string           `json:"levelName"`
+	IsMaster          bool             `json:"is_master"`
+	Uuid              string           `json:"uuid"`
+	Leveldataoverride string           `json:"leveldataoverride"`
+	Modoverrides      string           `json:"modoverrides"`
+	ServerIni         *level.ServerIni `json:"server_ini"`
 }
 
 // GetStatus 获取世界状态
 func (g *Game8LevelApi) GetStatus(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
-	levelStatus := LevelStatus{}
+	levelList := gameLevel2Service.GetLevelList(clusterName)
+	length := len(levelList)
+	result := make([]LevelInfo, length)
 	var wg sync.WaitGroup
-	wg.Add(8)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
+	wg.Add(length)
+	for i := range levelList {
+		go func(index int) {
+			defer func() {
+				wg.Done()
+				if r := recover(); r != nil {
+
+				}
+			}()
+			world := levelList[index]
+			ps := gameService.PsAuxSpecified(clusterName, world.Uuid)
+			status := gameService.GetLevelStatus(clusterName, world.Uuid)
+			result[index] = LevelInfo{
+				Ps:                ps,
+				Status:            status,
+				LevelName:         world.LevelName,
+				IsMaster:          world.IsMaster,
+				Uuid:              world.Uuid,
+				Leveldataoverride: world.Leveldataoverride,
+				Modoverrides:      world.Modoverrides,
+				ServerIni:         world.ServerIni,
 			}
-			wg.Done()
-		}()
-		levelStatus.MasterStatus = gameService.GetLevelStatus(clusterName, "Master")
-		levelStatus.MasterPs = gameService.PsAuxSpecified(clusterName, "Master")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave1Status = gameService.GetLevelStatus(clusterName, "Slave1")
-		levelStatus.Slave1ps = gameService.PsAuxSpecified(clusterName, "Slave1")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave2Status = gameService.GetLevelStatus(clusterName, "Slave2")
-		levelStatus.Slave2ps = gameService.PsAuxSpecified(clusterName, "Slave2")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave3Status = gameService.GetLevelStatus(clusterName, "Slave3")
-		levelStatus.Slave3ps = gameService.PsAuxSpecified(clusterName, "Slave3")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave4Status = gameService.GetLevelStatus(clusterName, "Slave4")
-		levelStatus.Slave4ps = gameService.PsAuxSpecified(clusterName, "Slave4")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave5Status = gameService.GetLevelStatus(clusterName, "Slave5")
-		levelStatus.Slave5ps = gameService.PsAuxSpecified(clusterName, "Slave5")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave6Status = gameService.GetLevelStatus(clusterName, "Slave6")
-		levelStatus.Slave6ps = gameService.PsAuxSpecified(clusterName, "Slave6")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelStatus.Slave7Status = gameService.GetLevelStatus(clusterName, "Slave7")
-		levelStatus.Slave7ps = gameService.PsAuxSpecified(clusterName, "Slave7")
-	}()
+		}(i)
+	}
 	wg.Wait()
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: &levelStatus,
+		Data: result,
 	})
 }
 
@@ -221,120 +146,6 @@ func (g *Game8LevelApi) SendCommand(ctx *gin.Context) {
 	clusterName := cluster.ClusterName
 
 	consoleService.SendCommand(clusterName, levelName, command)
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: nil,
-	})
-}
-
-// GetLevelConfig 获取世界配置
-func (g *Game8LevelApi) GetLevelConfig(ctx *gin.Context) {
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
-
-	levelConfig := LevelConfig{}
-	var wg sync.WaitGroup
-	wg.Add(8)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Master = homeService.GetLevel(clusterName, "Master")
-	}()
-
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave1 = homeService.GetLevel(clusterName, "Slave1")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave2 = homeService.GetLevel(clusterName, "Slave2")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave3 = homeService.GetLevel(clusterName, "Slave3")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave4 = homeService.GetLevel(clusterName, "Slave4")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave5 = homeService.GetLevel(clusterName, "Slave5")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave6 = homeService.GetLevel(clusterName, "Slave6")
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-			wg.Done()
-		}()
-		levelConfig.Slave7 = homeService.GetLevel(clusterName, "Slave7")
-	}()
-	wg.Wait()
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: &levelConfig,
-	})
-}
-
-// SaveLevelConfig 保存世界配置
-func (g *Game8LevelApi) SaveLevelConfig(ctx *gin.Context) {
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
-
-	levelConfig := LevelConfig{}
-	ctx.ShouldBind(&levelConfig)
-	log.Println("正在保存 levelConfig", levelConfig)
-
-	homeService.SaveLevel(clusterName, "Master", levelConfig.Master)
-	homeService.SaveLevel(clusterName, "Slave1", levelConfig.Slave1)
-	homeService.SaveLevel(clusterName, "Slave2", levelConfig.Slave2)
-	homeService.SaveLevel(clusterName, "Slave3", levelConfig.Slave3)
-	homeService.SaveLevel(clusterName, "Slave4", levelConfig.Slave4)
-	homeService.SaveLevel(clusterName, "Slave5", levelConfig.Slave5)
-	homeService.SaveLevel(clusterName, "Slave6", levelConfig.Slave6)
-	homeService.SaveLevel(clusterName, "Slave7", levelConfig.Slave7)
-
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",

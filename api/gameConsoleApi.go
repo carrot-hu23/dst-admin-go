@@ -9,7 +9,9 @@ import (
 	"dst-admin-go/vo"
 	"log"
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -326,4 +328,63 @@ func (g *GameConsoleApi) ReadLevelServeChatLog(ctx *gin.Context) {
 		Msg:  "success",
 		Data: consoleService.ReadLevelServerChatLog(clusterName, levelName, uint(lines)),
 	})
+}
+
+func (g *GameConsoleApi) ReadServerLog(ctx *gin.Context) {
+
+	lines, _ := strconv.Atoi(ctx.DefaultQuery("lines", "100"))
+	logs, err := fileUtils.ReverseRead("./log.log", uint(lines))
+	if err != nil {
+		log.Panicln("读取面板日志失败")
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: logs,
+	})
+}
+
+func (g *GameConsoleApi) DownloadDstLogFile(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	fileName := ctx.Query("fileName")
+	if fileName == "" {
+		log.Panicln("fileName 不能为空")
+	}
+	levelName := ctx.Query("levelName")
+	if fileName == "" {
+		log.Panicln("levelName 不能为空")
+	}
+
+	filePath := filepath.Join(dst.GetClusterBasePath(clusterName), levelName, fileName)
+	//打开文件
+	_, err := os.Open(filePath)
+	//非空处理
+	if err != nil {
+		log.Panicln("download filePath error", err)
+	}
+	ctx.Header("Content-Type", "application/octet-stream")
+	ctx.Header("Content-Disposition", "attachment; filename="+fileName)
+	ctx.Header("Content-Transfer-Encoding", "binary")
+	// c.Header("Content-Length", strconv.FormatInt(f.Size(), 10))
+	ctx.File(filePath)
+}
+
+func (g *GameConsoleApi) DownloadServerLogFile(ctx *gin.Context) {
+
+	filePath := "./log.log"
+	//打开文件
+	_, err := os.Open(filePath)
+	//非空处理
+	if err != nil {
+		log.Panicln("download filePath error", err)
+	}
+	ctx.Header("Content-Type", "application/octet-stream")
+	ctx.Header("Content-Disposition", "attachment; filename="+"log.log")
+	ctx.Header("Content-Transfer-Encoding", "binary")
+	// c.Header("Content-Length", strconv.FormatInt(f.Size(), 10))
+	ctx.File(filePath)
 }

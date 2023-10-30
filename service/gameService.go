@@ -97,6 +97,7 @@ func (g *GameService) GetLevelStatus(clusterName, level string) bool {
 		return false
 	}
 	res := strings.Split(result, "\n")[0]
+	log.Println("查询世界状态", cmd, result, res, res != "")
 	return res != ""
 }
 

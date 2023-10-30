@@ -35,7 +35,7 @@ func NewRoute() *gin.Engine {
 	initTimedTaskRouter(router)
 
 	initAutoCheck(router)
-	initLevel(router)
+
 	initWebLinkRouter(router)
 	initWebhookRouter(router)
 	init8Level(router)
