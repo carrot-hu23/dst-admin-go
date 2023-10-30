@@ -42,27 +42,62 @@ type searchResult struct {
 
 // ModInfo 存储 mod 信息的结构体
 type ModInfo struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Author string `json:"author"`
-	Desc   string `json:"desc"`
-	Time   int    `json:"time"`
-	Sub    int    `json:"sub"`
-	Img    string `json:"img"`
-	Vote   struct {
+	ID            string  `json:"id"`
+	Name          string  `json:"name"`
+	Author        string  `json:"author"`
+	Desc          string  `json:"desc"`
+	Time          int     `json:"time"`
+	Sub           int     `json:"sub"`
+	Img           string  `json:"img"`
+	FileUrl       string  `json:"file_url"`
+	V             string  `json:"v"`
+	LastTime      float64 `json:"last_time"`
+	ConsumerAppid float64 `json:"consumer_appid"`
+	CreatorAppid  float64 `json:"creator_appid"`
+	Vote          struct {
 		Star int `json:"star"`
 		Num  int `json:"num"`
 	} `json:"vote"`
 	Child []string `json:"child,omitempty"`
 }
 
+// 获取饥荒本身modid的位置
+func get_dst_ucgs_mods_installed_path(modid string) (string, bool) {
+	// /root/dst-dedicated-server/ugc_mods/MyDediServer/Master/content/322330/1185229307
+	// 先从 mods 文件读取
+
+	dstConfig := dstConfigUtils.GetDstConfig()
+	masterModFilePath := path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Master/content/322330", modid)
+	caveModFilePath := path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Caves/content/322330", modid)
+
+	log.Println("masterModFilePath: ", masterModFilePath)
+	log.Println("caveModFilePath: ", caveModFilePath)
+
+	if fileUtils.Exists(masterModFilePath) {
+		return masterModFilePath, true
+	}
+	if fileUtils.Exists(caveModFilePath) {
+		return masterModFilePath, true
+	}
+	return "", false
+}
+
 func get_mod_info_config(mod_id string) map[string]interface{} {
+	// 从服务器本地读取mod信息
+	if dst_mod_installed_path, ok := get_dst_ucgs_mods_installed_path(mod_id); ok {
+		modinfo_path := filepath.Join(dst_mod_installed_path, "modinfo.lua")
+		log.Println("ucg modinfo.lua: ", modinfo_path)
+		if _, err := os.Stat(modinfo_path); err == nil {
+			return read_mod_info(mod_id, modinfo_path)
+		}
+	}
+
 	// 检查 mod 文件是否已经存在
 	// mod_download_path := "/root/mine/dst/dst-admin-go-1.0.0/go-mod/mod"
 	dstConfig := dstConfigUtils.GetDstConfig()
 	mod_download_path := dstConfig.Mod_download_path
 	fileUtils.CreateFileIfNotExists(mod_download_path)
-
+	// 下载的模组位置
 	mod_path := path.Join(mod_download_path, "/steamapps/workshop/content/322330/", mod_id)
 	if _, err := os.Stat(mod_path); err == nil {
 		fmt.Println("Mod already downloaded to:", mod_path)
@@ -83,6 +118,7 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 		match := re.FindStringSubmatch(string(output))
 		if len(match) < 2 {
 			fmt.Println("Error parsing output")
+			log.Println(string(output))
 			return make(map[string]interface{})
 		}
 		path := match[1]
@@ -479,9 +515,36 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 	// 	 "mod_config":     get_mod_info_config(modID),
 	// }
 
-	if modInfo, ok := getModInfoConfig(modID, last_time); ok {
-		return modInfo, nil, 0
+	if modInfo, ok := getModInfoConfig2(modID); ok {
+		if last_time == modInfo.LastTime {
+			return modInfo, nil, 0
+		}
+
+		// 更新配置项
+		var modConfig string
+		var fileUrl = ""
+		if file_url != nil {
+			fileUrl = file_url.(string)
+		}
+		if fileUrl != "" {
+			modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modID, fileUrl))
+			modConfig = string(modConfigJson)
+		} else {
+			modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
+			modConfig = string(modConfigJson)
+		}
+
+		modInfo.LastTime = last_time
+		modInfo.Name = name
+		modInfo.Auth = auth
+		modInfo.Description = description
+		modInfo.Img = img
+		modInfo.V = v
+		modInfo.ModConfig = modConfig
+		db := database.DB
+		db.Save(&modInfo)
 	}
+
 	var fileUrl = ""
 	if file_url != nil {
 		fileUrl = file_url.(string)
@@ -516,6 +579,17 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 	db := database.DB
 	db.Create(&newModInfo)
 	return newModInfo, nil, 0
+}
+
+func getModInfoConfig2(modid string) (model.ModInfo, bool) {
+	db := database.DB
+	modInfo := model.ModInfo{}
+	db.Where("modid = ?", modid).First(&modInfo)
+
+	if modInfo.Modid == "" {
+		return modInfo, false
+	}
+	return modInfo, true
 }
 
 func getModInfoConfig(modid string, lastTime float64) (model.ModInfo, bool) {
@@ -684,4 +758,40 @@ func getModInfo(modID int) ModInfo {
 	}
 
 	return modInfo
+}
+
+func AddModInfo(modid string) {
+
+	// 获取mod基本信息
+	modInfo, err, _ := GetModInfo2(modid)
+	if err != nil {
+		log.Panicln("获取modinfo 失败", err)
+	}
+	// 从数据查找是由有
+	oldModinfo, ok := getModInfoConfig2(modid)
+
+	// 更新配置项
+	var modConfig string
+	modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+	if err != nil {
+		log.Println(err)
+	}
+	modConfig = string(modConfigJson)
+
+	if ok {
+		oldModinfo.LastTime = modInfo.LastTime
+		oldModinfo.Name = modInfo.Name
+		oldModinfo.Auth = modInfo.Auth
+		oldModinfo.Description = modInfo.Description
+		oldModinfo.Img = modInfo.Img
+		oldModinfo.V = modInfo.V
+		oldModinfo.ModConfig = modConfig
+		db := database.DB
+		db.Save(&oldModinfo)
+	} else {
+		modInfo.ModConfig = modConfig
+		db := database.DB
+		db.Create(&modInfo)
+	}
+
 }

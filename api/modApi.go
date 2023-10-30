@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/mod"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -215,4 +216,45 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 		Msg:  "success",
 		Data: mod,
 	})
+}
+
+// AddModInfoFile 手动添加模组
+func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+
+	var payload struct {
+		WorkshopId string `json:"workshopId"`
+		Modinfo    string `json:"modinfo"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln("参数解析失败")
+	}
+	if payload.WorkshopId == "" {
+		log.Panicln("workshopId can not be null")
+	}
+
+	// 创建workshop文件
+	workshopDirPath := filepath.Join(cluster.ModDownloadPath, "/steamapps/workshop/content/322330", payload.WorkshopId)
+	fileUtils.CreateDirIfNotExists(workshopDirPath)
+	modinfoPath := filepath.Join(workshopDirPath, "modinfo.lua")
+
+	err = fileUtils.CreateFileIfNotExists(modinfoPath)
+	if err != nil {
+		log.Panicln("创建 modinfo.lua 失败", modinfoPath, err)
+	}
+	err = fileUtils.WriterTXT(modinfoPath, payload.Modinfo)
+	if err != nil {
+		log.Panicln("写入 modinfo.lua 失败， path: ", modinfoPath, "error: ", err)
+	}
+
+	mod.AddModInfo(payload.WorkshopId)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+
 }
