@@ -22,7 +22,25 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 	}
 	var levels []level.World
 	if len(config.LevelList) == 0 {
-		return []level.World{}
+		master := level.World{
+			IsMaster:          true,
+			LevelName:         "森林",
+			Uuid:              "Master",
+			Leveldataoverride: "return {}",
+			Modoverrides:      "return {}",
+			ServerIni:         level.NewMasterServerIni(),
+		}
+		initLevel(filepath.Join(dst.GetClusterBasePath(clusterName), "Master"), &master)
+		levels = append([]level.World{}, master)
+		config.LevelList = append(config.LevelList, levelConfigUtils.Item{
+			Name: "森林",
+			File: "Master",
+		})
+		err = levelConfigUtils.SaveLevelConfig(clusterName, config)
+		if err != nil {
+			log.Println(err)
+		}
+		return levels
 	}
 	for i := range config.LevelList {
 		level1 := level.World{}
