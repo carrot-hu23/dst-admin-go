@@ -22,25 +22,40 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 	}
 	var levels []level.World
 	if len(config.LevelList) == 0 {
-		master := level.World{
-			IsMaster:          true,
-			LevelName:         "森林",
-			Uuid:              "Master",
-			Leveldataoverride: "return {}",
-			Modoverrides:      "return {}",
-			ServerIni:         level.NewMasterServerIni(),
+		levelPath := filepath.Join(dst.GetClusterBasePath(clusterName), "Master")
+		if !fileUtils.Exists(levelPath) {
+			master := level.World{
+				IsMaster:          true,
+				LevelName:         "森林",
+				Uuid:              "Master",
+				Leveldataoverride: "return {}",
+				Modoverrides:      "return {}",
+				ServerIni:         level.NewMasterServerIni(),
+			}
+			initLevel(filepath.Join(dst.GetClusterBasePath(clusterName), "Master"), &master)
+			levels = append([]level.World{}, master)
+			config.LevelList = append(config.LevelList, levelConfigUtils.Item{
+				Name: "森林",
+				File: "Master",
+			})
+			err = levelConfigUtils.SaveLevelConfig(clusterName, config)
+			if err != nil {
+				log.Println(err)
+			}
+			return levels
+		} else {
+			world := homeServe.GetLevel(clusterName, "Master")
+			master := level.World{
+				IsMaster:          true,
+				LevelName:         "森林",
+				Uuid:              "Master",
+				Leveldataoverride: world.Leveldataoverride,
+				Modoverrides:      world.Modoverrides,
+				ServerIni:         world.ServerIni,
+			}
+			levels = append([]level.World{}, master)
+			return levels
 		}
-		initLevel(filepath.Join(dst.GetClusterBasePath(clusterName), "Master"), &master)
-		levels = append([]level.World{}, master)
-		config.LevelList = append(config.LevelList, levelConfigUtils.Item{
-			Name: "森林",
-			File: "Master",
-		})
-		err = levelConfigUtils.SaveLevelConfig(clusterName, config)
-		if err != nil {
-			log.Println(err)
-		}
-		return levels
 	}
 	for i := range config.LevelList {
 		level1 := level.World{}
@@ -59,6 +74,7 @@ func (g *GameLevel2Service) UpdateLevels(clusterName string, levels []level.Worl
 	// TODO 保留之前的数据
 
 	for i := range levels {
+		dstUtils.DedicatedServerModsSetup2(clusterName, levels[i].Modoverrides)
 		err := g.UpdateLevel(clusterName, &levels[i])
 		if err != nil {
 			return err

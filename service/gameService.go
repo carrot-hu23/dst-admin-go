@@ -3,9 +3,6 @@ package service
 import (
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
-	"dst-admin-go/utils/dstUtils"
-	"dst-admin-go/vo/level"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"strconv"
@@ -14,11 +11,9 @@ import (
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
-	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
 	"log"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -236,74 +231,6 @@ func (g *GameService) StartGame(clusterName string, bin, beta, opType int) {
 	ClearScreen()
 }
 
-func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboardVO {
-	var wg sync.WaitGroup
-	wg.Add(10)
-
-	dashboardVO := vo.NewDashboardVO(clusterName)
-	go func() {
-		defer wg.Done()
-		dashboardVO.MasterStatus = g.GetLevelStatus(clusterName, "Master")
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.CavesStatus = g.GetLevelStatus(clusterName, "Caves")
-
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.HostInfo = systemUtils.GetHostInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.CpuInfo = systemUtils.GetCpuInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.MemInfo = systemUtils.GetMemInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-		dashboardVO.MemStates = m.Alloc / 1024
-	}()
-
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				dashboardVO.Version = 0
-			}
-			wg.Done()
-		}()
-		dashboardVO.Version = g.GetLocalDstVersion(clusterName)
-	}()
-
-	// 获取master进程占用情况
-	go func() {
-		defer wg.Done()
-		dashboardVO.MasterPs = g.PsAuxSpecified(clusterName, "Master")
-	}()
-	// 获取caves进程占用情况
-	go func() {
-		defer wg.Done()
-		dashboardVO.CavesPs = g.PsAuxSpecified(clusterName, "Caves")
-	}()
-
-	wg.Wait()
-	return *dashboardVO
-}
-
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
@@ -324,78 +251,4 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
 
 	return dstPsVo
-}
-
-func (g *GameService) GetGameConfig(ctx *gin.Context) *level.GameConfig {
-	gameConfig := level.GameConfig{}
-	var wg sync.WaitGroup
-	wg.Add(6)
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
-	go func() {
-		gameConfig.ClusterToken = g.c.GetClusterToken(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.ClusterIni = g.c.GetClusterIni(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Adminlist = g.c.GetAdminlist(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Blocklist = g.c.GetBlocklist(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Master = g.c.GetMasterWorld(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Caves = g.c.GetCavesWorld(clusterName)
-		wg.Done()
-	}()
-	wg.Wait()
-	return &gameConfig
-}
-
-func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *level.GameConfig) {
-	var wg sync.WaitGroup
-	wg.Add(6)
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
-	go func() {
-		g.c.SaveClusterToken(clusterName, gameConfig.ClusterToken)
-		wg.Done()
-	}()
-
-	go func() {
-		g.c.SaveClusterIni(clusterName, gameConfig.ClusterIni)
-		wg.Done()
-	}()
-
-	go func() {
-		// SaveAdminlist(level.Adminlist)
-		wg.Done()
-	}()
-
-	go func() {
-		// SaveBlocklist(level.Blocklist)
-		wg.Done()
-	}()
-
-	go func() {
-		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
-		dstUtils.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
-		dstUtils.DedicatedServerModsSetup2(clusterName, gameConfig.Caves.Modoverrides)
-		wg.Done()
-	}()
-
-	go func() {
-		g.c.SaveCavesWorld(clusterName, gameConfig.Caves)
-		wg.Done()
-	}()
-
-	wg.Wait()
 }

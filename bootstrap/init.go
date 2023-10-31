@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
@@ -123,7 +122,7 @@ func initCollect() {
 	newCollect.StartCollect()
 	global.Collect = newCollect
 
-	autoCheck.AutoCheckObject = autoCheck.NewAutoCheckConfig(clusterName, dstConfig.Bin, dstConfig.Beta)
+	// autoCheck.AutoCheckObject = autoCheck.NewAutoCheckConfig(clusterName, dstConfig.Bin, dstConfig.Beta)
 }
 
 func initSchedule() {

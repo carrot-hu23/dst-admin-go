@@ -6,9 +6,11 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/vo"
 	"log"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -155,21 +157,8 @@ func (c *GameConfigService) getModoverrides(clusterName string) string {
 }
 
 func (c *GameConfigService) SaveConfig(clusterName string, gameConfigVo vo.GameConfigVO) {
-
-	//创建房间配置
-	c.createClusterIni(clusterName, gameConfigVo)
-	//创建token配置
-	c.createClusterToken(clusterName, strings.TrimSpace(gameConfigVo.Token))
-	//创建地面和洞穴的ini配置文件
-	// createMasterServerIni()
-	// createCavesServerIni()
-	//创建地面世界设置
-	c.createMasteLeveldataoverride(clusterName, gameConfigVo.MasterMapData)
-	//创建洞穴世界设置
-	c.createCavesLeveldataoverride(clusterName, gameConfigVo.CavesMapData)
 	//创建mod设置
 	c.createModoverrides(clusterName, gameConfigVo.ModData)
-	//TODO dedicated_server_mods_setup
 
 }
 
@@ -225,25 +214,21 @@ func (c *GameConfigService) createCavesLeveldataoverride(clusterName string, map
 }
 func (c *GameConfigService) createModoverrides(clusterName string, modConfig string) {
 
-	masterModoverridesPath := dst.GetMasterModoverridesPath(clusterName)
-	cavesModoverridesPath := dst.GetCavesModoverridesPath(clusterName)
-
 	if modConfig != "" {
-		fileUtils.WriterTXT(masterModoverridesPath, modConfig)
-		fileUtils.WriterTXT(cavesModoverridesPath, modConfig)
 
+		config, _ := levelConfigUtils.GetLevelConfig(clusterName)
+		for i := range config.LevelList {
+			fileUtils.WriterTXT(filepath.Join(dst.GetClusterBasePath(clusterName), config.LevelList[i].File, "modoverrides.lua"), modConfig)
+		}
 		var serverModSetup = ""
-		//TODO 添加mod setup
+		//TODO 添加m
 		workshopIds := dstUtils.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
 		fileUtils.WriterTXT(dst.GetModSetup(clusterName), serverModSetup)
-	} else {
-		//置空
-		fileUtils.WriterTXT(masterModoverridesPath, "")
-		fileUtils.WriterTXT(cavesModoverridesPath, "")
 	}
+
 }
 
 func (c *GameConfigService) UpdateDedicatedServerModsSetup(clusterName, modConfig string) {

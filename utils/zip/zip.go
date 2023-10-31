@@ -3,8 +3,10 @@ package zip
 import (
 	"archive/zip"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func zipDir(dirPath string, zipWriter *zip.Writer, basePath string) error {
@@ -103,6 +105,55 @@ func Unzip(zipFile, destDir string) error {
 		defer targetFile.Close()
 
 		_, err = io.Copy(targetFile, zipEntry)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Unzip2(zipFile, destDir, newName string) error {
+	r, err := zip.OpenReader(zipFile)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+
+		parts := strings.Split(f.Name, string(filepath.Separator)) // 使用路径分隔符拆分路径
+		parts = parts[1:]                                          // 去掉第一个部分，即一级目录
+		newPath := filepath.Join(parts...)                         // 组合新的路径
+
+		// 构建解压后的文件路径
+		extractedFilePath := filepath.Join(destDir, newName, newPath)
+		log.Println(">>> ", destDir, newName, newPath)
+		if f.FileInfo().IsDir() {
+			// 创建目录
+			os.MkdirAll(extractedFilePath, os.ModePerm)
+			continue
+		}
+
+		// 创建解压后的文件
+		if err := os.MkdirAll(filepath.Dir(extractedFilePath), os.ModePerm); err != nil {
+			return err
+		}
+		outFile, err := os.OpenFile(extractedFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return err
+		}
+		defer outFile.Close()
+
+		// 打开压缩文件中的文件
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+
+		// 将压缩文件中的内容复制到解压文件中
+		_, err = io.Copy(outFile, rc)
 		if err != nil {
 			return err
 		}

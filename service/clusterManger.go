@@ -206,7 +206,6 @@ func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
 	// 删除饥荒
 
 	// 停止服务
-	c.s.StopGame(cluster.ClusterName, 0)
 	return &cluster, nil
 }
 

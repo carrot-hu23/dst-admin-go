@@ -6,8 +6,10 @@ import (
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/third"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
@@ -147,5 +149,77 @@ func (t *ThirdPartyApi) QueryLobbyServerDetail(ctx *gin.Context) {
 		Msg:  "success",
 		Data: lobbyServer.QueryLobbyHomeInfo(region, rowId),
 	})
+
+}
+
+func (t *ThirdPartyApi) GetDstHomeServerList2(ctx *gin.Context) {
+
+	originalURL := "https://api.dstserverlist.top/api/list"
+	u, err := url.Parse(originalURL)
+	if err != nil {
+		fmt.Println("Failed to parse URL:", err)
+		return
+	}
+
+	// 构建参数
+	params := url.Values{}
+	params.Add("page", ctx.DefaultQuery("page", "1"))
+	params.Add("pageCount", ctx.DefaultQuery("pageCount", "10"))
+	params.Add("name", ctx.Query("name"))
+
+	// 将参数编码为查询字符串
+	queryString := params.Encode()
+
+	// 将查询字符串附加到原始URL
+	u.RawQuery = queryString
+
+	// 获取新的URL字符串
+	newURL := u.String()
+
+	req, _ := http.NewRequest("POST", newURL, nil)
+	// 比如说设置个token
+	req.Header.Set("Content-Type", "application/json")
+
+	response, err := (&http.Client{}).Do(req)
+	if err != nil || response.StatusCode != http.StatusOK {
+		ctx.Status(http.StatusServiceUnavailable)
+		return
+	}
+
+	reader := response.Body
+	contentLength := response.ContentLength
+	contentType := response.Header.Get("Content-Type")
+
+	extraHeaders := map[string]string{
+		//"Content-Disposition": `attachment; filename="gopher.png"`,
+		//"X-Requested-With": "XMLHttpRequest",
+	}
+	ctx.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
+
+}
+
+func (t *ThirdPartyApi) GetDstHomeDetailList2(ctx *gin.Context) {
+
+	originalURL := "https://api.dstserverlist.top/api/details/" + ctx.Query("rowId")
+
+	req, _ := http.NewRequest("POST", originalURL, nil)
+	// 比如说设置个token
+	req.Header.Set("Content-Type", "application/json")
+
+	response, err := (&http.Client{}).Do(req)
+	if err != nil || response.StatusCode != http.StatusOK {
+		ctx.Status(http.StatusServiceUnavailable)
+		return
+	}
+
+	reader := response.Body
+	contentLength := response.ContentLength
+	contentType := response.Header.Get("Content-Type")
+
+	extraHeaders := map[string]string{
+		//"Content-Disposition": `attachment; filename="gopher.png"`,
+		//"X-Requested-With": "XMLHttpRequest",
+	}
+	ctx.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
 
 }

@@ -48,11 +48,7 @@ func InitGameRouter(router *gin.RouterGroup) {
 	gameApi := api.GameApi{}
 	game := router.Group("/api/game")
 	{
-		// TODO 删除
 		game.GET("/update", gameApi.UpdateGame)
-		game.GET("/dashboard", gameApi.GetDashboardInfo)
-		game.GET("/start", gameApi.StartGame)
-		game.GET("/stop", gameApi.StopGame)
 	}
 
 }

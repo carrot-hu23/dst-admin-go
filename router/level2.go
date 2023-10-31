@@ -11,9 +11,30 @@ func initLevel2(router *gin.RouterGroup) {
 	group := router.Group("/api/cluster/level")
 	{
 		group.GET("", gameLevelApi.GetLevelList)
-		group.PUT("", gameLevelApi.UpdateLevelsList)
+		group.PUT("", gameLevelApi.SaveLevelsList)
 		group.POST("", gameLevelApi.CreateNewLevel)
 		group.DELETE("", gameLevelApi.DeleteLevel)
 	}
 
+	group2 := router.Group("/api/game/8level")
+	{
+		group2.GET("/status", gameLevelApi.GetStatus)
+		group2.GET("/start", gameLevelApi.Start)
+		group2.GET("/stop", gameLevelApi.Stop)
+
+		group2.GET("/clusterIni", gameLevelApi.GetClusterIni)
+		group2.POST("/clusterIni", gameLevelApi.SaveClusterIni)
+
+		group2.GET("/players", gameLevelApi.GetOnlinePlayers)
+		group2.GET("/adminilist", gameLevelApi.GetAdministrators)
+		group2.GET("/whitelist", gameLevelApi.GetWhitelist)
+		group2.GET("/blacklist", gameLevelApi.GetBlacklist)
+
+		group2.POST("/adminilist", gameLevelApi.SaveAdminlist)
+		group2.POST("/whitelist", gameLevelApi.SaveWhitelist)
+		group2.POST("/blacklist", gameLevelApi.SaveBlacklist)
+
+		group2.GET("/command", gameLevelApi.SendCommand)
+
+	}
 }
