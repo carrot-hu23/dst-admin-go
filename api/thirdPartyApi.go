@@ -163,9 +163,9 @@ func (t *ThirdPartyApi) GetDstHomeServerList2(ctx *gin.Context) {
 
 	// 构建参数
 	params := url.Values{}
-	params.Add("page", ctx.DefaultQuery("page", "1"))
-	params.Add("pageCount", ctx.DefaultQuery("pageCount", "10"))
-	params.Add("name", ctx.Query("name"))
+	params.Add("page", ctx.DefaultQuery("current", "1"))
+	params.Add("pageCount", ctx.DefaultQuery("pageSize", "10"))
+	params.Add("name", ctx.Query("Name"))
 
 	// 将参数编码为查询字符串
 	queryString := params.Encode()

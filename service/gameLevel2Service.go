@@ -22,8 +22,8 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 	}
 	var levels []level.World
 	if len(config.LevelList) == 0 {
-		levelPath := filepath.Join(dst.GetClusterBasePath(clusterName), "Master")
-		if !fileUtils.Exists(levelPath) {
+		masterLevelPath := filepath.Join(dst.GetClusterBasePath(clusterName), "Master")
+		if !fileUtils.Exists(masterLevelPath) {
 			master := level.World{
 				IsMaster:          true,
 				LevelName:         "森林",
@@ -44,16 +44,41 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 			}
 			return levels
 		} else {
-			world := homeServe.GetLevel(clusterName, "Master")
+			masterLevel := homeServe.GetLevel(clusterName, "Master")
 			master := level.World{
 				IsMaster:          true,
 				LevelName:         "森林",
 				Uuid:              "Master",
-				Leveldataoverride: world.Leveldataoverride,
-				Modoverrides:      world.Modoverrides,
-				ServerIni:         world.ServerIni,
+				Leveldataoverride: masterLevel.Leveldataoverride,
+				Modoverrides:      masterLevel.Modoverrides,
+				ServerIni:         masterLevel.ServerIni,
 			}
 			levels = append([]level.World{}, master)
+			config.LevelList = append(config.LevelList, levelConfigUtils.Item{
+				Name: "森林",
+				File: "Master",
+			})
+			cavesLevelPath := filepath.Join(dst.GetClusterBasePath(clusterName), "Caves")
+			if fileUtils.Exists(cavesLevelPath) {
+				config.LevelList = append(config.LevelList, levelConfigUtils.Item{
+					Name: "洞穴",
+					File: "Caves",
+				})
+				cavesLevel := homeServe.GetLevel(clusterName, "Caves")
+				caves := level.World{
+					IsMaster:          true,
+					LevelName:         "洞穴",
+					Uuid:              "Caves",
+					Leveldataoverride: cavesLevel.Leveldataoverride,
+					Modoverrides:      cavesLevel.Modoverrides,
+					ServerIni:         cavesLevel.ServerIni,
+				}
+				levels = append(levels, caves)
+			}
+			err = levelConfigUtils.SaveLevelConfig(clusterName, config)
+			if err != nil {
+				log.Println(err)
+			}
 			return levels
 		}
 	}
