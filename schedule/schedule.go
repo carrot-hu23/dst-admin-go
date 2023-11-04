@@ -23,6 +23,7 @@ func init() {
 	StrategyMap["start"] = &StartStrategy{}
 	StrategyMap["stop"] = &StopStrategy{}
 	StrategyMap["restart"] = &RestartStrategy{}
+	StrategyMap["regenerate"] = &RegenerateStrategy{}
 }
 
 type Task struct {
@@ -59,7 +60,7 @@ func (s *Schedule) AddJob(task Task) {
 	jobId, err := s.cron.AddFunc(task.Corn, func() {
 		// 发送公告
 		s.SendAnnouncement(task.ClusterName, task.Announcement, task.Sleep, task.Times)
-		task.F(task.ClusterName, task.ClusterName)
+		task.F(task.ClusterName, task.LevelName)
 	})
 	if err != nil {
 		log.Panicln("创建任务失败，cron:", task.Corn, err)
@@ -96,6 +97,9 @@ func (s *Schedule) GetJobs() []map[string]interface{} {
 		taskId, _ := s.cache.Load(entry.ID)
 		task := s.findDB(taskId.(uint))
 		results = append(results, map[string]interface{}{
+			"clusterName":  task.ClusterName,
+			"levelName":    task.LevelName,
+			"uuid":         task.Uuid,
 			"jobId":        entry.ID,
 			"next":         entry.Next,
 			"prev":         entry.Prev,

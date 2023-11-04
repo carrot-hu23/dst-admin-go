@@ -7,6 +7,7 @@ import (
 	"dst-admin-go/utils/zip"
 	"log"
 	"path/filepath"
+	"time"
 )
 
 var backupService = service.BackupService{}
@@ -40,6 +41,8 @@ func (u *UpdateStrategy) Execute(clusterName string, levelName string) {
 		log.Println("更新游戏失败: ", err)
 		return
 	}
+	time.Sleep(1 * time.Minute)
+	gameService.StartGame(clusterName)
 }
 
 type StartStrategy struct{}
@@ -64,4 +67,11 @@ func (s *RestartStrategy) Execute(clusterName string, levelName string) {
 	gameService.StopLevel(clusterName, levelName)
 	cluster := clusterUtils.GetCluster(clusterName)
 	gameService.LaunchLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
+}
+
+type RegenerateStrategy struct{}
+
+func (s *RegenerateStrategy) Execute(clusterName string, levelName string) {
+	log.Println("正在定时重置游戏 clusterName: ", clusterName)
+	gameConsoleService.Regenerateworld(clusterName)
 }

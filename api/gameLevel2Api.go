@@ -103,6 +103,34 @@ func (g *GameLevel2Api) Stop(ctx *gin.Context) {
 	})
 }
 
+// Start 启动世界
+func (g *GameLevel2Api) StartAll(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	gameService.StartGame(clusterName)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "start all success",
+		Data: nil,
+	})
+}
+
+// Stop 停止世界
+func (g *GameLevel2Api) StopAll(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	gameService.StopGame(clusterName)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "stop all success",
+		Data: nil,
+	})
+}
+
 // GetClusterIni 发送房间配置
 func (g *GameLevel2Api) GetClusterIni(ctx *gin.Context) {
 

@@ -177,6 +177,9 @@ func (g *GameLevel2Service) DeleteLevel(clusterName string, levelName string) er
 		}
 	}
 	err = levelConfigUtils.SaveLevelConfig(clusterName, &newLevelsConfig)
+
+	// TODO 同时删除定时任务和自动维护
+
 	return err
 }
 

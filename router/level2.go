@@ -21,6 +21,8 @@ func initLevel2(router *gin.RouterGroup) {
 		group2.GET("/status", gameLevelApi.GetStatus)
 		group2.GET("/start", gameLevelApi.Start)
 		group2.GET("/stop", gameLevelApi.Stop)
+		group2.GET("/start/all", gameLevelApi.StartAll)
+		group2.GET("/stop/all", gameLevelApi.StopAll)
 
 		group2.GET("/clusterIni", gameLevelApi.GetClusterIni)
 		group2.POST("/clusterIni", gameLevelApi.SaveClusterIni)

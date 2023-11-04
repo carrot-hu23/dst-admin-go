@@ -115,7 +115,7 @@ func UpdateGameVersionProcess(clusterName string, levelName string, bin, beta in
 	if err != nil {
 		return err
 	}
-	gameService.StartGame(clusterName, consts.StartGame, bin, beta)
+	gameService.StartGame(clusterName)
 	return nil
 }
 

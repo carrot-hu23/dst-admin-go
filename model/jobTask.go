@@ -6,6 +6,7 @@ type JobTask struct {
 	gorm.Model
 	ClusterName  string `json:"clusterName"`
 	LevelName    string `json:"levelName"`
+	Uuid         string `json:"uuid"`
 	Cron         string `json:"cron"`
 	Category     string `json:"category"`
 	Comment      string `json:"comment"`

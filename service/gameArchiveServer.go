@@ -29,7 +29,7 @@ type GameArchive struct {
 func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(5)
 
 	gameArchie := vo.NewGameArchie()
 	basePath := dst.GetClusterBasePath(clusterName)
@@ -88,6 +88,20 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 			}
 		}
 
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+
+			}
+		}()
+		localVersion := d.GetLocalDstVersion(clusterName)
+		version := d.GetLastDstVersion()
+
+		gameArchie.Version = localVersion
+		gameArchie.LastVersion = version
 	}()
 
 	wg.Wait()

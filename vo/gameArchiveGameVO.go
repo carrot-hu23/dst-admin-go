@@ -9,6 +9,8 @@ type GameArchive struct {
 	Mods            int        `json:"mods"`
 	IpConnect       string     `json:"ipConnect"`
 	Meta            Meta       `json:"meta"`
+	Version         int64      `json:"version"`
+	LastVersion     int64      `json:"lastVersion"`
 }
 
 func NewGameArchie() *GameArchive {
