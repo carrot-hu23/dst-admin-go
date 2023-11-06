@@ -31,3 +31,14 @@ func (g *GameApi) UpdateGame(ctx *gin.Context) {
 		Data: nil,
 	})
 }
+
+func (g *GameApi) GetSystemInfo(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: gameService.GetSystemInfo(clusterName),
+	})
+}

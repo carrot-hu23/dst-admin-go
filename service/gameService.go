@@ -4,8 +4,10 @@ import (
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/levelConfigUtils"
+	"dst-admin-go/utils/systemUtils"
 	"io"
 	"net/http"
+	"runtime"
 	"strconv"
 
 	"dst-admin-go/constant/screenKey"
@@ -243,4 +245,86 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
 
 	return dstPsVo
+}
+
+type SystemInfo struct {
+	HostInfo    *systemUtils.HostInfo `json:"host"`
+	CpuInfo     *systemUtils.CpuInfo  `json:"cpu"`
+	MemInfo     *systemUtils.MemInfo  `json:"mem"`
+	DiskInfo    *systemUtils.DiskInfo `json:"disk"`
+	MemStates   uint64                `json:"memStates"`
+	Version     int64                 `json:"version"`
+	LastVersion int64                 `json:"lastVersion"`
+}
+
+func (g *GameService) GetSystemInfo(clusterName string) *SystemInfo {
+	var wg sync.WaitGroup
+	wg.Add(6)
+
+	dashboardVO := SystemInfo{}
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.HostInfo = systemUtils.GetHostInfo()
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.CpuInfo = systemUtils.GetCpuInfo()
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.MemInfo = systemUtils.GetMemInfo()
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		dashboardVO.MemStates = m.Alloc / 1024
+	}()
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				dashboardVO.Version = 0
+			}
+			wg.Done()
+		}()
+		dashboardVO.Version = g.GetLocalDstVersion(clusterName)
+		dashboardVO.LastVersion = g.GetLastDstVersion()
+	}()
+
+	wg.Wait()
+	return &dashboardVO
 }

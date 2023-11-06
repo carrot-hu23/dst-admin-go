@@ -49,6 +49,7 @@ func InitGameRouter(router *gin.RouterGroup) {
 	game := router.Group("/api/game")
 	{
 		game.GET("/update", gameApi.UpdateGame)
+		game.GET("/system/info", gameApi.GetSystemInfo)
 	}
 
 }
