@@ -21,4 +21,10 @@ func initAutoCheck(router *gin.RouterGroup) {
 		autoCheck.POST("", autoCheckApi.SaveAutoCheck)
 	}
 
+	autoCheck2 := router.Group("/api/auto/check2")
+	{
+		autoCheck2.GET("", autoCheckApi.GetAutoCheckList2)
+		autoCheck2.POST("", autoCheckApi.SaveAutoCheck2)
+	}
+
 }

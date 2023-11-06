@@ -4,6 +4,8 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/vo"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -12,13 +14,7 @@ import (
 	"sync"
 )
 
-type AutoCheckApi struct {
-}
-
-const (
-	TURN = 1
-	OFF  = 0
-)
+type AutoCheckApi struct{}
 
 var lock = sync.Mutex{}
 
@@ -184,5 +180,149 @@ func (m *AutoCheckApi) GetAutoCheckStatus(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: res,
+	})
+}
+
+func (m *AutoCheckApi) GetAutoCheckList2(ctx *gin.Context) {
+
+	checkType := ctx.Query("checkType")
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	config, _ := levelConfigUtils.GetLevelConfig(cluster.ClusterName)
+
+	var uuidSet []string
+	var result []model.AutoCheck
+	if checkType == "" {
+		for i := range config.LevelList {
+			level := config.LevelList[i]
+			uuidSet = append(uuidSet, level.File)
+			autoCheck1 := model.AutoCheck{
+				ClusterName:  cluster.ClusterName,
+				LevelName:    level.Name,
+				Uuid:         level.File,
+				Enable:       0,
+				Announcement: "",
+				Times:        1,
+				Sleep:        5,
+				Interval:     5,
+				CheckType:    consts.LEVEL_MOD,
+			}
+			autoCheck2 := model.AutoCheck{
+				ClusterName:  cluster.ClusterName,
+				LevelName:    level.Name,
+				Uuid:         level.File,
+				Enable:       0,
+				Announcement: "",
+				Times:        1,
+				Sleep:        5,
+				Interval:     5,
+				CheckType:    consts.LEVEL_DOWN,
+			}
+			result = append(result, autoCheck1)
+			result = append(result, autoCheck2)
+		}
+		autoCheck3 := model.AutoCheck{
+			ClusterName:  cluster.ClusterName,
+			LevelName:    cluster.ClusterName,
+			Uuid:         "",
+			Enable:       0,
+			Announcement: "",
+			Times:        1,
+			Sleep:        5,
+			Interval:     5,
+			CheckType:    consts.UPDATE_GAME,
+		}
+		result = append(result, autoCheck3)
+	} else if checkType == consts.LEVEL_DOWN {
+		for i := range config.LevelList {
+			level := config.LevelList[i]
+			uuidSet = append(uuidSet, level.File)
+			autoCheck1 := model.AutoCheck{
+				ClusterName:  cluster.ClusterName,
+				LevelName:    level.Name,
+				Uuid:         level.File,
+				Enable:       0,
+				Announcement: "",
+				Times:        1,
+				Sleep:        5,
+				Interval:     5,
+				CheckType:    consts.LEVEL_DOWN,
+			}
+			result = append(result, autoCheck1)
+		}
+	} else if checkType == consts.LEVEL_MOD {
+		for i := range config.LevelList {
+			level := config.LevelList[i]
+			uuidSet = append(uuidSet, level.File)
+			autoCheck1 := model.AutoCheck{
+				ClusterName:  cluster.ClusterName,
+				LevelName:    level.Name,
+				Uuid:         level.File,
+				Enable:       0,
+				Announcement: "",
+				Times:        1,
+				Sleep:        5,
+				Interval:     5,
+				CheckType:    consts.LEVEL_MOD,
+			}
+			result = append(result, autoCheck1)
+		}
+	} else {
+		autoCheck3 := model.AutoCheck{
+			ClusterName:  cluster.ClusterName,
+			LevelName:    "",
+			Uuid:         "",
+			Enable:       0,
+			Announcement: "",
+			Times:        1,
+			Sleep:        5,
+			Interval:     5,
+			CheckType:    consts.UPDATE_GAME,
+		}
+		result = append(result, autoCheck3)
+	}
+
+	db := database.DB
+	var dbAutoChecks []model.AutoCheck
+	if checkType == "" {
+		db.Where("uuid in ?", uuidSet).Find(&dbAutoChecks)
+	} else {
+		db.Where("check_type = ? and uuid in ?", checkType, uuidSet).Find(&dbAutoChecks)
+	}
+
+	for i := range result {
+		for j := range dbAutoChecks {
+			if result[i].Uuid == dbAutoChecks[j].Uuid && result[i].CheckType == dbAutoChecks[j].CheckType {
+				result[i].Enable = dbAutoChecks[j].Enable
+				result[i].Announcement = dbAutoChecks[j].Announcement
+				result[i].Times = dbAutoChecks[j].Times
+				result[i].Sleep = dbAutoChecks[j].Sleep
+				result[i].Interval = dbAutoChecks[j].Interval
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: result,
+	})
+
+}
+
+func (m *AutoCheckApi) SaveAutoCheck2(ctx *gin.Context) {
+	lock.Lock()
+	defer lock.Unlock()
+	var autoCheck model.AutoCheck
+	err := ctx.ShouldBind(&autoCheck)
+	if err != nil {
+		log.Panicln("参数错误", err)
+	}
+	db := database.DB
+	db.Save(&autoCheck)
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
 	})
 }

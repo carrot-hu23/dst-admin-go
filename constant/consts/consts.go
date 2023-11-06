@@ -30,8 +30,14 @@ const (
 	MasterLevelType = "MASTER"
 	CaveLevelType   = "CAVES"
 
-	Master = "Master"
-	Caves  = "Caves"
+	Master      = "Master"
+	Caves       = "Caves"
+	UPDATE_GAME = "UPDATE_GAME"
+	LEVEL_MOD   = "LEVEL_MOD"
+	LEVEL_DOWN  = "LEVEL_DOWN"
+
+	TURN = 1
+	OFF  = 0
 )
 
 var HomePath string
