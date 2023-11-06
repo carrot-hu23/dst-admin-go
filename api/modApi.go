@@ -258,3 +258,8 @@ func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 	})
 
 }
+
+// AddModInfoFile 手动添加模组
+func (m *ModApi) UploadModFile(ctx *gin.Context) {
+
+}

@@ -3,10 +3,12 @@ package mod
 import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
 	lua "github.com/yuin/gopher-lua"
 
@@ -791,6 +794,92 @@ func AddModInfo(modid string) {
 	} else {
 		modInfo.ModConfig = modConfig
 		db := database.DB
+		db.Create(&modInfo)
+	}
+
+}
+
+func UploadMod(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	// 单文件
+	file, _ := ctx.FormFile("file")
+	log.Println(file.Filename)
+	modid := file.Filename
+	modName := filepath.Base(file.Filename[:len(file.Filename)-len(filepath.Ext(file.Filename))])
+
+	// /ugc_mods/Cluster1/Master/content/322330
+
+	modUgcZipPath := filepath.Join(filepath.Join(cluster.ForceInstallDir, "/ugc_mods/", cluster.ClusterName, "/Master/content/322330"), file.Filename)
+	// modUgcPath := filepath.Join(filepath.Join(cluster.ForceInstallDir, "/ugc_mods/", cluster.ClusterName, "/Master/content/322330"), modName)
+
+	if fileUtils.Exists(modUgcZipPath) {
+		fileUtils.DeleteDir(modUgcZipPath)
+	}
+
+	defer func() {
+		fileUtils.DeleteFile(modUgcZipPath)
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
+	// 上传文件至指定的完整文件路径
+	err := ctx.SaveUploadedFile(file, modUgcZipPath)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	// TODO 解压
+
+	// 如果上传的是 创意工坊的内容
+	if strings.Contains(modName, "workshop-") {
+		// 获取mod基本信息
+		modInfo, err, _ := GetModInfo2(modid)
+		if err != nil {
+			log.Panicln("获取modinfo 失败", err)
+		}
+		// 从数据查找是由有
+		oldModinfo, ok := getModInfoConfig2(modid)
+
+		// 更新配置项
+		var modConfig string
+		modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+		if err != nil {
+			log.Println(err)
+		}
+		modConfig = string(modConfigJson)
+		if ok {
+			oldModinfo.LastTime = modInfo.LastTime
+			oldModinfo.Name = modInfo.Name
+			oldModinfo.Auth = modInfo.Auth
+			oldModinfo.Description = modInfo.Description
+			oldModinfo.Img = modInfo.Img
+			oldModinfo.V = modInfo.V
+			oldModinfo.ModConfig = modConfig
+			db := database.DB
+			db.Save(&oldModinfo)
+		} else {
+			modInfo.ModConfig = modConfig
+			db := database.DB
+			db.Create(&modInfo)
+		}
+	} else {
+		// 读取模组文件
+		var modConfig string
+		modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+		if err != nil {
+			log.Println(err)
+		}
+		modConfig = string(modConfigJson)
+		modInfo := model.ModInfo{}
+		db := database.DB
+		modInfo.LastTime = 0
+		modInfo.Name = modName
+		modInfo.Auth = "无"
+		modInfo.Description = "无"
+		modInfo.Img = "http://xxx/images"
+		modInfo.V = "null"
+		modInfo.ModConfig = modConfig
 		db.Create(&modInfo)
 	}
 

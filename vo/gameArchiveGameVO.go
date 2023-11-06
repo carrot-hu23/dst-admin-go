@@ -8,6 +8,8 @@ type GameArchive struct {
 	MaxPlayers      int        `json:"maxPlayers"`
 	Mods            int        `json:"mods"`
 	IpConnect       string     `json:"ipConnect"`
+	Port            uint       `json:"port"`
+	Ip              string     `json:"ip"`
 	Meta            Meta       `json:"meta"`
 	Version         int64      `json:"version"`
 	LastVersion     int64      `json:"lastVersion"`

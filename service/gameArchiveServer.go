@@ -87,6 +87,8 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
 			}
 		}
+		gameArchie.Port = serverIni.ServerPort
+		gameArchie.Ip = ipv4
 
 	}()
 
