@@ -43,7 +43,7 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
-	modinfo, err, status := mod.GetModInfo(moId)
+	modinfo, err, status := mod.SubscribeModByModId(moId)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -192,7 +192,7 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 	fileUtils.DeleteDir(mod_path)
 
-	modinfo, err, status := mod.GetModInfo(modId)
+	modinfo, err, status := mod.SubscribeModByModId(modId)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}

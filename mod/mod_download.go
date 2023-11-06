@@ -272,7 +272,7 @@ func isTableArray(t *lua.LTable) bool {
 func SearchModList(text string, page int, num int) (map[string]interface{}, error) {
 	modId, ok := isModId(text)
 	if ok {
-		modInfo := getModInfo(modId)
+		modInfo := SearchModInfoByWorkshopId(modId)
 		data := []ModInfo{}
 		if modInfo.ID != "" {
 			data = append(data, modInfo)
@@ -448,12 +448,41 @@ func GetModInfo2(modID string) (model.ModInfo, error, int) {
 	return newModInfo, nil, 0
 }
 
-func GetModInfo(modID string) (model.ModInfo, error, int) {
+func isWorkshopId(id string) bool {
+	_, err := strconv.Atoi(id)
+	return err == nil
+}
+
+func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
+
+	if !isWorkshopId(modId) {
+
+		modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+		modConfig := string(modConfigJson)
+
+		newModInfo := model.ModInfo{
+			Auth:          "",
+			ConsumerAppid: 0,
+			CreatorAppid:  0,
+			Description:   "",
+			Modid:         modId,
+			Img:           "xxx",
+			LastTime:      0,
+			Name:          modId,
+			V:             "",
+			ModConfig:     modConfig,
+		}
+
+		db := database.DB
+		db.Create(&newModInfo)
+		return newModInfo, nil, 0
+	}
+
 	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
 	data := url.Values{}
 	data.Set("key", steamAPIKey)
 	data.Set("language", "6")
-	data.Set("publishedfileids[0]", modID)
+	data.Set("publishedfileids[0]", modId)
 	urlStr = urlStr + "?" + data.Encode()
 
 	req, err := http.NewRequest("GET", urlStr, nil)
@@ -493,7 +522,6 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 		authorURL = ""
 	}
 
-	modId := data2["publishedfileid"].(string)
 	name := data2["title"].(string)
 	last_time := data2["time_updated"].(float64)
 	description := data2["file_description"].(string)
@@ -504,21 +532,7 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 	creator_appid := data2["creator_appid"].(float64)
 	consumer_appid := data2["consumer_appid"].(float64)
 
-	// modInfoRaw := map[string]interface{}{
-	// 	"id":             data2["publishedfileid"].(string),
-	// 	"name":           data2["title"].(string),
-	// 	"last_time":      data2["time_updated"].(int64),
-	// 	"description":    data2["file_description"].(string),
-	// 	"auth":           authorURL,
-	// 	"file_url":       data2["file_url"],
-	// 	"img":            fmt.Sprintf("%s?imw=64&imh=64&ima=fit&impolicy=Letterbox&imcolor=%%23000000&letterbox=true", img),
-	// 	"v":              getVersion(data["tags"]),
-	// 	"creator_appid":  data2["creator_appid"].(int64),
-	// 	"consumer_appid": data2["consumer_appid"].(int64),
-	// 	 "mod_config":     get_mod_info_config(modID),
-	// }
-
-	if modInfo, ok := getModInfoConfig2(modID); ok {
+	if modInfo, ok := getModInfoConfig2(modId); ok {
 		if last_time == modInfo.LastTime {
 			return modInfo, nil, 0
 		}
@@ -530,10 +544,10 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 			fileUrl = file_url.(string)
 		}
 		if fileUrl != "" {
-			modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modID, fileUrl))
+			modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modId, fileUrl))
 			modConfig = string(modConfigJson)
 		} else {
-			modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
+			modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
 			modConfig = string(modConfigJson)
 		}
 
@@ -556,14 +570,13 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 	var modConfig string
 
 	if fileUrl != "" {
-		modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modID, fileUrl))
+		modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modId, fileUrl))
 		modConfig = string(modConfigJson)
 	} else {
-		modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
+		modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
 		modConfig = string(modConfigJson)
 	}
 
-	// modConfigJson, _ := json.Marshal(get_mod_info_config(modID))
 	newModInfo := model.ModInfo{
 		Auth:          auth,
 		ConsumerAppid: consumer_appid,
@@ -575,8 +588,7 @@ func GetModInfo(modID string) (model.ModInfo, error, int) {
 		LastTime:      last_time,
 		Name:          name,
 		V:             v,
-		// ModConfig:     string(modConfigJson),
-		ModConfig: modConfig,
+		ModConfig:     modConfig,
 	}
 
 	db := database.DB
@@ -694,7 +706,7 @@ func isModId(str string) (int, bool) {
 	return id, err == nil
 }
 
-func getModInfo(modID int) ModInfo {
+func SearchModInfoByWorkshopId(modID int) ModInfo {
 
 	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
 	data := url.Values{}
@@ -764,9 +776,15 @@ func getModInfo(modID int) ModInfo {
 }
 
 func AddModInfo(modid string) {
+	var modInfo model.ModInfo
+	var err error
+	if !isWorkshopId(modid) {
+		modInfo, err, _ = GetLocalModInfo(modid)
+	} else {
+		// 获取mod基本信息
+		modInfo, err, _ = GetModInfo2(modid)
+	}
 
-	// 获取mod基本信息
-	modInfo, err, _ := GetModInfo2(modid)
 	if err != nil {
 		log.Panicln("获取modinfo 失败", err)
 	}
@@ -797,6 +815,28 @@ func AddModInfo(modid string) {
 		db.Create(&modInfo)
 	}
 
+}
+
+func GetLocalModInfo(modId string) (model.ModInfo, error, int) {
+	modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+	modConfig := string(modConfigJson)
+
+	newModInfo := model.ModInfo{
+		Auth:          "",
+		ConsumerAppid: 0,
+		CreatorAppid:  0,
+		Description:   "",
+		Modid:         modId,
+		Img:           "xxx",
+		LastTime:      0,
+		Name:          modId,
+		V:             "",
+		ModConfig:     modConfig,
+	}
+
+	db := database.DB
+	db.Create(&newModInfo)
+	return newModInfo, nil, 0
 }
 
 func UploadMod(ctx *gin.Context) {
