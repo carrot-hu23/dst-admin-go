@@ -8,6 +8,8 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
@@ -181,4 +183,19 @@ func GetMemInfo() *MemInfo {
 		Used:        v.Used,
 		UsedPercent: v.UsedPercent,
 	}
+}
+
+func GetPublicIP() (string, error) {
+	resp, err := http.Get("https://api.ipify.org/")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(ip), nil
 }

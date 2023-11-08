@@ -39,4 +39,27 @@ func initLevel2(router *gin.RouterGroup) {
 		group2.GET("/command", gameLevelApi.SendCommand)
 
 	}
+
+	preinstallApi := api.PreinstallApi{}
+	group3 := router.Group("/api/game/preinstall")
+	{
+		group3.GET("", preinstallApi.UsePreinstall)
+	}
+
+	shareApi := api.ShareApi{}
+	group4 := router.Group("/api/share")
+	{
+		group4.GET("/keyCer", shareApi.GetKeyCerApi)
+		group4.GET("/keyCer/reflush", shareApi.ReflushKeyCerApi)
+		group4.GET("/keyCer/enable", shareApi.EnableKeyCerApi)
+
+		group4.POST("/cluster/import", shareApi.ImportClusterConfig)
+	}
+
+	group5 := router.Group("/share")
+	{
+		group5.GET("/cluster", shareApi.ShareClusterConfig)
+
+	}
+
 }

@@ -82,6 +82,15 @@ func (g *GameService) UpdateGame(clusterName string) error {
 	updateGameCMd := dstUtils.GetDstUpdateCmd(clusterName)
 	log.Println("正在更新游戏", "cluster: ", clusterName, "command: ", updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
+
+	// TODO 写入 DedicatedServerModsSetup.lua
+	levelConfig, _ := levelConfigUtils.GetLevelConfig(clusterName)
+	for i := range levelConfig.LevelList {
+		level := homeServe.GetLevel(clusterName, levelConfig.LevelList[i].File)
+		modoverrides := level.Modoverrides
+		dstUtils.DedicatedServerModsSetup2(clusterName, modoverrides)
+	}
+
 	if err != nil {
 		return err
 	}
