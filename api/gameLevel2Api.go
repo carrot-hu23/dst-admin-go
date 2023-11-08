@@ -1,6 +1,9 @@
 package api
 
 import (
+	"dst-admin-go/autoCheck"
+	"dst-admin-go/constant/consts"
+	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
@@ -79,6 +82,7 @@ func (g *GameLevel2Api) Start(ctx *gin.Context) {
 	bin := cluster.Bin
 	beta := cluster.Beta
 	clusterName := cluster.ClusterName
+	gameService.StopLevel(clusterName, levelName)
 	gameService.LaunchLevel(clusterName, levelName, bin, beta)
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -328,6 +332,8 @@ func (g *GameLevel2Api) DeleteLevel(ctx *gin.Context) {
 		log.Panicln("删除世界失败", err)
 	}
 
+	autoCheck.Manager.DeleteAutoCheck(levelName)
+
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -348,6 +354,24 @@ func (g *GameLevel2Api) CreateNewLevel(ctx *gin.Context) {
 	if err != nil {
 		log.Panicln("创建世界失败", err)
 	}
+
+	autoCheck.Manager.AddAutoCheckTasks(model.AutoCheck{
+		ClusterName: clusterName,
+		LevelName:   newLevel.LevelName,
+		Uuid:        newLevel.Uuid,
+		Enable:      0,
+		Interval:    10,
+		CheckType:   consts.LEVEL_DOWN,
+	})
+
+	autoCheck.Manager.AddAutoCheckTasks(model.AutoCheck{
+		ClusterName: clusterName,
+		LevelName:   newLevel.LevelName,
+		Uuid:        newLevel.Uuid,
+		Enable:      0,
+		Interval:    10,
+		CheckType:   consts.LEVEL_MOD,
+	})
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

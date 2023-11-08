@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -102,7 +101,7 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 		log.Panicln("解压失败,", filePath, clusterPath, err)
 	}
 	// 安装mod
-	modoverride, err := fileUtils.ReadFile(dst.GetMasterModoverridesPath(cluster.ClusterName))
+	modoverride, err := fileUtils.ReadFile(dstUtils.GetMasterModoverridesPath(cluster.ClusterName))
 	if err != nil {
 		log.Println("读取模组失败", err)
 	}

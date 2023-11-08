@@ -1,11 +1,12 @@
 package api
 
 import (
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/vo"
 	"log"
 	"net/http"
@@ -142,6 +143,34 @@ func (g *GameConsoleApi) CleanWorld(ctx *gin.Context) {
 	})
 }
 
+func (g *GameConsoleApi) CleanAllLevel(ctx *gin.Context) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panicln("删除世界存档失败", r)
+		}
+	}()
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	levelConfig, _ := levelConfigUtils.GetLevelConfig(clusterName)
+	basePath := dstUtils.GetClusterBasePath(clusterName)
+	for i := range levelConfig.LevelList {
+		level := levelConfig.LevelList[i]
+		fileUtils.DeleteDir(path.Join(basePath, level.File, "backup"))
+		fileUtils.DeleteDir(path.Join(basePath, level.File, "save"))
+		fileUtils.DeleteDir(path.Join(basePath, level.File, "server_chat_log.txt"))
+		fileUtils.DeleteDir(path.Join(basePath, level.File, "server_log.txt"))
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
 func (g *GameConsoleApi) CleanLevel(ctx *gin.Context) {
 
 	defer func() {
@@ -150,12 +179,10 @@ func (g *GameConsoleApi) CleanLevel(ctx *gin.Context) {
 		}
 	}()
 
-	log.Println("删除世界level......")
-
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	basePath := dst.GetClusterBasePath(clusterName)
+	basePath := dstUtils.GetClusterBasePath(clusterName)
 	levels := ctx.QueryArray("level")
 
 	for _, level := range levels {
@@ -359,7 +386,7 @@ func (g *GameConsoleApi) DownloadDstLogFile(ctx *gin.Context) {
 		log.Panicln("levelName 不能为空")
 	}
 
-	filePath := filepath.Join(dst.GetClusterBasePath(clusterName), levelName, fileName)
+	filePath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), levelName, fileName)
 	//打开文件
 	_, err := os.Open(filePath)
 	//非空处理

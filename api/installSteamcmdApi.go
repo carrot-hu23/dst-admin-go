@@ -217,7 +217,8 @@ func saveDstConfig() {
 	config.Cluster = "MyDediServer"
 
 	dstConfigUtils.SaveDstConfig(&config)
-	autoCheck.AutoCheckObject.RestartAutoCheck(config.Cluster, config.Bin, config.Beta)
+	autoCheck.Manager.ReStart()
+	// autoCheck.AutoCheckObject.RestartAutoCheck(config.Cluster, config.Bin, config.Beta)
 
 	initEvnService.InitBaseLevel(&config, "默认初始", "", true)
 }

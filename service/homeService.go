@@ -1,7 +1,6 @@
 package service
 
 import (
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo/level"
@@ -22,7 +21,7 @@ const (
 func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	newCluster := level.NewClusterIni()
 	// 加载 INI 文件
-	clusterIniPath := dst.GetClusterIniPath(clusterName)
+	clusterIniPath := dstUtils.GetClusterIniPath(clusterName)
 	if !fileUtils.Exists(clusterIniPath) {
 		err := fileUtils.CreateFileIfNotExists(clusterIniPath)
 		if err != nil {
@@ -84,7 +83,7 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 }
 
 func (c *HomeService) GetClusterToken(clusterName string) string {
-	clusterTokenPath := dst.GetClusterTokenPath(clusterName)
+	clusterTokenPath := dstUtils.GetClusterTokenPath(clusterName)
 	token, err := fileUtils.ReadFile(clusterTokenPath)
 	if err != nil {
 		return ""
@@ -94,7 +93,7 @@ func (c *HomeService) GetClusterToken(clusterName string) string {
 
 func (c *HomeService) GetAdminlist(clusterName string) (str []string) {
 
-	adminListPath := dst.GetAdminlistPath(clusterName)
+	adminListPath := dstUtils.GetAdminlistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(adminListPath)
 	str, err := fileUtils.ReadLnFile(adminListPath)
 	if err != nil {
@@ -104,7 +103,7 @@ func (c *HomeService) GetAdminlist(clusterName string) (str []string) {
 }
 
 func (c *HomeService) GetBlocklist(clusterName string) (str []string) {
-	blocklistPath := dst.GetBlocklistPath(clusterName)
+	blocklistPath := dstUtils.GetBlocklistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	str, err := fileUtils.ReadLnFile(blocklistPath)
 	if err != nil {
@@ -191,23 +190,23 @@ func (c *HomeService) isMaster(filePath string) bool {
 }
 
 func (c *HomeService) SaveClusterToken(clusterName, token string) {
-	clusterTokenPath := dst.GetClusterTokenPath(clusterName)
+	clusterTokenPath := dstUtils.GetClusterTokenPath(clusterName)
 	fileUtils.WriterTXT(clusterTokenPath, token)
 }
 
 func (c *HomeService) SaveClusterIni(clusterName string, cluster *level.ClusterIni) {
-	clusterIniPath := dst.GetClusterIniPath(clusterName)
+	clusterIniPath := dstUtils.GetClusterIniPath(clusterName)
 	fileUtils.WriterTXT(clusterIniPath, dstUtils.ParseTemplate(ClusterIniTemplate, cluster))
 }
 
 func (c *HomeService) SaveAdminlist(clusterName string, str []string) {
-	adminlistPath := dst.GetAdminlistPath(clusterName)
+	adminlistPath := dstUtils.GetAdminlistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(adminlistPath)
 	fileUtils.WriterLnFile(adminlistPath, str)
 }
 
 func (c *HomeService) SaveBlocklist(clusterName string, str []string) {
-	blocklistPath := dst.GetBlocklistPath(clusterName)
+	blocklistPath := dstUtils.GetBlocklistPath(clusterName)
 	fileUtils.CreateFileIfNotExists(blocklistPath)
 	fileUtils.WriterLnFile(blocklistPath, str)
 }
@@ -217,9 +216,9 @@ func (c *HomeService) GetMasterWorld(clusterName string) *level.World {
 	master.LevelName = "Master"
 	master.IsMaster = true
 
-	master.Leveldataoverride = c.GetLeveldataoverride(dst.GetMasterLeveldataoverridePath(clusterName))
-	master.Modoverrides = c.GetModoverrides(dst.GetMasterModoverridesPath(clusterName))
-	master.ServerIni = c.GetServerIni(dst.GetMasterServerIniPath(clusterName), true)
+	master.Leveldataoverride = c.GetLeveldataoverride(dstUtils.GetMasterLeveldataoverridePath(clusterName))
+	master.Modoverrides = c.GetModoverrides(dstUtils.GetMasterModoverridesPath(clusterName))
+	master.ServerIni = c.GetServerIni(dstUtils.GetMasterServerIniPath(clusterName), true)
 
 	return &master
 }
@@ -230,18 +229,18 @@ func (c *HomeService) GetCavesWorld(clusterName string) *level.World {
 	caves.LevelName = "Caves"
 	caves.IsMaster = false
 
-	caves.Leveldataoverride = c.GetLeveldataoverride(dst.GetCavesLeveldataoverridePath(clusterName))
-	caves.Modoverrides = c.GetModoverrides(dst.GetCavesModoverridesPath(clusterName))
-	caves.ServerIni = c.GetServerIni(dst.GetCavesServerIniPath(clusterName), false)
+	caves.Leveldataoverride = c.GetLeveldataoverride(dstUtils.GetCavesLeveldataoverridePath(clusterName))
+	caves.Modoverrides = c.GetModoverrides(dstUtils.GetCavesModoverridesPath(clusterName))
+	caves.ServerIni = c.GetServerIni(dstUtils.GetCavesServerIniPath(clusterName), false)
 
 	return &caves
 }
 
 func (c *HomeService) SaveMasterWorld(clusterName string, world *level.World) {
 
-	lPath := dst.GetMasterLeveldataoverridePath(clusterName)
-	mPath := dst.GetMasterModoverridesPath(clusterName)
-	sPath := dst.GetMasterServerIniPath(clusterName)
+	lPath := dstUtils.GetMasterLeveldataoverridePath(clusterName)
+	mPath := dstUtils.GetMasterModoverridesPath(clusterName)
+	sPath := dstUtils.GetMasterServerIniPath(clusterName)
 
 	fileUtils.CreateFileIfNotExists(lPath)
 	fileUtils.CreateFileIfNotExists(mPath)
@@ -257,9 +256,9 @@ func (c *HomeService) SaveMasterWorld(clusterName string, world *level.World) {
 
 func (c *HomeService) SaveCavesWorld(clusterName string, world *level.World) {
 
-	lPath := dst.GetCavesLeveldataoverridePath(clusterName)
-	mPath := dst.GetCavesModoverridesPath(clusterName)
-	sPath := dst.GetCavesServerIniPath(clusterName)
+	lPath := dstUtils.GetCavesLeveldataoverridePath(clusterName)
+	mPath := dstUtils.GetCavesModoverridesPath(clusterName)
+	sPath := dstUtils.GetCavesServerIniPath(clusterName)
 
 	fileUtils.CreateFileIfNotExists(lPath)
 	fileUtils.CreateFileIfNotExists(mPath)
@@ -279,18 +278,18 @@ func (c *HomeService) GetLevel(clusterName string, levelName string) *level.Worl
 	level.LevelName = levelName
 	level.IsMaster = false
 
-	level.Leveldataoverride = c.GetLeveldataoverride(dst.GetLevelLeveldataoverridePath(clusterName, levelName))
-	level.Modoverrides = c.GetModoverrides(dst.GetLevelModoverridesPath(clusterName, levelName))
-	level.ServerIni = c.GetServerIni(dst.GetLevelServerIniPath(clusterName, levelName), false)
+	level.Leveldataoverride = c.GetLeveldataoverride(dstUtils.GetLevelLeveldataoverridePath(clusterName, levelName))
+	level.Modoverrides = c.GetModoverrides(dstUtils.GetLevelModoverridesPath(clusterName, levelName))
+	level.ServerIni = c.GetServerIni(dstUtils.GetLevelServerIniPath(clusterName, levelName), false)
 
 	return &level
 }
 
 func (c *HomeService) SaveLevel(clusterName string, levelName string, world *level.World) {
 
-	lPath := dst.GetLevelLeveldataoverridePath(clusterName, levelName)
-	mPath := dst.GetLevelModoverridesPath(clusterName, levelName)
-	sPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	lPath := dstUtils.GetLevelLeveldataoverridePath(clusterName, levelName)
+	mPath := dstUtils.GetLevelModoverridesPath(clusterName, levelName)
+	sPath := dstUtils.GetLevelServerIniPath(clusterName, levelName)
 
 	fileUtils.CreateFileIfNotExists(lPath)
 	fileUtils.CreateFileIfNotExists(mPath)

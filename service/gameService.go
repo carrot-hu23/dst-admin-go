@@ -2,7 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"io"
@@ -79,7 +79,7 @@ func (g *GameService) UpdateGame(clusterName string) error {
 	// TODO 关闭相应的世界
 	g.StopGame(clusterName)
 
-	updateGameCMd := dst.GetDstUpdateCmd(clusterName)
+	updateGameCMd := dstUtils.GetDstUpdateCmd(clusterName)
 	log.Println("正在更新游戏", "cluster: ", clusterName, "command: ", updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 	if err != nil {
@@ -199,6 +199,7 @@ func (g *GameService) StopGame(clusterName string) {
 func (g *GameService) StartGame(clusterName string) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
+	g.StopGame(clusterName)
 	cluster := clusterUtils.GetCluster(clusterName)
 	bin := cluster.Bin
 	beta := cluster.Beta

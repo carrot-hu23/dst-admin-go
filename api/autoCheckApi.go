@@ -286,6 +286,8 @@ func (m *AutoCheckApi) GetAutoCheckList2(ctx *gin.Context) {
 	var dbAutoChecks []model.AutoCheck
 	if checkType == "" {
 		db.Where("uuid in ?", uuidSet).Find(&dbAutoChecks)
+	} else if checkType == consts.UPDATE_GAME {
+		db.Where("check_type = ?", checkType).Find(&dbAutoChecks)
 	} else {
 		db.Where("check_type = ? and uuid in ?", checkType, uuidSet).Find(&dbAutoChecks)
 	}
@@ -293,6 +295,11 @@ func (m *AutoCheckApi) GetAutoCheckList2(ctx *gin.Context) {
 	for i := range result {
 		for j := range dbAutoChecks {
 			if result[i].Uuid == dbAutoChecks[j].Uuid && result[i].CheckType == dbAutoChecks[j].CheckType {
+				result[i].ID = dbAutoChecks[j].ID
+				result[i].CreatedAt = dbAutoChecks[j].CreatedAt
+				result[i].DeletedAt = dbAutoChecks[j].DeletedAt
+				result[i].UpdatedAt = dbAutoChecks[j].UpdatedAt
+
 				result[i].Enable = dbAutoChecks[j].Enable
 				result[i].Announcement = dbAutoChecks[j].Announcement
 				result[i].Times = dbAutoChecks[j].Times
@@ -319,10 +326,16 @@ func (m *AutoCheckApi) SaveAutoCheck2(ctx *gin.Context) {
 		log.Panicln("参数错误", err)
 	}
 	db := database.DB
+
 	db.Save(&autoCheck)
+	log.Println("ID", autoCheck.ID)
+	//var newAutoCheck model.AutoCheck
+	//db.Where("uuid = ? and check_type = ?", autoCheck.Uuid, autoCheck.CheckType).Find(&newAutoCheck)
+	//log.Println(newAutoCheck)
+
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: nil,
+		Data: &autoCheck,
 	})
 }

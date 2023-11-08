@@ -26,6 +26,7 @@ func InitGameRouter(router *gin.RouterGroup) {
 		// TODO 删除
 		gameConsole.GET("/clean", gameConsoleApi.CleanWorld)
 		gameConsole.GET("/clean/level", gameConsoleApi.CleanLevel)
+		gameConsole.GET("/clean/level/all", gameConsoleApi.CleanAllLevel)
 		gameConsole.GET("/announce/setting", gameConsoleApi.GetAnnounceSetting)
 
 		gameConsole.POST("/announce/setting", gameConsoleApi.SaveAnnounceSetting)

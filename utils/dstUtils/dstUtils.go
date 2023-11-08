@@ -3,7 +3,7 @@ package dstUtils
 import (
 	"bytes"
 	"dst-admin-go/constant"
-	"dst-admin-go/constant/dst"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
@@ -16,6 +16,34 @@ import (
 	"strconv"
 	"strings"
 )
+
+func GetBlacklistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blocklist.txt")
+}
+
+func GetWhitelistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "whitelist.txt")
+}
+
+func GetLevelLeveldataoverridePath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "leveldataoverride.lua")
+}
+
+func GetLevelModoverridesPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "modoverrides.lua")
+}
+
+func GetLevelServerIniPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server.ini")
+}
+
+func GetLevelServerLogPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server_log.txt")
+}
+
+func GetLevelServerChatLogPath(clusterName string, levelName string) string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName, levelName, "server_chat_log.txt")
+}
 
 func GetClusterBasePath(clusterName string) string {
 	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName)
@@ -92,7 +120,7 @@ func ReadMasterLog(clusterName string, lineNum uint) []string {
 	logPath := path.Join(GetClusterBasePath(clusterName), "Master", "server_log.txt")
 	logs, err := fileUtils.ReverseRead(logPath, lineNum)
 	if err != nil {
-		log.Panicln("read dst master log error:", err)
+		log.Panicln("read dstUtils2 master log error:", err)
 	}
 	return logs
 }
@@ -101,7 +129,7 @@ func ReadLevelLog(clusterName string, levelName string, lineNum uint) []string {
 	logPath := path.Join(GetClusterBasePath(clusterName), levelName, "server_log.txt")
 	logs, err := fileUtils.ReverseRead(logPath, lineNum)
 	if err != nil {
-		log.Panicln("read dst master log error:", err)
+		log.Panicln("read dstUtils2 master log error:", err)
 	}
 	return logs
 }
@@ -111,7 +139,7 @@ func ReadCavesLog(clusterName string, lineNum uint) []string {
 	logPath := path.Join(GetClusterBasePath(clusterName), "Caves", "server_log.txt")
 	logs, err := fileUtils.ReverseRead(logPath, lineNum)
 	if err != nil {
-		log.Panicln("read dst caves log error:", err)
+		log.Panicln("read dstUtils2 caves log error:", err)
 	}
 	return logs
 }
@@ -180,7 +208,7 @@ func DedicatedServerModsSetup(clusterName string, modConfig string) {
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
-		fileUtils.WriterTXT(dst.GetModSetup(clusterName), serverModSetup)
+		fileUtils.WriterTXT(GetModSetup2(clusterName), serverModSetup)
 	}
 }
 
@@ -192,7 +220,7 @@ func DedicatedServerModsSetup2(clusterName string, modConfig string) {
 			serverModSetup = append(serverModSetup, "ServerModSetup(\""+workshopId+"\")")
 		}
 
-		modSetupPath := dst.GetModSetup(clusterName)
+		modSetupPath := GetModSetup2(clusterName)
 		mods, err := fileUtils.ReadLnFile(modSetupPath)
 		if err != nil {
 			log.Panicln("读取 dedicated_server_mods_setup.lua 失败", err)
@@ -287,4 +315,9 @@ func ParseACFFile(filePath string) map[string]WorkshopItem {
 	}
 
 	return workshopItems
+}
+
+func GetModSetup2(clusterName string) string {
+	cluster := clusterUtils.GetCluster(clusterName)
+	return path.Join(cluster.ForceInstallDir, "mods", "dedicated_server_mods_setup.lua")
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -36,7 +35,7 @@ func (c *GameConfigService) GetConfig(clusterName string) vo.GameConfigVO {
 }
 
 func (c *GameConfigService) getClusterToken(clusterName string) string {
-	clusterToken := dst.GetClusterTokenPath(clusterName)
+	clusterToken := dstUtils.GetClusterTokenPath(clusterName)
 	token, err := fileUtils.ReadFile(clusterToken)
 	if err != nil {
 		return ""
@@ -47,7 +46,7 @@ func (c *GameConfigService) getClusterToken(clusterName string) string {
 
 func (c *GameConfigService) GetClusterIni(clusterName string, gameconfig *vo.GameConfigVO) {
 
-	clusterIniPath := dst.GetClusterIniPath(clusterName)
+	clusterIniPath := dstUtils.GetClusterIniPath(clusterName)
 	clusterIni, err := fileUtils.ReadLnFile(clusterIniPath)
 	if err != nil {
 		panic("read cluster.ini file error: " + err.Error())
@@ -127,7 +126,7 @@ func (c *GameConfigService) GetClusterIni(clusterName string, gameconfig *vo.Gam
 
 func (c *GameConfigService) getMasterLeveldataoverride(clusterName string) string {
 
-	leveldataoverridePath := dst.GetMasterLeveldataoverridePath(clusterName)
+	leveldataoverridePath := dstUtils.GetMasterLeveldataoverridePath(clusterName)
 
 	level, err := fileUtils.ReadFile(leveldataoverridePath)
 	if err != nil {
@@ -138,7 +137,7 @@ func (c *GameConfigService) getMasterLeveldataoverride(clusterName string) strin
 
 func (c *GameConfigService) getCavesLeveldataoverride(clusterName string) string {
 
-	leveldataoverridePath := dst.GetCavesLeveldataoverridePath(clusterName)
+	leveldataoverridePath := dstUtils.GetCavesLeveldataoverridePath(clusterName)
 	level, err := fileUtils.ReadFile(leveldataoverridePath)
 	if err != nil {
 		return "return {}"
@@ -148,7 +147,7 @@ func (c *GameConfigService) getCavesLeveldataoverride(clusterName string) string
 
 func (c *GameConfigService) getModoverrides(clusterName string) string {
 
-	modoverridesPath := dst.GetMasterModoverridesPath(clusterName)
+	modoverridesPath := dstUtils.GetMasterModoverridesPath(clusterName)
 	modoverrides, err := fileUtils.ReadFile(modoverridesPath)
 	if err != nil {
 		return "return {}"
@@ -171,7 +170,7 @@ func (c *GameConfigService) createMyDediServerDir() {
 }
 
 func (c *GameConfigService) createClusterIni(clusterName string, gameConfigVo vo.GameConfigVO) {
-	clusterIniPath := dst.GetClusterIniPath(clusterName)
+	clusterIniPath := dstUtils.GetClusterIniPath(clusterName)
 	log.Println("生成游戏配置文件 cluster.ini文件: ", clusterIniPath)
 	oldCluster := c.w.GetClusterIni(clusterName)
 
@@ -189,11 +188,11 @@ func (c *GameConfigService) createClusterIni(clusterName string, gameConfigVo vo
 }
 
 func (c *GameConfigService) createClusterToken(clusterName, token string) {
-	fileUtils.WriterTXT(dst.GetClusterTokenPath(clusterName), token)
+	fileUtils.WriterTXT(dstUtils.GetClusterTokenPath(clusterName), token)
 }
 
 func (c *GameConfigService) createMasteLeveldataoverride(clusterName string, mapConfig string) {
-	leveldataoverridePath := dst.GetMasterLeveldataoverridePath(clusterName)
+	leveldataoverridePath := dstUtils.GetMasterLeveldataoverridePath(clusterName)
 	log.Println("生成master_leveldataoverride.txt 文件 ", leveldataoverridePath)
 	if mapConfig != "" {
 		fileUtils.WriterTXT(leveldataoverridePath, mapConfig)
@@ -203,7 +202,7 @@ func (c *GameConfigService) createMasteLeveldataoverride(clusterName string, map
 	}
 }
 func (c *GameConfigService) createCavesLeveldataoverride(clusterName string, mapConfig string) {
-	leveldataoverridePath := dst.GetCavesLeveldataoverridePath(clusterName)
+	leveldataoverridePath := dstUtils.GetCavesLeveldataoverridePath(clusterName)
 	log.Println("生成caves_leveldataoverride.lua 文件 ", leveldataoverridePath)
 	if mapConfig != "" {
 		fileUtils.WriterTXT(leveldataoverridePath, mapConfig)
@@ -218,7 +217,7 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 
 		config, _ := levelConfigUtils.GetLevelConfig(clusterName)
 		for i := range config.LevelList {
-			fileUtils.WriterTXT(filepath.Join(dst.GetClusterBasePath(clusterName), config.LevelList[i].File, "modoverrides.lua"), modConfig)
+			fileUtils.WriterTXT(filepath.Join(dstUtils.GetClusterBasePath(clusterName), config.LevelList[i].File, "modoverrides.lua"), modConfig)
 		}
 		var serverModSetup = ""
 		//TODO 添加m
@@ -226,7 +225,7 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
-		fileUtils.WriterTXT(dst.GetModSetup(clusterName), serverModSetup)
+		fileUtils.WriterTXT(dstUtils.GetModSetup(clusterName), serverModSetup)
 	}
 
 }
@@ -238,7 +237,7 @@ func (c *GameConfigService) UpdateDedicatedServerModsSetup(clusterName, modConfi
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
-		fileUtils.WriterTXT(dst.GetModSetup(clusterName), serverModSetup)
+		fileUtils.WriterTXT(dstUtils.GetModSetup(clusterName), serverModSetup)
 	}
 
 }

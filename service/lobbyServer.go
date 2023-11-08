@@ -69,7 +69,7 @@ func NewLobbyServer() *LobbyServer {
 
 	lobbyServer := &LobbyServer{}
 
-	db, err := gorm.Open(sqlite.Open("dst-db"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("dstUtils2-db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {

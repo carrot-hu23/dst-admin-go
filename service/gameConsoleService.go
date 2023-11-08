@@ -2,8 +2,8 @@ package service
 
 import (
 	"dst-admin-go/constant"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/constant/screenKey"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"fmt"
@@ -96,7 +96,7 @@ func (c *GameConsoleService) RollBack(clusterName string, dayNum int) {
 
 func (c *GameConsoleService) CleanWorld(clusterName string) {
 
-	basePath := dst.GetClusterBasePath(clusterName)
+	basePath := dstUtils.GetClusterBasePath(clusterName)
 
 	fileUtils.DeleteDir(path.Join(basePath, "Master", "backup"))
 	fileUtils.DeleteDir(path.Join(basePath, "Master", "save"))
@@ -156,8 +156,8 @@ func PsAux(processName string) string {
 }
 
 func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, length uint) []string {
-	// levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
-	serverLogPath := dst.GetLevelServerLogPath(clusterName, levelName)
+	// levelServerIniPath := dstUtils2.GetLevelServerIniPath(clusterName, levelName)
+	serverLogPath := dstUtils.GetLevelServerLogPath(clusterName, levelName)
 	lines, err := fileUtils.ReverseRead(serverLogPath, length)
 	if err != nil {
 		log.Panicln("读取日志server_log失败")
@@ -166,8 +166,8 @@ func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, l
 }
 
 func (c *GameConsoleService) ReadLevelServerChatLog(clusterName, levelName string, length uint) []string {
-	// levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
-	serverChatLogPath := dst.GetLevelServerChatLogPath(clusterName, levelName)
+	// levelServerIniPath := dstUtils2.GetLevelServerIniPath(clusterName, levelName)
+	serverChatLogPath := dstUtils.GetLevelServerChatLogPath(clusterName, levelName)
 	lines, err := fileUtils.ReverseRead(serverChatLogPath, length)
 	if err != nil {
 		log.Panicln("读取日志server_chat_log失败")

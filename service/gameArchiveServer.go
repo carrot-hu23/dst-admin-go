@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/luaUtils"
@@ -32,7 +31,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 	wg.Add(5)
 
 	gameArchie := vo.NewGameArchie()
-	basePath := dst.GetClusterBasePath(clusterName)
+	basePath := dstUtils.GetClusterBasePath(clusterName)
 
 	// 获取基础信息
 	go func() {

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/levelConfigUtils"
@@ -22,7 +21,7 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 	}
 	var levels []level.World
 	if len(config.LevelList) == 0 {
-		masterLevelPath := filepath.Join(dst.GetClusterBasePath(clusterName), "Master")
+		masterLevelPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), "Master")
 		if !fileUtils.Exists(masterLevelPath) {
 			master := level.World{
 				IsMaster:          true,
@@ -32,7 +31,7 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 				Modoverrides:      "return {}",
 				ServerIni:         level.NewMasterServerIni(),
 			}
-			initLevel(filepath.Join(dst.GetClusterBasePath(clusterName), "Master"), &master)
+			initLevel(filepath.Join(dstUtils.GetClusterBasePath(clusterName), "Master"), &master)
 			levels = append([]level.World{}, master)
 			config.LevelList = append(config.LevelList, levelConfigUtils.Item{
 				Name: "森林",
@@ -58,7 +57,7 @@ func (g *GameLevel2Service) GetLevelList(clusterName string) []level.World {
 				Name: "森林",
 				File: "Master",
 			})
-			cavesLevelPath := filepath.Join(dst.GetClusterBasePath(clusterName), "Caves")
+			cavesLevelPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), "Caves")
 			if fileUtils.Exists(cavesLevelPath) {
 				config.LevelList = append(config.LevelList, levelConfigUtils.Item{
 					Name: "洞穴",
@@ -111,7 +110,7 @@ func (g *GameLevel2Service) UpdateLevels(clusterName string, levels []level.Worl
 
 func (g *GameLevel2Service) UpdateLevel(clusterName string, level *level.World) error {
 	// cluster := clusterUtils.GetCluster(clusterName)
-	levelFolderPath := filepath.Join(dst.GetClusterBasePath(clusterName), level.Uuid)
+	levelFolderPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), level.Uuid)
 	fileUtils.CreateDirIfNotExists(levelFolderPath)
 	initLevel(levelFolderPath, level)
 
@@ -140,7 +139,7 @@ func (g *GameLevel2Service) CreateLevel(clusterName string, level *level.World) 
 		uuid = level.Uuid
 	}
 	// cluster := clusterUtils.GetCluster(clusterName)
-	levelFolderPath := filepath.Join(dst.GetClusterBasePath(clusterName), uuid)
+	levelFolderPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), uuid)
 	fileUtils.CreateDirIfNotExists(levelFolderPath)
 	initLevel(levelFolderPath, level)
 
@@ -152,7 +151,7 @@ func (g *GameLevel2Service) CreateLevel(clusterName string, level *level.World) 
 	levelConfig.LevelList = append(levelConfig.LevelList, levelConfigUtils.Item{Name: level.LevelName, File: uuid})
 	err = levelConfigUtils.SaveLevelConfig(clusterName, levelConfig)
 	if err != nil {
-		err := fileUtils.DeleteFile(filepath.Join(dst.GetClusterBasePath(clusterName), uuid))
+		err := fileUtils.DeleteFile(filepath.Join(dstUtils.GetClusterBasePath(clusterName), uuid))
 		return err
 	}
 	level.Uuid = uuid
@@ -161,7 +160,7 @@ func (g *GameLevel2Service) CreateLevel(clusterName string, level *level.World) 
 
 func (g *GameLevel2Service) DeleteLevel(clusterName string, levelName string) error {
 	gameServe.shutdownLevel(clusterName, levelName)
-	err := fileUtils.DeleteDir(filepath.Join(dst.GetClusterBasePath(clusterName), levelName))
+	err := fileUtils.DeleteDir(filepath.Join(dstUtils.GetClusterBasePath(clusterName), levelName))
 	if err != nil {
 		return err
 	}
