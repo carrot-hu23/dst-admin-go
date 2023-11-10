@@ -40,6 +40,9 @@ func NewRoute() *gin.Engine {
 	initWebhookRouter(router)
 
 	initLevel2(router)
+
+	initBotRouter(router)
+
 	initStaticFile(app)
 
 	return app

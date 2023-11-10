@@ -43,7 +43,7 @@ func (p *PreinstallApi) UsePreinstall(ctx *gin.Context) {
 	fileUtils.Rename(filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", name), dstUtils.GetClusterBasePath(cluster.ClusterName))
 
 	// TODO 宕机恢复重新读取
-	autoCheck.Manager.ReStart()
+	autoCheck.Manager.ReStart(cluster.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

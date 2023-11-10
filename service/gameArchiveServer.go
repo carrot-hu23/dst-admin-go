@@ -8,6 +8,7 @@ import (
 	"dst-admin-go/vo"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -28,7 +29,7 @@ type GameArchive struct {
 func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(6)
 
 	gameArchie := vo.NewGameArchie()
 	basePath := dstUtils.GetClusterBasePath(clusterName)
@@ -103,6 +104,17 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 		gameArchie.Version = localVersion
 		gameArchie.LastVersion = version
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		// TODO 默认取Master世界人数
+		gameArchie.Players = d.GetPlayerList(clusterName, "Master")
 	}()
 
 	wg.Wait()

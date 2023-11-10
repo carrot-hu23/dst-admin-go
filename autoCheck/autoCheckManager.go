@@ -40,11 +40,57 @@ type AutoCheckManager struct {
 var gameConsoleService service.GameConsoleService
 var gameService service.GameService
 
-func (m *AutoCheckManager) ReStart() {
+func (m *AutoCheckManager) ReStart(clusterName string) {
 	for s := range m.statusMap {
 		close(m.statusMap[s])  // 关闭通道
 		delete(m.statusMap, s) // 从 statusMap 中删除键值对
 	}
+
+	// 清空所有表
+	db := database.DB
+	db.Where("1 = 1").Delete(&model.AutoCheck{})
+
+	// TODO 添加表数据
+	var autoChecks []model.AutoCheck
+	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
+	for i := range config.LevelList {
+		level := config.LevelList[i]
+		autoChecks = append(autoChecks, model.AutoCheck{
+			ClusterName:  clusterName,
+			LevelName:    level.Name,
+			Uuid:         level.File,
+			Enable:       0,
+			Announcement: "",
+			Times:        1,
+			Sleep:        5,
+			Interval:     10,
+			CheckType:    consts.LEVEL_DOWN,
+		})
+		autoChecks = append(autoChecks, model.AutoCheck{
+			ClusterName:  clusterName,
+			LevelName:    level.Name,
+			Uuid:         level.File,
+			Enable:       0,
+			Announcement: "",
+			Times:        1,
+			Sleep:        5,
+			Interval:     10,
+			CheckType:    consts.LEVEL_MOD,
+		})
+	}
+
+	autoChecks = append(autoChecks, model.AutoCheck{
+		ClusterName:  clusterName,
+		LevelName:    clusterName,
+		Uuid:         clusterName,
+		Enable:       0,
+		Announcement: "",
+		Times:        1,
+		Sleep:        5,
+		Interval:     10,
+		CheckType:    consts.UPDATE_GAME,
+	})
+	db.Save(&autoChecks)
 
 	m.Start()
 }
@@ -58,11 +104,14 @@ func (m *AutoCheckManager) Start() {
 		uuidSet = append(uuidSet, level.File)
 	}
 	var autoChecks []model.AutoCheck
+
 	db := database.DB
 	db.Where("uuid in ?", uuidSet).Find(&autoChecks)
+
 	var autoCheck2 = model.AutoCheck{}
 	db.Where("check_type = ?", consts.UPDATE_GAME).Find(&autoCheck2)
 	autoChecks = append(autoChecks, autoCheck2)
+
 	log.Println("autoChecks", autoChecks)
 	m.AutoChecks = autoChecks
 	m.statusMap = make(map[string]chan int)
@@ -222,11 +271,15 @@ func (s *LevelModCheck) Check(clusterName, levelName string) bool {
 	return diffFetchModInfo2(activeModMap)
 }
 
-// Run 更新会重启所有世界
+// Run 更新会重启世界
 func (s *LevelModCheck) Run(clusterName, levelName string) error {
 	log.Println("正在更新模组 ", clusterName, levelName)
 	SendAnnouncement2(clusterName, levelName)
-	gameService.StartGame(clusterName)
+	gameService.StopLevel(clusterName, levelName)
+	cluster := clusterUtils.GetCluster(clusterName)
+	bin := cluster.Bin
+	beta := cluster.Beta
+	gameService.LaunchLevel(clusterName, levelName, bin, beta)
 	return nil
 }
 

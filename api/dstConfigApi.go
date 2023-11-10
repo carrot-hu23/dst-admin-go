@@ -34,7 +34,7 @@ func (d *DstConfigApi) SaveDstConfig(ctx *gin.Context) {
 	dstConfigUtils.SaveDstConfig(dstConfig)
 	initEvnService.InitBaseLevel(dstConfig, "默认初始化的世界", "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw=", true)
 
-	autoCheck.Manager.ReStart()
+	autoCheck.Manager.ReStart(dstConfig.Cluster)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
