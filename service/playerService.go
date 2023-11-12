@@ -47,7 +47,23 @@ func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo
 		}
 	}
 
-	return playerVOList
+	// 创建一个map，用于存储不重复的KuId和对应的PlayerVO对象
+	uniquePlayers := make(map[string]vo.PlayerVO)
+
+	// 遍历players切片
+	for _, player := range playerVOList {
+		// 将PlayerVO对象添加到map中，以KuId作为键
+		uniquePlayers[player.KuId] = player
+	}
+
+	// 将不重复的PlayerVO对象从map中提取到新的切片中
+	filteredPlayers := make([]vo.PlayerVO, 0, len(uniquePlayers))
+	for _, player := range uniquePlayers {
+		filteredPlayers = append(filteredPlayers, player)
+	}
+
+	return filteredPlayers
+
 }
 
 func (p *PlayerService) GetDstAdminList(clusterName string) (str []string) {
