@@ -96,6 +96,10 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 }
 
 func (m *AutoCheckManager) Start() {
+	// TODO 这里是防止1.2.5 版本残留的问题
+	db2 := database.DB
+
+	db2.Where("uuid is null or uuid = '' ").Delete(&model.AutoCheck{})
 
 	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
 	var uuidSet []string
