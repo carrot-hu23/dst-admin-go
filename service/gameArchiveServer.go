@@ -38,6 +38,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 	go func() {
 		clusterIni := d.GetClusterIni(clusterName)
 		gameArchie.ClusterName = clusterIni.ClusterName
+		gameArchie.ClusterDescription = clusterIni.ClusterDescription
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
 		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
