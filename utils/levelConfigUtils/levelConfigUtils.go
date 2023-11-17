@@ -5,7 +5,6 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo/level"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,6 +38,8 @@ func initLevel(levelFolderPath string, level *level.World) {
 func GetLevelConfig(clusterName string) (*LevelConfig, error) {
 	clusterBasePath := dstUtils.GetClusterBasePath(clusterName)
 	jsonPath := filepath.Join(clusterBasePath, "level.json")
+	log.Println(jsonPath)
+	fileUtils.CreateDirIfNotExists(clusterBasePath)
 	// fileUtils.CreateFileIfNotExists(jsonPath)
 	if !fileUtils.Exists(jsonPath) {
 		fileUtils.CreateFile(jsonPath)
@@ -47,7 +48,7 @@ func GetLevelConfig(clusterName string) (*LevelConfig, error) {
 	// 打开JSON文件
 	file, err := os.Open(jsonPath)
 	if err != nil {
-		fmt.Println("无法打开level.json文件:", err)
+		log.Println("无法打开level.json文件:", err)
 		return nil, err
 	}
 	defer file.Close()
@@ -57,7 +58,7 @@ func GetLevelConfig(clusterName string) (*LevelConfig, error) {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&config)
 	if err != nil {
-		fmt.Println("无法解析level.json文件:", err)
+		log.Println("无法解析level.json文件:", err)
 		return nil, err
 	}
 
