@@ -3,6 +3,7 @@ package vo
 import "time"
 
 type ClusterVO struct {
+	Name            string `json:"name"`
 	ClusterName     string `gorm:"uniqueIndex" json:"clusterName"`
 	Description     string `json:"description"`
 	SteamCmd        string `json:"steamcmd"`
@@ -11,11 +12,12 @@ type ClusterVO struct {
 	ModDownloadPath string `json:"mod_download_path"`
 	Uuid            string `json:"uuid"`
 	Beta            int    `json:"beta"`
+	Bin             int    `json:"bin"`
 	ID              uint
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
-	Master          bool `json:"master"`
-	Caves           bool `json:"caves"`
+
+	Status bool `json:"status"`
 
 	Connected      int    `json:"connected"`
 	MaxConnections int    `json:"maxConnections"`
@@ -25,4 +27,6 @@ type ClusterVO struct {
 	Password       string `json:"password"`
 	RowId          string `json:"rowId"`
 	Region         string `json:"region"`
+
+	GameArchive *GameArchive `json:"gameArchive"`
 }

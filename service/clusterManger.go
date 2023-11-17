@@ -3,18 +3,15 @@ package service
 import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
-	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 )
 
@@ -22,43 +19,15 @@ type ClusterManager struct {
 	InitService
 	HomeService
 	s GameService
+	GameArchive
 }
 
 func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 	//获取查询参数
-	clusterName := ctx.Query("clusterName")
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
-	if page <= 0 {
-		page = 1
-	}
-	if size < 0 {
-		size = 10
-	}
 	db := database.DB
-
-	if clusterName, isExist := ctx.GetQuery("clusterName"); isExist {
-		db = db.Where("cluster_name LIKE ?", "%"+clusterName+"%")
-	}
-
-	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
-
 	clusters := make([]model.Cluster, 0)
-
 	if err := db.Find(&clusters).Error; err != nil {
 		fmt.Println(err.Error())
-	}
-
-	var total int64
-	db2 := database.DB
-	if clusterName != "" {
-		db2.Model(&model.Cluster{}).Where("clusterName like ?", "%"+clusterName+"%").Count(&total)
-	} else {
-		db2.Model(&model.Cluster{}).Count(&total)
-	}
-	totalPages := total / int64(size)
-	if total%int64(size) != 0 {
-		totalPages++
 	}
 
 	var clusterVOList = make([]vo.ClusterVO, len(clusters))
@@ -67,19 +36,18 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 	for i, cluster := range clusters {
 		go func(cluster model.Cluster, i int) {
 			clusterVO := vo.ClusterVO{
+				Name:            cluster.Name,
 				ClusterName:     cluster.ClusterName,
 				Description:     cluster.Description,
 				SteamCmd:        cluster.SteamCmd,
 				ForceInstallDir: cluster.ForceInstallDir,
 				Backup:          cluster.Backup,
 				ModDownloadPath: cluster.ModDownloadPath,
-				Uuid:            cluster.Uuid,
 				Beta:            cluster.Beta,
+				Bin:             cluster.Bin,
 				ID:              cluster.ID,
 				CreatedAt:       cluster.CreatedAt,
 				UpdatedAt:       cluster.UpdatedAt,
-				Master:          dstUtils.Status(cluster.ClusterName, "Master"),
-				Caves:           dstUtils.Status(cluster.ClusterName, "Caves"),
 			}
 			clusterIni := c.GetClusterIni(cluster.ClusterName)
 			name := clusterIni.ClusterName
@@ -111,6 +79,8 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 
 				}
 			}
+			clusterVO.GameArchive = c.GetGameArchive(clusterVO.ClusterName)
+			clusterVO.Status = c.GetLevelStatus(clusterVO.ClusterName, "Master")
 			clusterVOList[i] = clusterVO
 			wg.Done()
 		}(cluster, i)
@@ -119,19 +89,16 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: vo.Page{
-			Data:       clusterVOList,
-			Page:       page,
-			Size:       size,
-			Total:      total,
-			TotalPages: totalPages,
-		},
+		Data: clusterVOList,
 	})
 
 }
 
 func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 
+	if cluster.Name == "" {
+		log.Panicln("create cluster is error, name is null")
+	}
 	if cluster.ClusterName == "" {
 		log.Panicln("create cluster is error, cluster name is null")
 	}
@@ -141,6 +108,10 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	if cluster.ForceInstallDir == "" {
 		log.Panicln("create cluster is error, forceInstallDir is null")
 	}
+	if cluster.ModDownloadPath == "" {
+		cluster.ModDownloadPath = dstUtils.GetDoNotStarveTogetherPath()
+	}
+
 	db := database.DB
 	tx := db.Begin()
 
@@ -150,62 +121,62 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 		}
 	}()
 
-	cluster.Uuid = generateUUID()
 	err := db.Create(&cluster).Error
-
 	if err != nil {
 		if err.Error() == "Error 1062: Duplicate entry" {
-			log.Panicln("唯一索引冲突！")
+			log.Panicln("唯一索引冲突！", err)
 		}
-		log.Panicln("创建集群失败！")
+		log.Panicln("创建房间失败！", err)
 	}
 
-	// 安装 dontstarve_dedicated_server
-	log.Println("正在安装饥荒。。。。。。")
-	if !fileUtils.Exists(cluster.ForceInstallDir) {
-		// app_update 343050 beta updatebeta validate +quit
-		cmd := "cd " + cluster.SteamCmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + cluster.ForceInstallDir + " +app_update 343050 validate +quit"
-		output, err := shellUtils.Shell(cmd)
-		if err != nil {
-			log.Panicln("饥荒安装失败")
-		}
-		log.Println(output)
-	}
-	log.Println("饥荒安装完成！！！")
 	// 创建世界
-	c.InitCluster(cluster, global.ClusterToken)
-
+	c.InitCluster(cluster, "")
 	tx.Commit()
+
 }
 
 func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 	db := database.DB
 	oldCluster := &model.Cluster{}
-	db.Where("id = ?", cluster.ID).First(oldCluster)
-	oldCluster.Description = cluster.Description
-	//oldCluster.SteamCmd = cluster.SteamCmd
-	//oldCluster.ForceInstallDir = cluster.ForceInstallDir
+	db.Where("ID = ?", cluster.ID).First(oldCluster)
+	if oldCluster.ClusterName == "" {
+		log.Panicln("未找到当前存档 clusterName: ", cluster.ClusterName, cluster.ID)
+	}
+
+	if cluster.SteamCmd != "" {
+		oldCluster.SteamCmd = cluster.SteamCmd
+	}
+	if cluster.ForceInstallDir != "" {
+		oldCluster.ForceInstallDir = cluster.ForceInstallDir
+	}
+	if cluster.Backup != "" {
+		oldCluster.Backup = cluster.Backup
+	}
+	if cluster.ModDownloadPath != "" {
+		oldCluster.ModDownloadPath = cluster.ModDownloadPath
+	}
+	oldCluster.Name = cluster.Name
+	oldCluster.Bin = cluster.Bin
 	db.Updates(oldCluster)
 }
 
-func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
+func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, error) {
+	// 停止服务
+	c.s.StopGame(clusterName)
 	db := database.DB
-
 	cluster := model.Cluster{}
-
-	result := db.Where("id = ?", id).Delete(&cluster)
+	result := db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&cluster)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	// TODO 删除集群 和 饥荒、备份、mod 下载
+	// TODO 删除房间 和 饥荒、备份、mod 下载
 
-	// 删除集群
-
+	// 删除房间
+	fileUtils.DeleteDir(dstUtils.GetClusterBasePath(clusterName))
 	// 删除饥荒
 
-	// 停止服务
 	return &cluster, nil
 }
 

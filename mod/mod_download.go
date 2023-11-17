@@ -4,7 +4,6 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
-	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"encoding/json"
 	"fmt"
@@ -65,13 +64,13 @@ type ModInfo struct {
 }
 
 // 获取饥荒本身modid的位置
-func get_dst_ucgs_mods_installed_path(modid string) (string, bool) {
+func get_dst_ucgs_mods_installed_path(modid string, clusterName string) (string, bool) {
 	// /root/dst-dedicated-server/ugc_mods/MyDediServer/Master/content/322330/1185229307
 	// 先从 mods 文件读取
 
-	dstConfig := dstConfigUtils.GetDstConfig()
-	masterModFilePath := path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Master/content/322330", modid)
-	caveModFilePath := path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Caves/content/322330", modid)
+	cluster := clusterUtils.GetCluster(clusterName)
+	masterModFilePath := path.Join(cluster.ForceInstallDir, "ugc_mods", clusterName, "/Master/content/322330", modid)
+	caveModFilePath := path.Join(cluster.ForceInstallDir, "ugc_mods", clusterName, "/Caves/content/322330", modid)
 
 	log.Println("masterModFilePath: ", masterModFilePath)
 	log.Println("caveModFilePath: ", caveModFilePath)
@@ -85,9 +84,13 @@ func get_dst_ucgs_mods_installed_path(modid string) (string, bool) {
 	return "", false
 }
 
-func get_mod_info_config(mod_id string) map[string]interface{} {
+func get_mod_info_config(mod_id string, clusterName string) map[string]interface{} {
+
+	cluster := clusterUtils.GetCluster(clusterName)
+	log.Println("clusterName: ", clusterName, cluster)
+
 	// 从服务器本地读取mod信息
-	if dst_mod_installed_path, ok := get_dst_ucgs_mods_installed_path(mod_id); ok {
+	if dst_mod_installed_path, ok := get_dst_ucgs_mods_installed_path(mod_id, cluster.ClusterName); ok {
 		modinfo_path := filepath.Join(dst_mod_installed_path, "modinfo.lua")
 		log.Println("ucg modinfo.lua: ", modinfo_path)
 		if _, err := os.Stat(modinfo_path); err == nil {
@@ -97,8 +100,8 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 
 	// 检查 mod 文件是否已经存在
 	// mod_download_path := "/root/mine/dst/dst-admin-go-1.0.0/go-mod/mod"
-	dstConfig := dstConfigUtils.GetDstConfig()
-	mod_download_path := dstConfig.Mod_download_path
+
+	mod_download_path := cluster.ModDownloadPath
 	fileUtils.CreateFileIfNotExists(mod_download_path)
 	// 下载的模组位置
 	mod_path := path.Join(mod_download_path, "/steamapps/workshop/content/322330/", mod_id)
@@ -106,7 +109,7 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 		fmt.Println("Mod already downloaded to:", mod_path)
 	} else {
 		// 调用 SteamCMD 命令下载 mod
-		steamcmd := dstConfig.Steamcmd
+		steamcmd := cluster.SteamCmd
 		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
 
 		log.Println("正在现在模组 command: ", cmd)
@@ -453,11 +456,11 @@ func isWorkshopId(id string) bool {
 	return err == nil
 }
 
-func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
+func SubscribeModByModId(modId string, clusterName string) (model.ModInfo, error, int) {
 
 	if !isWorkshopId(modId) {
 
-		modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+		modConfigJson, _ := json.Marshal(get_mod_info_config(modId, clusterName))
 		modConfig := string(modConfigJson)
 
 		newModInfo := model.ModInfo{
@@ -547,7 +550,7 @@ func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
 			modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modId, fileUrl))
 			modConfig = string(modConfigJson)
 		} else {
-			modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+			modConfigJson, _ := json.Marshal(get_mod_info_config(modId, clusterName))
 			modConfig = string(modConfigJson)
 		}
 
@@ -573,7 +576,7 @@ func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
 		modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modId, fileUrl))
 		modConfig = string(modConfigJson)
 	} else {
-		modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+		modConfigJson, _ := json.Marshal(get_mod_info_config(modId, clusterName))
 		modConfig = string(modConfigJson)
 	}
 
@@ -775,11 +778,11 @@ func SearchModInfoByWorkshopId(modID int) ModInfo {
 	return modInfo
 }
 
-func AddModInfo(modid string) {
+func AddModInfo(modid string, clusterName string) {
 	var modInfo model.ModInfo
 	var err error
 	if !isWorkshopId(modid) {
-		modInfo, err, _ = GetLocalModInfo(modid)
+		modInfo, err, _ = GetLocalModInfo(modid, clusterName)
 	} else {
 		// 获取mod基本信息
 		modInfo, err, _ = GetModInfo2(modid)
@@ -793,7 +796,7 @@ func AddModInfo(modid string) {
 
 	// 更新配置项
 	var modConfig string
-	modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+	modConfigJson, err := json.Marshal(get_mod_info_config(modid, clusterName))
 	if err != nil {
 		log.Println(err)
 	}
@@ -817,8 +820,8 @@ func AddModInfo(modid string) {
 
 }
 
-func GetLocalModInfo(modId string) (model.ModInfo, error, int) {
-	modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+func GetLocalModInfo(modId string, clusterName string) (model.ModInfo, error, int) {
+	modConfigJson, _ := json.Marshal(get_mod_info_config(modId, clusterName))
 	modConfig := string(modConfigJson)
 
 	newModInfo := model.ModInfo{
@@ -883,7 +886,7 @@ func UploadMod(ctx *gin.Context) {
 
 		// 更新配置项
 		var modConfig string
-		modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+		modConfigJson, err := json.Marshal(get_mod_info_config(modid, cluster.ClusterName))
 		if err != nil {
 			log.Println(err)
 		}
@@ -906,7 +909,7 @@ func UploadMod(ctx *gin.Context) {
 	} else {
 		// 读取模组文件
 		var modConfig string
-		modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+		modConfigJson, err := json.Marshal(get_mod_info_config(modid, cluster.ClusterName))
 		if err != nil {
 			log.Println(err)
 		}

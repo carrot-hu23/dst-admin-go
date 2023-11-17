@@ -52,7 +52,7 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 
 	// TODO 添加表数据
 	var autoChecks []model.AutoCheck
-	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
+	config, _ := levelConfigUtils.GetLevelConfig(clusterName)
 	for i := range config.LevelList {
 		level := config.LevelList[i]
 		autoChecks = append(autoChecks, model.AutoCheck{

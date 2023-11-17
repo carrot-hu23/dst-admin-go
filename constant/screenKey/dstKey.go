@@ -1,5 +1,5 @@
 package screenKey
 
 func Key(level, clusterName string) string {
-	return "DST_8level_" + level + "_" + clusterName
+	return "DST_HOME_" + level + "_" + clusterName
 }

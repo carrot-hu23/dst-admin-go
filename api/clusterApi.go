@@ -1,45 +1,19 @@
 package api
 
 import (
-	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
 type ClusterApi struct{}
 
 var clusterManager = service.ClusterManager{}
-
-// var clusterService = service.HomeService{}
-
-//func (c *ClusterApi) GetGameConfig(ctx *gin.Context) {
-//	ctx.JSON(http.StatusOK, vo.Response{
-//		Code: 200,
-//		Msg:  "success",
-//		Data: clusterService.GetGameConfig(ctx),
-//	})
-//}
-//
-//func (c *ClusterApi) SaveGameConfig(ctx *gin.Context) {
-//
-//	gameConfig := level.GameConfig{}
-//	ctx.ShouldBind(&gameConfig)
-//	fmt.Printf("%v", gameConfig.Caves.ServerIni)
-//	clusterService.SaveGameConfig(ctx, &gameConfig)
-//
-//	ctx.JSON(http.StatusOK, vo.Response{
-//		Code: 200,
-//		Msg:  "success",
-//		Data: nil,
-//	})
-//}
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx)
@@ -51,9 +25,15 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 	ctx.ShouldBind(&clusterModel)
 	fmt.Printf("%v", clusterModel)
 
+	if !fileUtils.Exists(clusterModel.SteamCmd) {
+		log.Panicln("steamcmd 路径不存在 path: ", clusterModel.SteamCmd)
+	}
+	if !fileUtils.Exists(clusterModel.ForceInstallDir) {
+		log.Panicln("饥荒 路径不存在 path: ", clusterModel.ForceInstallDir)
+	}
 	clusterManager.CreateCluster(&clusterModel)
 
-	global.CollectMap.AddNewCollect(clusterModel.ClusterName)
+	// global.CollectMap.AddNewCollect(clusterModel.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -65,8 +45,19 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
 func (c *ClusterApi) UpdateCluster(ctx *gin.Context) {
 	clusterModel := model.Cluster{}
-	ctx.ShouldBind(&clusterModel)
+	err := ctx.ShouldBind(&clusterModel)
+	if err != nil {
+		log.Panicln(err)
+	}
 	fmt.Printf("%v", clusterModel)
+
+	if !fileUtils.Exists(clusterModel.SteamCmd) {
+		log.Panicln("steamcmd 路径不存在 path: ", clusterModel.SteamCmd)
+	}
+	if !fileUtils.Exists(clusterModel.ForceInstallDir) {
+		log.Panicln("饥荒 路径不存在 path: ", clusterModel.ForceInstallDir)
+	}
+
 	clusterManager.UpdateCluster(&clusterModel)
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -79,22 +70,20 @@ func (c *ClusterApi) UpdateCluster(ctx *gin.Context) {
 
 func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 
-	var id int
+	clusterName := ctx.Query("clusterName")
 
-	if idParam, isExist := ctx.GetQuery("id"); isExist {
-		id, _ = strconv.Atoi(idParam)
-	}
-
-	clusterModel, err := clusterManager.DeleteCluster(uint(id))
+	clusterModel, err := clusterManager.DeleteCluster(clusterName)
+	log.Println("删除", clusterModel)
 	if err != nil {
 		log.Panicln("delete cluster error", err)
 	}
 
-	global.CollectMap.RemoveCollect(clusterModel.ClusterName)
+	// global.CollectMap.RemoveCollect(clusterModel.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
 		Data: nil,
 	})
+
 }

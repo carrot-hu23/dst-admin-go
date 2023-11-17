@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type Cluster struct {
 	gorm.Model
 	ClusterName     string `gorm:"uniqueIndex" json:"clusterName"`
+	Name            string `json:"name"`
 	Description     string `json:"description"`
 	SteamCmd        string `json:"steamcmd"`
 	ForceInstallDir string `json:"force_install_dir"`

@@ -1,8 +1,6 @@
 package bootstrap
 
 import (
-	"dst-admin-go/autoCheck"
-	"dst-admin-go/bot/discord"
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
@@ -33,7 +31,7 @@ func Init() {
 	initConfig()
 	initLog()
 	initDB()
-	initCollect()
+	// initCollect()
 	initSchedule()
 }
 
@@ -124,19 +122,13 @@ func initCollect() {
 	newCollect.StartCollect()
 	global.Collect = newCollect
 
-	// autoCheck.AutoCheckObject = autoCheck.NewAutoCheckConfig(clusterName, dstConfig.Bin, dstConfig.Beta)
-
-	autoCheckManager := autoCheck.AutoCheckManager{}
-	autoCheckManager.Start()
-	autoCheck.Manager = &autoCheckManager
+	//autoCheckManager := autoCheck.AutoCheckManager{}
+	//autoCheckManager.Start()
+	//autoCheck.Manager = &autoCheckManager
 }
 
 func initSchedule() {
 	schedule.ScheduleSingleton = schedule.NewSchedule()
 	// service.InitAnnounce()
-
-	discord.DiscordClient = discord.NewDiscordClient(discord.Token)
-	log.Println("开始启动discord机器人")
-	go discord.DiscordClient.Start()
 
 }

@@ -2,43 +2,65 @@ package clusterUtils
 
 import (
 	"bytes"
+	"dst-admin-go/config/database"
+	"dst-admin-go/constant"
 	"dst-admin-go/model"
-	"dst-admin-go/utils/dstConfigUtils"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
 	"strings"
 )
 
 func GetCluster(clusterName string) *model.Cluster {
-	config := dstConfigUtils.GetDstConfig()
-	cluster := model.Cluster{
-		SteamCmd:        config.Steamcmd,
-		ForceInstallDir: config.Force_install_dir,
-		ClusterName:     config.Cluster,
-		Backup:          config.Backup,
-		ModDownloadPath: config.Mod_download_path,
-		Bin:             config.Bin,
-		Beta:            config.Beta,
+	db := database.DB
+	cluster := &model.Cluster{}
+	db.Where("cluster_name=?", clusterName).First(cluster)
+	modDownloadPath := ""
+	if cluster.ModDownloadPath == "" {
+		modDownloadPath = path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether")
+	} else {
+		modDownloadPath = cluster.ModDownloadPath
 	}
-	return &cluster
+	return &model.Cluster{
+		SteamCmd:        cluster.SteamCmd,
+		ForceInstallDir: cluster.ForceInstallDir,
+		ClusterName:     cluster.ClusterName,
+		Backup:          cluster.Backup,
+		ModDownloadPath: modDownloadPath,
+		Bin:             cluster.Bin,
+		Beta:            cluster.Beta,
+	}
 }
 
 func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
-	config := dstConfigUtils.GetDstConfig()
-	cluster := model.Cluster{
-		SteamCmd:        config.Steamcmd,
-		ForceInstallDir: config.Force_install_dir,
-		ClusterName:     config.Cluster,
-		Backup:          config.Backup,
-		ModDownloadPath: config.Mod_download_path,
-		Bin:             config.Bin,
-		Beta:            config.Beta,
+	clusterName := ctx.GetHeader("Cluster")
+	if clusterName == "" {
+		// log.Panicln("clusterName is not be null or empty")
 	}
-	return &cluster
+	log.Println(ctx.Request.RequestURI, "cluster: ", clusterName)
+	db := database.DB
+	cluster := &model.Cluster{}
+	db.Where("cluster_name=?", clusterName).First(cluster)
+
+	modDownloadPath := ""
+	if cluster.ModDownloadPath == "" {
+		modDownloadPath = path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether")
+	} else {
+		modDownloadPath = cluster.ModDownloadPath
+	}
+	return &model.Cluster{
+		SteamCmd:        cluster.SteamCmd,
+		ForceInstallDir: cluster.ForceInstallDir,
+		ClusterName:     cluster.ClusterName,
+		Backup:          cluster.Backup,
+		ModDownloadPath: modDownloadPath,
+		Bin:             cluster.Bin,
+		Beta:            cluster.Beta,
+	}
 }
 
 func GetDstServerInfo(clusterName string) []DstHomeInfo {
@@ -73,17 +95,17 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		// 处理错误
-		log.Println("1111", err)
+		log.Println(err)
 	}
 	s := string(body)
 	s = s[1 : len(s)-1]
 	s = strings.Replace(s, "\\", "", -1)
-	fmt.Println(s)
+	log.Println(s)
 
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(s), &result)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	if !result["success"].(bool) {
 		return []DstHomeInfo{}
@@ -92,12 +114,13 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 	if len(homeData) == 0 {
 		return []DstHomeInfo{}
 	}
+
 	var homeDataList []DstHomeInfo
 	for _, d := range homeData {
 		row := d.([]interface{})[0].(string)
 		connected := d.([]interface{})[5].(float64)
 		maxConnect := d.([]interface{})[6].(float64)
-		mode := d.([]interface{})[8].(string)
+		mode := d.([]interface{})[7].(string)
 		mods := d.([]interface{})[9].(float64)
 		name := d.([]interface{})[10].(string)
 		password := d.([]interface{})[11].(float64)

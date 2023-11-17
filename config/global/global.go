@@ -18,6 +18,7 @@ var Config *config.Config
 
 const ClusterToken = "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw="
 
+// TODO 暂时不采集，同时把这个对象移到 clollect 里面
 var CollectMap = collect.NewCollectMap()
 
 var Collect *collect.Collect

@@ -171,8 +171,8 @@ func (i *InitService) InitCluster(cluster *model.Cluster, token string) {
 	fileUtils.CreateDirIfNotExists(cluster.Backup)
 	fileUtils.CreateDirIfNotExists(cluster.ModDownloadPath)
 
-	info := i.GetUserInfo()
-	i.InitClusterIni(baseLevelPath, info["displayName"].(string))
+	// info := i.GetUserInfo()
+	i.InitClusterIni(baseLevelPath, cluster.Name)
 	i.InitClusterToken(baseLevelPath, token)
 	i.InitBaseMaster(baseLevelPath)
 	i.InitBaseCaves(baseLevelPath)

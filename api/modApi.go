@@ -5,7 +5,6 @@ import (
 	"dst-admin-go/mod"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
-	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"encoding/json"
@@ -42,8 +41,10 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 
 func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+
 	moId := ctx.Param("modId")
-	modinfo, err, status := mod.SubscribeModByModId(moId)
+	modinfo, err, status := mod.SubscribeModByModId(moId, cluster.ClusterName)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -110,8 +111,8 @@ func (m *ModApi) DeleteMod(ctx *gin.Context) {
 	db := database.DB
 	db.Where("modid = ?", modId).Delete(&model.ModInfo{})
 
-	dstConfig := dstConfigUtils.GetDstConfig()
-	mod_download_path := dstConfig.Mod_download_path
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	mod_download_path := cluster.ModDownloadPath
 	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 	fileUtils.DeleteDir(mod_path)
 
@@ -123,7 +124,10 @@ func (m *ModApi) DeleteMod(ctx *gin.Context) {
 }
 
 func (m *ModApi) DeleteSetupWorkshop(ctx *gin.Context) {
-	dstPath := dstConfigUtils.GetDstConfig().Force_install_dir
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+
+	dstPath := cluster.ForceInstallDir
 	modsPath := filepath.Join(dstPath, "mods")
 	// 删除所有workshop-xxx mod
 
@@ -187,12 +191,12 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 	db := database.DB
 	db.Where("modid = ?", modId).Delete(&model.ModInfo{})
 
-	dstConfig := dstConfigUtils.GetDstConfig()
-	mod_download_path := dstConfig.Mod_download_path
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	mod_download_path := cluster.ModDownloadPath
 	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 	fileUtils.DeleteDir(mod_path)
 
-	modinfo, err, status := mod.SubscribeModByModId(modId)
+	modinfo, err, status := mod.SubscribeModByModId(modId, cluster.ClusterName)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -249,7 +253,7 @@ func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 		log.Panicln("写入 modinfo.lua 失败， path: ", modinfoPath, "error: ", err)
 	}
 
-	mod.AddModInfo(payload.WorkshopId)
+	mod.AddModInfo(payload.WorkshopId, cluster.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
