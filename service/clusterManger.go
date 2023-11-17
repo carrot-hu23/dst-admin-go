@@ -52,7 +52,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 			clusterIni := c.GetClusterIni(cluster.ClusterName)
 			name := clusterIni.ClusterName
 			maxPlayers := clusterIni.MaxPlayers
-			mode := clusterIni.GameMode
+			// mode := clusterIni.GameMode
 			password := clusterIni.ClusterPassword
 			var hasPassword int
 			if password == "" {
@@ -66,7 +66,6 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				for _, info := range homeInfos {
 					if info.Name == name &&
 						uint(info.MaxConnect) == maxPlayers &&
-						info.Mode == mode &&
 						int(info.Password) == hasPassword {
 						clusterVO.RowId = info.Row
 						clusterVO.Connected = int(info.Connected)
