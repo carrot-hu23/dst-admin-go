@@ -1,14 +1,11 @@
 package bootstrap
 
 import (
-	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
-	"dst-admin-go/utils/dstConfigUtils"
-	"dst-admin-go/utils/systemUtils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -19,7 +16,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -31,7 +27,7 @@ func Init() {
 	initConfig()
 	initLog()
 	initDB()
-	// initCollect()
+	initCollect()
 	initSchedule()
 }
 
@@ -109,18 +105,18 @@ func initLog() {
 
 func initCollect() {
 
-	//var clusters []model.Cluster
-	//database.DB.Find(&clusters)
-	//for _, cluster := range clusters {
-	//	global.CollectMap.AddNewCollect(cluster.ClusterName)
-	//}
+	var clusters []model.Cluster
+	database.DB.Find(&clusters)
+	for _, cluster := range clusters {
+		global.CollectMap.AddNewCollect(cluster.ClusterName)
+	}
 
-	home, _ := systemUtils.Home()
-	dstConfig := dstConfigUtils.GetDstConfig()
-	clusterName := dstConfig.Cluster
-	newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
-	newCollect.StartCollect()
-	global.Collect = newCollect
+	//home, _ := systemUtils.Home()
+	//dstConfig := dstConfigUtils.GetDstConfig()
+	//clusterName := dstConfig.Cluster
+	//newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
+	//newCollect.StartCollect()
+	//global.Collect = newCollect
 
 	//autoCheckManager := autoCheck.AutoCheckManager{}
 	//autoCheckManager.Start()

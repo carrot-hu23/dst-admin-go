@@ -1,6 +1,7 @@
 package api
 
 import (
+	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/fileUtils"
@@ -33,7 +34,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 	}
 	clusterManager.CreateCluster(&clusterModel)
 
-	// global.CollectMap.AddNewCollect(clusterModel.ClusterName)
+	global.CollectMap.AddNewCollect(clusterModel.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -78,7 +79,7 @@ func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 		log.Panicln("delete cluster error", err)
 	}
 
-	// global.CollectMap.RemoveCollect(clusterModel.ClusterName)
+	global.CollectMap.RemoveCollect(clusterModel.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

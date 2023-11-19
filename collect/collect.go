@@ -68,6 +68,7 @@ func (c *Collect) StartCollect() {
 					go c.tailServerChatLog(s)
 				}
 			default:
+				// TODO 检查cluster是否存在
 				time.Sleep(5 * time.Second)
 				continue
 			}
