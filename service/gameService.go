@@ -258,18 +258,17 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 }
 
 type SystemInfo struct {
-	HostInfo    *systemUtils.HostInfo `json:"host"`
-	CpuInfo     *systemUtils.CpuInfo  `json:"cpu"`
-	MemInfo     *systemUtils.MemInfo  `json:"mem"`
-	DiskInfo    *systemUtils.DiskInfo `json:"disk"`
-	MemStates   uint64                `json:"memStates"`
-	Version     int64                 `json:"version"`
-	LastVersion int64                 `json:"lastVersion"`
+	HostInfo      *systemUtils.HostInfo `json:"host"`
+	CpuInfo       *systemUtils.CpuInfo  `json:"cpu"`
+	MemInfo       *systemUtils.MemInfo  `json:"mem"`
+	DiskInfo      *systemUtils.DiskInfo `json:"disk"`
+	PanelMemUsage uint64                `json:"panelMemUsage"`
+	PanelCpuUsage float64               `json:"panelCpuUsage"`
 }
 
 func (g *GameService) GetSystemInfo(clusterName string) *SystemInfo {
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(5)
 
 	dashboardVO := SystemInfo{}
 	go func() {
@@ -321,18 +320,15 @@ func (g *GameService) GetSystemInfo(clusterName string) *SystemInfo {
 		}()
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
-		dashboardVO.MemStates = m.Alloc / 1024
-	}()
+		dashboardVO.PanelMemUsage = m.Alloc / 1024 // 将字节转换为MB
 
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				dashboardVO.Version = 0
-			}
-			wg.Done()
-		}()
-		dashboardVO.Version = g.GetLocalDstVersion(clusterName)
-		dashboardVO.LastVersion = g.GetLastDstVersion()
+		// 获取当前程序使用的CPU信息
+		//startCPU, _ := cpu.Percent(time.Second, false)
+		//time.Sleep(1 * time.Second) // 假设程序运行1秒
+		//endCPU, _ := cpu.Percent(time.Second, false)
+		//cpuUsage := endCPU[0] - startCPU[0]
+		//dashboardVO.PanelCpuUsage = cpuUsage
+
 	}()
 
 	wg.Wait()
