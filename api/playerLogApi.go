@@ -3,6 +3,7 @@ package api
 import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
@@ -23,6 +24,9 @@ func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 	//steamId := ctx.Query("steamId")
 	//role := ctx.Query("role")
 	//action := ctx.Query("action")
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
 
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
@@ -56,7 +60,8 @@ func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 		db = db.Where("action LIKE ?", "%"+action+"%")
 		db2 = db2.Where("action LIKE ?", "%"+action+"%")
 	}
-
+	db = db.Where("cluster_name = ?", clusterName)
+	db2 = db2.Where("cluster_name = ?", clusterName)
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 
 	playerLogs := make([]model.PlayerLog, 0)

@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/utils"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
@@ -49,6 +50,9 @@ func find_stamp(stamp int64, data []UserStatistics) *UserStatistics {
 
 func (s *StatisticsApi) CountActiveUser(ctx *gin.Context) {
 
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
 	unit := ctx.Query("unit")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
@@ -68,18 +72,18 @@ func (s *StatisticsApi) CountActiveUser(ctx *gin.Context) {
 		select
 			count(distinct name) as count,created_at as date
 		from player_logs
-		where created_at between ? and ?
+		where created_at between ? and ? and cluster_name = ?
 		group by strftime('%m',created_at),strftime('%d',created_at)
 		`
 		sql2 := `
 		select
 			count(name) as count,created_at as date
 		from player_logs
-		where created_at between ? and ? and action like '[JoinAnnouncement]'
+		where created_at between ? and ? and action like '[JoinAnnouncement]' and cluster_name = ?
 		group by strftime('%m',created_at),strftime('%d',created_at)
 		`
-		db.Raw(sql1, startDate, endDate).Scan(&data1)
-		db.Raw(sql2, startDate, endDate).Scan(&data2)
+		db.Raw(sql1, startDate, endDate, clusterName).Scan(&data1)
+		db.Raw(sql2, startDate, endDate, clusterName).Scan(&data2)
 
 		// database.Raw("select count(distinct name) as count,created_at as date from player_logs where action like '[JoinAnnouncement]' group by strftime('%m',created_at),strftime('%d',created_at)").Scan(&data1)
 		// database.Raw("select count(name) as count,created_at as date from player_logs where action like '[JoinAnnouncement]' group by strftime('%m',created_at),strftime('%d',created_at)").Scan(&data2)
@@ -120,6 +124,9 @@ func (s *StatisticsApi) CountActiveUser(ctx *gin.Context) {
 
 func (s *StatisticsApi) CountLoginUser(ctx *gin.Context) {
 
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
 	unit := ctx.Query("unit")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
@@ -128,10 +135,10 @@ func (s *StatisticsApi) CountLoginUser(ctx *gin.Context) {
 	db := database.DB
 	var data []UserStatistics
 	if unit == "MONTH" {
-		db.Raw("select count(name) as count,created_at as date from player_logs where created_at between ? and ? group by strftime('%Y',created_at),strftime('%m',created_at)", startDate, endDate).Scan(&data)
+		db.Raw("select count(name) as count,created_at as date from player_logs where cluster_name = ? and created_at between ? and ? group by strftime('%Y',created_at),strftime('%m',created_at)", clusterName, startDate, endDate).Scan(&data)
 	}
 	if unit == "DAY" {
-		db.Raw("select count(name) as count,created_at as date from player_logs where created_at between ? and ? group by strftime('%m',created_at),strftime('%d',created_at)", startDate, endDate).Scan(&data)
+		db.Raw("select count(name) as count,created_at as date from player_logs where cluster_name = ? and created_at between ? and ? group by strftime('%m',created_at),strftime('%d',created_at)", clusterName, startDate, endDate).Scan(&data)
 	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -146,6 +153,10 @@ func (s *StatisticsApi) TopUserGameTime() {
 }
 
 func (s *StatisticsApi) TopUserActiveTimes(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
 	N := ctx.Query("N")
 
 	// startTime, _ := time.Parse("2006-01-02T15:04:05.000Z", startDate)
@@ -164,10 +175,10 @@ func (s *StatisticsApi) TopUserActiveTimes(ctx *gin.Context) {
 	select 
 		max(id) as id,count(name) as count, name, ku_id, steam_id, role, action_desc, created_at
 	from player_logs
-	where created_at between ? and ? and action like '[JoinAnnouncement]'
+	where created_at between ? and ? and action like '[JoinAnnouncement]' and cluster_Name = ?
 	group by name order by count(id) DESC limit ?
 	`
-	db.Raw(sql, startDate, endDate, N).Scan(&data)
+	db.Raw(sql, startDate, endDate, clusterName, N).Scan(&data)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -177,6 +188,10 @@ func (s *StatisticsApi) TopUserActiveTimes(ctx *gin.Context) {
 }
 
 func (s *StatisticsApi) TopUserLoginimes(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
 	N := ctx.Query("N")
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
@@ -192,10 +207,10 @@ func (s *StatisticsApi) TopUserLoginimes(ctx *gin.Context) {
 		max(p.id) as id,count(p.name) as count, p.name, c.ku_id, c.steam_id, role, action_desc, p.created_at
 	from player_logs p
 	left join connects c on p.name = c.name
-	where p.created_at between ? and ? and p.action like '[JoinAnnouncement]' 
+	where p.created_at between ? and ? and p.action like '[JoinAnnouncement]' and cluster_name = ?
 	group by p.name order by count(p.id) DESC limit ?
 	`
-	db.Raw(sql, startDate, endDate, N).Scan(&data)
+	db.Raw(sql, startDate, endDate, clusterName, N).Scan(&data)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -233,6 +248,9 @@ func (s *StatisticsApi) TopDeaths(ctx *gin.Context) {
 }
 
 func (s *StatisticsApi) CountRoleRate(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
 	startDate := startDate(ctx)
 	endDate := endDate(ctx)
 
@@ -244,10 +262,10 @@ func (s *StatisticsApi) CountRoleRate(ctx *gin.Context) {
 	select 
 		role as role, count(distinct name) as count
 	from player_logs
-	where role != '' and created_at between ? and ?
+	where role != '' and created_at between ? and ? and cluster_name = ?
 	group by role
 	`
-	db.Raw(sql, startDate, endDate).Scan(&data)
+	db.Raw(sql, startDate, endDate, clusterName).Scan(&data)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
