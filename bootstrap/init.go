@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"dst-admin-go/autoCheck"
-	"dst-admin-go/bot/discord"
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
@@ -134,9 +133,5 @@ func initCollect() {
 func initSchedule() {
 	schedule.ScheduleSingleton = schedule.NewSchedule()
 	// service.InitAnnounce()
-
-	discord.DiscordClient = discord.NewDiscordClient(discord.Token)
-	log.Println("开始启动discord机器人")
-	go discord.DiscordClient.Start()
 
 }

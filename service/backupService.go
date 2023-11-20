@@ -96,7 +96,8 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 	}
 	log.Println("正在恢复存档", filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"))
 
-	err = zip.Unzip2(filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"), cluster.ClusterName)
+	// err = zip.Unzip2(filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"), cluster.ClusterName)
+	err = zip.Unzip3(filePath, clusterPath)
 	if err != nil {
 		log.Panicln("解压失败,", filePath, clusterPath, err)
 	}
