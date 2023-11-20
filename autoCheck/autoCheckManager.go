@@ -169,7 +169,7 @@ func (m *AutoCheckManager) check(task model.AutoCheck) {
 		task = *m.GetAutoCheck(task.ClusterName, task.LevelName, task.CheckType, task.Uuid)
 	}
 
-	log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
+	// log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
 	if task.Enable != 1 {
 		time.Sleep(10 * time.Second)
 	} else {

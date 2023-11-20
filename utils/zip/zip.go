@@ -116,19 +116,29 @@ func Unzip(zipFile, destDir string) error {
 func Unzip2(zipFile, destDir, newName string) error {
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	defer r.Close()
 
 	for _, f := range r.File {
 
-		parts := strings.Split(f.Name, string(filepath.Separator)) // 使用路径分隔符拆分路径
-		parts = parts[1:]                                          // 去掉第一个部分，即一级目录
-		newPath := filepath.Join(parts...)                         // 组合新的路径
+		if f.Name == "" {
+			continue
+		}
 
-		// 构建解压后的文件路径
-		extractedFilePath := filepath.Join(destDir, newName, newPath)
-		log.Println(">>> ", destDir, newName, newPath)
+		parts := strings.Split(f.Name, string(filepath.Separator)) // 使用路径分隔符拆分路径
+		extractedFilePath := ""
+		if newName == parts[0] {
+			parts = parts[1:]                  // 去掉第一个部分，即一级目录
+			newPath := filepath.Join(parts...) // 组合新的路径
+			// 构建解压后的文件路径
+			extractedFilePath = filepath.Join(destDir, newName, newPath)
+		} else {
+			extractedFilePath = filepath.Join(destDir, newName, f.Name)
+		}
+
+		log.Println(">>> ", f.Name, extractedFilePath)
 		if f.FileInfo().IsDir() {
 			// 创建目录
 			os.MkdirAll(extractedFilePath, os.ModePerm)
@@ -141,6 +151,7 @@ func Unzip2(zipFile, destDir, newName string) error {
 		}
 		outFile, err := os.OpenFile(extractedFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 		defer outFile.Close()
@@ -148,6 +159,7 @@ func Unzip2(zipFile, destDir, newName string) error {
 		// 打开压缩文件中的文件
 		rc, err := f.Open()
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 		defer rc.Close()
@@ -155,6 +167,7 @@ func Unzip2(zipFile, destDir, newName string) error {
 		// 将压缩文件中的内容复制到解压文件中
 		_, err = io.Copy(outFile, rc)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}
