@@ -2,6 +2,7 @@ package zip
 
 import (
 	"archive/zip"
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -106,6 +107,66 @@ func Unzip(zipFile, destDir string) error {
 
 		_, err = io.Copy(targetFile, zipEntry)
 		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Unzip3(source, destination string) error {
+	reader, err := zip.OpenReader(source)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	var clusterIniPath string
+	for _, file := range reader.File {
+		if strings.HasSuffix(file.Name, "cluster.ini") {
+			clusterIniPath = file.Name
+			break
+		}
+	}
+
+	if clusterIniPath == "" {
+		return errors.New("压缩包中缺少 cluster.ini 文件")
+	}
+
+	clusterPath := filepath.Dir(clusterIniPath)
+	clusterPath = strings.TrimSuffix(clusterPath, "/")
+	clusterPath = strings.TrimSuffix(clusterPath, "\\")
+	log.Println("clusterPath", clusterPath)
+	for _, file := range reader.File {
+		// 获取相对路径
+		relativePath := strings.TrimPrefix(file.Name, clusterPath)
+		relativePath = strings.TrimPrefix(relativePath, "/")
+		relativePath = strings.TrimPrefix(relativePath, "\\")
+
+		extractedFilePath := filepath.Join(destination, relativePath)
+		log.Println("extractedFilePath", extractedFilePath)
+		if file.FileInfo().IsDir() {
+			os.MkdirAll(extractedFilePath, os.ModePerm)
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(extractedFilePath), os.ModePerm); err != nil {
+			return err
+		}
+
+		writer, err := os.Create(extractedFilePath)
+		if err != nil {
+			return err
+		}
+		defer writer.Close()
+
+		reader, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer reader.Close()
+
+		if _, err := io.Copy(writer, reader); err != nil {
 			return err
 		}
 	}
