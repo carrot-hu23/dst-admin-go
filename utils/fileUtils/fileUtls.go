@@ -2,6 +2,8 @@ package fileUtils
 
 import (
 	"bufio"
+	"dst-admin-go/utils/systemUtils"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -38,7 +40,7 @@ func CreateDir(dirName string) bool {
 	if Exists(dirName) {
 		return false
 	}
-	err := os.Mkdir(dirName, 0755)
+	err := os.MkdirAll(dirName, 0755)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -191,12 +193,19 @@ func DeleteFile(path string) error {
 	return nil
 }
 
-func DeleteDir(path string) (err error) {
+func DeleteDir(path string) error {
+	home, err := systemUtils.Home()
+	if err != nil {
+		return err
+	}
+	if path == filepath.Join(home, ".klei/DoNotStarveTogether") {
+		return errors.New(".klei/DoNotStarveTogether not allow to delete")
+	}
 	err = os.RemoveAll(path)
 	if err != nil {
-		log.Printf("removeAll "+path+" : %v\n", err)
+		log.Printf("remove err "+path+" : %v\n", err)
 	}
-	return
+	return err
 }
 
 func Rename(filePath, newName string) (err error) {
