@@ -118,8 +118,7 @@ func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	backupPath := cluster.Backup
-
-	src := constant.GET_DST_USER_GAME_CONFG_PATH()
+	src := dstUtils.GetClusterBasePath(cluster.ClusterName)
 	if !fileUtils.Exists(backupPath) {
 		log.Panicln("backup path is not exists")
 	}
