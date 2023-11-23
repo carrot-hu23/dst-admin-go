@@ -160,6 +160,9 @@ func (g *GameLevel2Service) CreateLevel(clusterName string, level *level.World) 
 
 func (g *GameLevel2Service) DeleteLevel(clusterName string, levelName string) error {
 	gameServe.shutdownLevel(clusterName, levelName)
+	if clusterName == "" {
+		log.Panicln("cluster is not allow null")
+	}
 	err := fileUtils.DeleteDir(filepath.Join(dstUtils.GetClusterBasePath(clusterName), levelName))
 	if err != nil {
 		return err

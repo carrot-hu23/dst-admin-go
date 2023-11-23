@@ -88,7 +88,7 @@ func (s *Schedule) GetInstructList() []map[string]string {
 	return instructList
 }
 
-func (s *Schedule) GetJobs() []map[string]interface{} {
+func (s *Schedule) GetJobs(clusterName string) []map[string]interface{} {
 
 	var results []map[string]interface{}
 	entries := s.cron.Entries()
@@ -96,6 +96,9 @@ func (s *Schedule) GetJobs() []map[string]interface{} {
 	for _, entry := range entries {
 		taskId, _ := s.cache.Load(entry.ID)
 		task := s.findDB(taskId.(uint))
+		if task.ClusterName != clusterName {
+			continue
+		}
 		results = append(results, map[string]interface{}{
 			"clusterName":  task.ClusterName,
 			"levelName":    task.LevelName,

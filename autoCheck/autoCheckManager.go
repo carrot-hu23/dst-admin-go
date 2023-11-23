@@ -6,7 +6,6 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
-	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/levelConfigUtils"
@@ -24,21 +23,29 @@ import (
 
 const (
 	steamAPIKey = "73DF9F781D195DFD3D19DED1CB72EEE6"
-	appID       = 322330
-	language    = 6
 )
 
 var Manager *AutoCheckManager
 
 type AutoCheckManager struct {
-	AutoChecks  []model.AutoCheck
-	statusMap   map[string]chan int
-	launchMutex sync.Mutex
-	mutex       sync.Mutex
+	AutoChecks []model.AutoCheck
+	statusMap  map[string]chan int
+	// TODO 待使用
+	autoCheckMap map[string]model.AutoCheck
+	launchMutex  sync.Mutex
+	mutex        sync.Mutex
 }
 
 var gameConsoleService service.GameConsoleService
 var gameService service.GameService
+
+func (m *AutoCheckManager) getClusterList() []model.Cluster {
+
+	db := database.DB
+	var clusterList []model.Cluster
+	db.Find(&clusterList)
+	return clusterList
+}
 
 func (m *AutoCheckManager) ReStart(clusterName string) {
 	for s := range m.statusMap {
@@ -48,7 +55,7 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 
 	// 清空所有表
 	db := database.DB
-	db.Where("1 = 1").Delete(&model.AutoCheck{})
+	db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&model.AutoCheck{})
 
 	// TODO 添加表数据
 	var autoChecks []model.AutoCheck
@@ -99,45 +106,45 @@ func (m *AutoCheckManager) Start() {
 	// TODO 这里是防止1.2.5 版本残留的问题
 	db2 := database.DB
 
-	db2.Where("uuid is null or uuid = '' ").Delete(&model.AutoCheck{})
+	db2.Where("uuid is null or uuid = '' ").Unscoped().Delete(&model.AutoCheck{})
 
-	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
-	var uuidSet []string
-	for i := range config.LevelList {
-		level := config.LevelList[i]
-		uuidSet = append(uuidSet, level.File)
-	}
-	var autoChecks []model.AutoCheck
+	clusterList := m.getClusterList()
+	for i := range clusterList {
+		config, _ := levelConfigUtils.GetLevelConfig(clusterList[i].ClusterName)
+		var uuidSet []string
+		for i := range config.LevelList {
+			level := config.LevelList[i]
+			uuidSet = append(uuidSet, level.File)
+		}
+		var autoChecks []model.AutoCheck
 
-	db := database.DB
-	db.Where("uuid in ?", uuidSet).Find(&autoChecks)
+		db := database.DB
+		db.Where("uuid in ?", uuidSet).Find(&autoChecks)
 
-	var autoCheck2 = model.AutoCheck{}
-	db.Where("check_type = ?", consts.UPDATE_GAME).Find(&autoCheck2)
-	autoChecks = append(autoChecks, autoCheck2)
+		var autoCheck2 = model.AutoCheck{}
+		db.Where("check_type = ?", consts.UPDATE_GAME).Find(&autoCheck2)
+		autoChecks = append(autoChecks, autoCheck2)
 
-	log.Println("autoChecks", autoChecks)
-	m.AutoChecks = autoChecks
-	m.statusMap = make(map[string]chan int)
+		log.Println("autoChecks", autoChecks)
+		m.AutoChecks = autoChecks
+		m.statusMap = make(map[string]chan int)
 
-	for i := range autoChecks {
-		taskId := autoChecks[i].Uuid
-		m.statusMap[taskId] = make(chan int)
-	}
+		for i := range autoChecks {
+			taskId := autoChecks[i].Uuid
+			m.statusMap[taskId] = make(chan int)
+		}
 
-	for i := range autoChecks {
-		go func(index int) {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println(r)
-				}
-			}()
-			taskId := autoChecks[index].Uuid
-			if autoChecks[index].Uuid == "" {
-				taskId = autoChecks[index].ClusterName
-			}
-			m.run(autoChecks[index], m.statusMap[taskId])
-		}(i)
+		for i := range autoChecks {
+			go func(index int) {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Println(r)
+					}
+				}()
+				taskId := autoChecks[index].Uuid
+				m.run(autoChecks[index], m.statusMap[taskId])
+			}(i)
+		}
 	}
 
 }
@@ -169,7 +176,7 @@ func (m *AutoCheckManager) check(task model.AutoCheck) {
 		task = *m.GetAutoCheck(task.ClusterName, task.LevelName, task.CheckType, task.Uuid)
 	}
 
-	log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
+	// log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
 	if task.Enable != 1 {
 		time.Sleep(10 * time.Second)
 	} else {

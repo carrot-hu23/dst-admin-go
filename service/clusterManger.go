@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"path/filepath"
 	"sync"
 )
 
@@ -108,7 +109,9 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 		log.Panicln("create cluster is error, forceInstallDir is null")
 	}
 	if cluster.ModDownloadPath == "" {
-		cluster.ModDownloadPath = dstUtils.GetDoNotStarveTogetherPath()
+		p := filepath.Join(dstUtils.GetDoNotStarveTogetherPath(), "mod_download")
+		fileUtils.CreateDirIfNotExists(p)
+		cluster.ModDownloadPath = p
 	}
 
 	db := database.DB
@@ -160,6 +163,11 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 }
 
 func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, error) {
+
+	if clusterName == "" {
+		log.Panicln("cluster is not allow null")
+	}
+
 	// 停止服务
 	c.s.StopGame(clusterName)
 	db := database.DB

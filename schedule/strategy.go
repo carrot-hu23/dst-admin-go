@@ -27,7 +27,7 @@ func (b *BackupStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时创建游戏备份", "src: ", src, "dst: ", dst)
 	err := zip.Zip(src, dst)
 	if err != nil {
-		log.Panicln("create backup error", err)
+		log.Println("create backup error", err)
 	}
 
 }

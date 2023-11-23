@@ -25,7 +25,9 @@ func (j *TimedTaskApi) GetInstructList(ctx *gin.Context) {
 
 func (j *TimedTaskApi) GetJobTaskList(ctx *gin.Context) {
 
-	jobs := schedule.ScheduleSingleton.GetJobs()
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+
+	jobs := schedule.ScheduleSingleton.GetJobs(cluster.ClusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

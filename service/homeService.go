@@ -31,7 +31,8 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	}
 	cfg, err := ini.Load(clusterIniPath)
 	if err != nil {
-		log.Panicln("Failed to load INI file:", err)
+		log.Println("Failed to load INI file:", err)
+		return newCluster
 	}
 
 	// [GAMEPLAY]

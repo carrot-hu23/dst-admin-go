@@ -32,6 +32,9 @@ func (p *PreinstallApi) UsePreinstall(ctx *gin.Context) {
 	if !fileUtils.Exists("./static/preinstall/" + name) {
 		log.Panicln("./static/preinstall/"+name, "不存在，请先添加")
 	}
+	if cluster.ClusterName == "" {
+		log.Panicln("cluster is not allow null")
+	}
 	err := fileUtils.DeleteDir(dstUtils.GetClusterBasePath(cluster.ClusterName))
 	if err != nil {
 		log.Panicln(err)

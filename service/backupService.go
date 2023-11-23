@@ -90,6 +90,9 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	filePath := filepath.Join(cluster.Backup, backupName)
 	clusterPath := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", cluster.ClusterName)
+	if cluster.ClusterName == "" {
+		log.Panicln("cluster is not allow null")
+	}
 	err := fileUtils.DeleteDir(clusterPath)
 	if err != nil {
 		log.Panicln("删除失败,", clusterPath, err)
