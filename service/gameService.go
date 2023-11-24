@@ -150,7 +150,11 @@ func (g *GameService) StartLevel(clusterName, level string, bin, beta int) {
 func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 	launchLock.Lock()
-	defer launchLock.Unlock()
+	defer func() {
+		launchLock.Unlock()
+		if r := recover(); r != nil {
+		}
+	}()
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
@@ -173,7 +177,11 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 func (g *GameService) StopLevel(clusterName, level string) {
 	launchLock.Lock()
-	defer launchLock.Unlock()
+	defer func() {
+		launchLock.Unlock()
+		if r := recover(); r != nil {
+		}
+	}()
 
 	g.shutdownLevel(clusterName, level)
 	time.Sleep(3 * time.Second)
