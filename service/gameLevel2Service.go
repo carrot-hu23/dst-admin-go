@@ -140,7 +140,12 @@ func (g *GameLevel2Service) CreateLevel(clusterName string, level *level.World) 
 	}
 	// cluster := clusterUtils.GetCluster(clusterName)
 	levelFolderPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), uuid)
+	if fileUtils.Exists(levelFolderPath) {
+		return nil
+	}
+
 	fileUtils.CreateDirIfNotExists(levelFolderPath)
+	// 默认初始化
 	initLevel(levelFolderPath, level)
 
 	// 记录level.json 文件

@@ -119,14 +119,14 @@ func (m *AutoCheckManager) Start() {
 		var autoChecks []model.AutoCheck
 
 		db := database.DB
-		db.Where("uuid in ?", uuidSet).Find(&autoChecks)
+		db.Where("uuid in ? and cluster_name = ?", uuidSet, clusterList[i].ClusterName).Find(&autoChecks)
 
 		var autoCheck2 = model.AutoCheck{}
-		db.Where("check_type = ?", consts.UPDATE_GAME).Find(&autoCheck2)
+		db.Where("check_type = ? and cluster_name = ?", consts.UPDATE_GAME, clusterList[i].ClusterName).Find(&autoCheck2)
 		autoChecks = append(autoChecks, autoCheck2)
 
 		log.Println("autoChecks", autoChecks)
-		m.AutoChecks = autoChecks
+		m.AutoChecks = append(m.AutoChecks, autoChecks...)
 		m.statusMap = make(map[string]chan int)
 
 		for i := range autoChecks {
@@ -147,6 +147,9 @@ func (m *AutoCheckManager) Start() {
 		}
 	}
 
+	log.Println("=========自动检测任务===========")
+	log.Println(m.AutoChecks)
+	log.Println("=========自动检测任务===========")
 }
 
 func (m *AutoCheckManager) run(task model.AutoCheck, stop chan int) {
