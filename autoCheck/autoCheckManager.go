@@ -290,7 +290,7 @@ func (s *LevelModCheck) Run(clusterName, levelName string) error {
 	cluster := clusterUtils.GetCluster(clusterName)
 	bin := cluster.Bin
 	beta := cluster.Beta
-	gameService.LaunchLevel(clusterName, levelName, bin, beta)
+	gameService.StartLevel(clusterName, levelName, bin, beta)
 	return nil
 }
 
@@ -304,13 +304,11 @@ func (s *LevelDownCheck) Check(clusterName, levelName string) bool {
 
 func (s *LevelDownCheck) Run(clusterName, levelName string) error {
 	log.Println("正在启动世界 ", clusterName, levelName)
-	// TODO 加锁
 	if !gameService.GetLevelStatus(clusterName, levelName) {
-		gameService.StopLevel(clusterName, levelName)
 		cluster := clusterUtils.GetCluster(clusterName)
 		bin := cluster.Bin
 		beta := cluster.Beta
-		gameService.LaunchLevel(clusterName, levelName, bin, beta)
+		gameService.StartLevel(clusterName, levelName, bin, beta)
 	}
 	return nil
 }

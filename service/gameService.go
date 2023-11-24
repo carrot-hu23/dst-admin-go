@@ -22,6 +22,8 @@ import (
 	"time"
 )
 
+var launchLock = sync.Mutex{}
+
 type GameService struct {
 	lock sync.Mutex
 	c    HomeService
@@ -139,7 +141,16 @@ func (g *GameService) killLevel(clusterName, level string) {
 	}
 }
 
+func (g *GameService) StartLevel(clusterName, level string, bin, beta int) {
+	g.StopLevel(clusterName, level)
+	g.LaunchLevel(clusterName, level, bin, beta)
+	ClearScreen()
+}
+
 func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
+
+	launchLock.Lock()
+	defer launchLock.Unlock()
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
@@ -161,8 +172,10 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 }
 
 func (g *GameService) StopLevel(clusterName, level string) {
-	g.shutdownLevel(clusterName, level)
+	launchLock.Lock()
+	defer launchLock.Unlock()
 
+	g.shutdownLevel(clusterName, level)
 	time.Sleep(3 * time.Second)
 
 	if g.GetLevelStatus(clusterName, level) {
