@@ -82,8 +82,8 @@ func (g *GameLevel2Api) Start(ctx *gin.Context) {
 	bin := cluster.Bin
 	beta := cluster.Beta
 	clusterName := cluster.ClusterName
-	gameService.StopLevel(clusterName, levelName)
-	gameService.LaunchLevel(clusterName, levelName, bin, beta)
+
+	gameService.StartLevel(clusterName, levelName, bin, beta)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

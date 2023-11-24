@@ -50,7 +50,7 @@ type StartStrategy struct{}
 func (s *StartStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时启动游戏 clusterName: ", clusterName)
 	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.LaunchLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
+	gameService.StartLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
 }
 
 type StopStrategy struct{}
@@ -64,9 +64,8 @@ type RestartStrategy struct{}
 
 func (s *RestartStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时重启游戏 clusterName: ", clusterName)
-	gameService.StopLevel(clusterName, levelName)
 	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.LaunchLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
+	gameService.StartLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
 }
 
 type RegenerateStrategy struct{}
