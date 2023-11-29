@@ -157,13 +157,17 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
-
+	ugcDirectory := cluster.Ugc_directory
 	var startCmd = ""
 
 	if bin == 64 {
 		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level + "  ;"
 	} else {
 		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
+	}
+
+	if ugcDirectory != "" {
+		startCmd += " -ugc_directory " + ugcDirectory
 	}
 
 	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", level, "command: ", startCmd)

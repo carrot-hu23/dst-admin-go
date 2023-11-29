@@ -23,6 +23,7 @@ func GetCluster(clusterName string) *model.Cluster {
 		ModDownloadPath: config.Mod_download_path,
 		Bin:             config.Bin,
 		Beta:            config.Beta,
+		Ugc_directory:   config.Ugc_directory,
 	}
 	return &cluster
 }

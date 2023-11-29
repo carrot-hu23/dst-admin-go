@@ -20,6 +20,8 @@ type DstConfig struct {
 	Mod_download_path          string `json:"mod_download_path"`
 	Bin                        int    `json:"bin"`
 	Beta                       int    `json:"beta"`
+
+	Ugc_directory string `json:"ugc_directory"`
 }
 
 const dst_config_path = "./dst_config"
@@ -47,6 +49,7 @@ func GetDstConfig() DstConfig {
 		if value == "" {
 			continue
 		}
+		// TODO 这里解析有问题，如果路径含有 steamcmd 就会存在问题
 		if strings.Contains(value, "steamcmd") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
@@ -110,6 +113,13 @@ func GetDstConfig() DstConfig {
 				s := strings.TrimSpace(split[1])
 				beta, _ := strconv.ParseInt(strings.Replace(s, "\\n", "", -1), 10, 64)
 				dstConfig.Beta = int(beta)
+			}
+		}
+		if strings.Contains(value, "ugc_directory") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				dstConfig.Ugc_directory = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 	}

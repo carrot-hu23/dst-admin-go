@@ -13,4 +13,6 @@ type Cluster struct {
 	Uuid            string `json:"uuid"`
 	Beta            int    `json:"beta"`
 	Bin             int    `json:"bin"`
+
+	Ugc_directory string `json:"ugc_directory"`
 }
