@@ -49,6 +49,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				ID:              cluster.ID,
 				CreatedAt:       cluster.CreatedAt,
 				UpdatedAt:       cluster.UpdatedAt,
+				Ugc_directory:   cluster.Ugc_directory,
 			}
 			clusterIni := c.GetClusterIni(cluster.ClusterName)
 			name := clusterIni.ClusterName
@@ -159,6 +160,7 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 	}
 	oldCluster.Name = cluster.Name
 	oldCluster.Bin = cluster.Bin
+	oldCluster.Ugc_directory = cluster.Ugc_directory
 	db.Updates(oldCluster)
 }
 

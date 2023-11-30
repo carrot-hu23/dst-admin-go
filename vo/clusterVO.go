@@ -17,6 +17,8 @@ type ClusterVO struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 
+	Ugc_directory string `json:"ugc_directory"`
+
 	Status bool `json:"status"`
 
 	Connected      int    `json:"connected"`

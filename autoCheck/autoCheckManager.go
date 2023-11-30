@@ -267,11 +267,22 @@ func (s *LevelModCheck) Check(clusterName, levelName string) bool {
 	if len(workshopIds) == 0 {
 		return true
 	}
-
-	acfPath := filepath.Join(cluster.ForceInstallDir, "ugc_mods", cluster.ClusterName, levelName, "appworkshop_322330.acf")
-	acfWorkshops := dstUtils.ParseACFFile(acfPath)
-
+	acfPath := ""
+	if cluster.Ugc_directory != "" {
+		acfPath = "./acf/" + filepath.Join(clusterName, levelName, "appworkshop_322330.acf")
+	} else {
+		acfPath = filepath.Join(cluster.ForceInstallDir, "ugc_mods", cluster.ClusterName, levelName, "appworkshop_322330.acf")
+	}
 	log.Println("acf path: ", acfPath)
+	if !fileUtils.Exists(acfPath) {
+		return true
+	}
+
+	acfWorkshops := dstUtils.ParseACFFile(acfPath)
+	if acfWorkshops == nil || len(acfWorkshops) == 0 {
+		return true
+	}
+
 	// log.Println("acf workshops: ", acfWorkshops)
 
 	activeModMap := make(map[string]dstUtils.WorkshopItem)

@@ -147,6 +147,16 @@ func (g *GameService) StartLevel(clusterName, level string, bin, beta int) {
 	ClearScreen()
 }
 
+func copyAcfFile(clusterName, levelName string) {
+	cluster := clusterUtils.GetCluster(clusterName)
+	if cluster.Ugc_directory != "" {
+		acfFilePath := filepath.Join(cluster.Ugc_directory, "appworkshop_322330.acf")
+		clusterAcfPath := "./acf/" + filepath.Join(clusterName, levelName)
+		fileUtils.CreateDirIfNotExists(clusterAcfPath)
+		fileUtils.Copy(acfFilePath, clusterAcfPath)
+	}
+}
+
 func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 	launchLock.Lock()
@@ -158,14 +168,21 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
+	ugcDirectory := cluster.Ugc_directory
 
 	var startCmd = ""
 
 	if bin == 64 {
-		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level + "  ;"
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
 	} else {
-		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
+		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
 	}
+
+	if ugcDirectory != "" {
+		startCmd += " -ugc_directory " + ugcDirectory
+	}
+
+	startCmd += "  ;"
 
 	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", level, "command: ", startCmd)
 	_, err := shellUtils.Shell(startCmd)
@@ -173,6 +190,7 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 		log.Panicln("启动 "+clusterName+" "+level+" error,", err)
 	}
 
+	copyAcfFile(clusterName, level)
 }
 
 func (g *GameService) StopLevel(clusterName, level string) {

@@ -69,6 +69,16 @@ func get_dst_ucgs_mods_installed_path(modid string, clusterName string) (string,
 	// 先从 mods 文件读取
 
 	cluster := clusterUtils.GetCluster(clusterName)
+
+	// 自定义 ugc 路径
+	if cluster.Ugc_directory != "" {
+		modFilePath := path.Join(cluster.Ugc_directory, "/content/322330", modid)
+		if fileUtils.Exists(modFilePath) {
+			return modFilePath, true
+		}
+		return "", false
+	}
+
 	masterModFilePath := path.Join(cluster.ForceInstallDir, "ugc_mods", clusterName, "/Master/content/322330", modid)
 	caveModFilePath := path.Join(cluster.ForceInstallDir, "ugc_mods", clusterName, "/Caves/content/322330", modid)
 
