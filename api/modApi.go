@@ -48,8 +48,8 @@ func (m *ModApi) GetModInfo(ctx *gin.Context) {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
 	var mod_config map[string]interface{}
-	json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
-	mod := map[string]interface{}{
+	_ = json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
+	modData := map[string]interface{}{
 		"auth":          modinfo.Auth,
 		"consumer_id":   modinfo.ConsumerAppid,
 		"creator_appid": modinfo.CreatorAppid,
@@ -61,11 +61,12 @@ func (m *ModApi) GetModInfo(ctx *gin.Context) {
 		"name":          modinfo.Name,
 		"v":             modinfo.V,
 		"mod_config":    mod_config,
+		"update":        modinfo.Update,
 	}
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: mod,
+		Data: modData,
 	})
 }
 
@@ -77,10 +78,33 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 	db.Find(&modInfos)
 
 	var modDataList []map[string]interface{}
+
+	//var workshopIds []string
+	//for i := range modInfos {
+	//	workshopIds = append(workshopIds, modInfos[i].Modid)
+	//}
+	//publishedFileDetails, err := mod.GetPublishedFileDetailsWithGet(workshopIds)
+
 	for _, modinfo := range modInfos {
+
+		//update := false
+		//tags := []string{}
+		//if err == nil {
+		//	for i := range publishedFileDetails {
+		//		publishedfiledetail := publishedFileDetails[i]
+		//		if modinfo.Modid == publishedfiledetail.Publishedfileid && modinfo.LastTime < publishedfiledetail.TimeUpdated {
+		//			update = true
+		//			for _, tag := range publishedfiledetail.Tags {
+		//				tags = append(tags, tag.Tag)
+		//			}
+		//		}
+		//	}
+		//}
+
 		var mod_config map[string]interface{}
-		json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
-		mod := map[string]interface{}{
+		_ = json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
+
+		modData := map[string]interface{}{
 			"auth":          modinfo.Auth,
 			"consumer_id":   modinfo.ConsumerAppid,
 			"creator_appid": modinfo.CreatorAppid,
@@ -92,8 +116,9 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 			"name":          modinfo.Name,
 			"v":             modinfo.V,
 			"mod_config":    mod_config,
+			"update":        modinfo.Update,
 		}
-		modDataList = append(modDataList, mod)
+		modDataList = append(modDataList, modData)
 	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -102,6 +127,16 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 		Data: modDataList,
 	})
 
+}
+
+func (m *ModApi) UpdateAllModInfos(ctx *gin.Context) {
+
+	mod.UpdateModinfoList()
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
 }
 
 func (m *ModApi) DeleteMod(ctx *gin.Context) {
@@ -210,6 +245,7 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 		"name":          modinfo.Name,
 		"v":             modinfo.V,
 		"mod_config":    mod_config,
+		"update":        modinfo.Update,
 	}
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

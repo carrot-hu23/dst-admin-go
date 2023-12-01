@@ -558,8 +558,10 @@ func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
 		modInfo.Img = img
 		modInfo.V = v
 		modInfo.ModConfig = modConfig
+		modInfo.Update = false
 		db := database.DB
 		db.Save(&modInfo)
+		return modInfo, nil, 0
 	}
 
 	var fileUrl = ""
