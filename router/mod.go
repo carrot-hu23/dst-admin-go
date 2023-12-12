@@ -19,6 +19,8 @@ func initModRouter(router *gin.RouterGroup) {
 		mod.GET("/modinfo/:modId", modApi.GetModInfoFile)
 		mod.POST("/modinfo", modApi.SaveModInfoFile)
 		mod.POST("/modinfo/file", modApi.AddModInfoFile)
+
+		mod.PUT("/modinfo", modApi.UpdateAllModInfos)
 	}
 
 }

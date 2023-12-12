@@ -62,6 +62,7 @@ func (m *ModApi) GetModInfo(ctx *gin.Context) {
 		"name":          modinfo.Name,
 		"v":             modinfo.V,
 		"mod_config":    mod_config,
+		"update":        modinfo.Update,
 	}
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -93,6 +94,7 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 			"name":          modinfo.Name,
 			"v":             modinfo.V,
 			"mod_config":    mod_config,
+			"update":        modinfo.Update,
 		}
 		modDataList = append(modDataList, mod)
 	}
@@ -101,6 +103,18 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: modDataList,
+	})
+
+}
+
+func (m *ModApi) UpdateAllModInfos(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	mod.UpdateModinfoList(cluster.ClusterName)
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
 	})
 
 }

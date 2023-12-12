@@ -162,6 +162,11 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 	oldCluster.Bin = cluster.Bin
 	oldCluster.Ugc_directory = cluster.Ugc_directory
 	db.Updates(oldCluster)
+
+	if cluster.Ugc_directory == "" {
+		db.Model(&model.Cluster{}).Where("ID = ?", cluster.ID).UpdateColumn("ugc_directory", "")
+	}
+
 }
 
 func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, error) {

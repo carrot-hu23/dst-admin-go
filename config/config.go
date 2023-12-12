@@ -12,13 +12,9 @@ type Config struct {
 
 	Token string `yaml:"token"`
 
-	AutoCheck struct {
-		MasterInterval     int    `yaml:"masterInterval"`
-		CavesInterval      int    `yaml:"cavesInterval"`
-		MasterModInterval  int    `yaml:"masterModInterval"`
-		CavesModInterval   int    `yaml:"cavesModInterval"`
-		GameUpdateInterval int    `yaml:"gameUpdateInterval"`
-		ModUpdatePrompt    string `yaml:"modUpdatePrompt"`
-		GameUpdatePrompt   string `yaml:"gameUpdatePrompt"`
-	} `yaml:"autoCheck"`
+	AutoUpdateModinfo struct {
+		Enable              bool `yaml:"enable"`
+		CheckInterval       int  `yaml:"checkInterval"`
+		UpdateCheckInterval int  `yaml:"updateCheckInterval"`
+	} `yaml:"autoUpdateModinfo"`
 }

@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
+	"dst-admin-go/mod"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -30,6 +32,8 @@ func Init() {
 	initDB()
 	initCollect()
 	initSchedule()
+
+	// initUpdateModinfos()
 }
 
 func initDB() {
@@ -68,20 +72,11 @@ func initConfig() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	if _config.AutoCheck.MasterInterval == 0 {
-		_config.AutoCheck.MasterInterval = 5
+	if _config.AutoUpdateModinfo.CheckInterval == 0 {
+		_config.AutoUpdateModinfo.CheckInterval = 5
 	}
-	if _config.AutoCheck.CavesInterval == 0 {
-		_config.AutoCheck.CavesInterval = 5
-	}
-	if _config.AutoCheck.MasterModInterval == 0 {
-		_config.AutoCheck.MasterModInterval = 10
-	}
-	if _config.AutoCheck.CavesModInterval == 0 {
-		_config.AutoCheck.CavesModInterval = 10
-	}
-	if _config.AutoCheck.GameUpdateInterval == 0 {
-		_config.AutoCheck.GameUpdateInterval = 20
+	if _config.AutoUpdateModinfo.UpdateCheckInterval == 0 {
+		_config.AutoUpdateModinfo.UpdateCheckInterval = 10
 	}
 	log.Println("config: ", _config)
 	global.Config = _config
@@ -112,13 +107,6 @@ func initCollect() {
 		global.CollectMap.AddNewCollect(cluster.ClusterName)
 	}
 
-	//home, _ := systemUtils.Home()
-	//dstConfig := dstConfigUtils.GetDstConfig()
-	//clusterName := dstConfig.Cluster
-	//newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
-	//newCollect.StartCollect()
-	//global.Collect = newCollect
-
 	autoCheckManager := autoCheck.AutoCheckManager{}
 	autoCheckManager.Start()
 	autoCheck.Manager = &autoCheckManager
@@ -128,4 +116,44 @@ func initSchedule() {
 	schedule.ScheduleSingleton = schedule.NewSchedule()
 	// service.InitAnnounce()
 
+}
+
+func initUpdateModinfos() {
+	if global.Config.AutoUpdateModinfo.Enable {
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			t := global.Config.AutoUpdateModinfo.UpdateCheckInterval
+			ticker := time.NewTicker(time.Duration(t) * time.Minute)
+			for {
+				select {
+				case <-ticker.C:
+					log.Println("正在定时更新模组配置 间隔: ", 30, "分钟")
+					// 每隔10分钟执行的任务
+					mod.UpdateModinfoList("Cluster1")
+				}
+			}
+		}()
+
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			t := global.Config.AutoUpdateModinfo.CheckInterval
+			ticker := time.NewTicker(time.Duration(t) * time.Minute)
+			for {
+				select {
+				case <-ticker.C:
+					log.Println("正在定时检查模组配置是否更新 间隔: ", 5, "分钟")
+					// 每隔10分钟执行的任务
+					mod.CheckModInfoUpdate()
+				}
+			}
+		}()
+	}
 }

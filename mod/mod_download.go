@@ -573,6 +573,7 @@ func SubscribeModByModId(modId string, clusterName string) (model.ModInfo, error
 		modInfo.ModConfig = modConfig
 		db := database.DB
 		db.Save(&modInfo)
+		return modInfo, nil, 0
 	}
 
 	var fileUrl = ""

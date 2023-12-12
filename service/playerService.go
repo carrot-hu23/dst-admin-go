@@ -30,7 +30,7 @@ func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo
 
 	shellUtils.Shell(playerCMD)
 
-	time.Sleep(time.Duration(1) * time.Second)
+	time.Sleep(time.Duration(500) * time.Millisecond)
 
 	// TODO 如果只启动了洞穴，应该去读取洞穴的日志
 

@@ -58,7 +58,7 @@ func (c *ClusterApi) UpdateCluster(ctx *gin.Context) {
 	if !fileUtils.Exists(clusterModel.ForceInstallDir) {
 		log.Panicln("饥荒 路径不存在 path: ", clusterModel.ForceInstallDir)
 	}
-
+	log.Println("clusterModel", clusterModel)
 	clusterManager.UpdateCluster(&clusterModel)
 
 	ctx.JSON(http.StatusOK, vo.Response{
