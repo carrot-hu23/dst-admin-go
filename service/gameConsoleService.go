@@ -28,7 +28,7 @@ func (c *GameConsoleService) ClearScreen() bool {
 func (c *GameConsoleService) SentBroadcast2(clusterName string, levelName string, message string) {
 
 	if c.GetLevelStatus(clusterName, levelName) {
-		broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
+		broadcast := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"c_announce(\\\""
 		broadcast += message
 		broadcast += "\\\")\\n\""
 		log.Println(broadcast)
