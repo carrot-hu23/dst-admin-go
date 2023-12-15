@@ -1,7 +1,10 @@
 package service
 
 import (
+	"dst-admin-go/config/database"
 	"dst-admin-go/constant"
+	"dst-admin-go/constant/consts"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -14,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,10 +26,12 @@ import (
 type BackupService struct {
 	HomeService
 	GameArchive
+
+	console GameConsoleService
 }
 
-func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
-	cluster := clusterUtils.GetClusterFromGin(ctx)
+func (b *BackupService) GetBackupList(clusterName string) []vo.BackupVo {
+	cluster := clusterUtils.GetCluster(clusterName)
 	var backupPath = cluster.Backup
 	var backupList []vo.BackupVo
 
@@ -110,10 +116,12 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 }
 
-func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
+func (b *BackupService) CreateBackup(clusterName, backupName string) {
 
-	cluster := clusterUtils.GetClusterFromGin(ctx)
+	cluster := clusterUtils.GetCluster(clusterName)
 	backupPath := cluster.Backup
+
+	b.console.CSave(cluster.ClusterName, "Master")
 
 	src := constant.GET_DST_USER_GAME_CONFG_PATH()
 	if !fileUtils.Exists(backupPath) {
@@ -173,6 +181,75 @@ func (b *BackupService) UploadBackup(c *gin.Context) {
 
 }
 
+func (b *BackupService) ScheduleBackupSnapshots() {
+	log.Println("开始创建快照")
+	for {
+		db := database.DB
+		snapshot := model.BackupSnapshot{}
+		db.First(&snapshot)
+		if snapshot.Enable == 1 {
+			if snapshot.Interval == 0 {
+				snapshot.Interval = 8
+			}
+			if snapshot.MaxSnapshots == 0 {
+				snapshot.MaxSnapshots = 6
+			}
+			time.Sleep(time.Duration(snapshot.Interval) * time.Minute)
+
+			// 定时创建备份，每隔 x 分钟 备份一次
+			cluster := clusterUtils.GetCluster("")
+			snapshotPrefix := "(snapshot)"
+			b.console.CSave(cluster.ClusterName, "Master")
+			b.CreateSnapshotBackup(snapshotPrefix, cluster.ClusterName)
+			// 删除快照
+			b.DeleteBackupSnapshots(snapshotPrefix, snapshot.MaxSnapshots, cluster.ClusterName, cluster.Backup)
+		} else {
+			time.Sleep(1 * time.Minute)
+		}
+	}
+}
+
+func (b *BackupService) CreateSnapshotBackup(prefix, clusterName string) {
+
+	cluster := clusterUtils.GetCluster(clusterName)
+	src := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+	dst := filepath.Join(cluster.Backup, b.GenBackUpSnapshotName(prefix, cluster.ClusterName))
+	log.Println("[Snapshot]正在定时创建游戏备份", "src: ", src, "dst: ", dst)
+	err := zip.Zip(src, dst)
+	if err != nil {
+		log.Println("[Snapshot]create backup error", err)
+	}
+}
+
+func (b *BackupService) DeleteBackupSnapshots(prefix string, maxSnapshots int, clusterName, backupPath string) {
+
+	log.Println("[Snapshot]正在删除快照备份", "maxSnapshots", maxSnapshots, "clusterName: ", clusterName)
+
+	backupList := b.GetBackupList(clusterName)
+	var newBackupList []vo.BackupVo
+	for i := range backupList {
+		name := backupList[i].FileName
+		if strings.HasPrefix(name, prefix) {
+			newBackupList = append(newBackupList, backupList[i])
+		}
+	}
+	if len(newBackupList) > maxSnapshots {
+		deleteBackupList := newBackupList[:len(newBackupList)-maxSnapshots]
+		for i := range deleteBackupList {
+			filePath := filepath.Join(backupPath, deleteBackupList[i].FileName)
+			log.Println("删除快照备份", filePath)
+			if !fileUtils.Exists(filePath) {
+				continue
+			}
+			err := fileUtils.DeleteFile(filePath)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+}
+
 func (b *BackupService) backupPath() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	backupPath := dstConfig.Backup
@@ -189,7 +266,7 @@ var SeasonMap = map[string]string{
 	"winter": "冬天",
 }
 
-// TODO 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
+// GenGameBackUpName 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
 func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	name := b.GetClusterIni(clusterName).ClusterName
 	snapshoot := b.Snapshoot(clusterName)
@@ -202,7 +279,13 @@ func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	elapsedDayInSeason := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason)
 	seasonDays := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason + snapshoot.Seasons.RemainingDaysInSeason)
 	archiveDesc := days + "day_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "|" + seasonDays + ")"
-	backupName := time.Now().Format("20060102150405") + "_" + name + "_" + archiveDesc + ".zip"
+	backupName := time.Now().Format("2006年01月02日15点04分05秒") + "_" + name + "_" + archiveDesc + ".zip"
 
+	return backupName
+}
+
+func (b *BackupService) GenBackUpSnapshotName(prefix, clusterName string) string {
+	backupName := b.GenGameBackUpName(clusterName)
+	backupName = prefix + backupName
 	return backupName
 }

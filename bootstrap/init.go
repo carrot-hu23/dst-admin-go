@@ -9,6 +9,7 @@ import (
 	"dst-admin-go/mod"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
+	"dst-admin-go/service"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
@@ -38,6 +39,8 @@ func Init() {
 	initSchedule()
 
 	initUpdateModinfos()
+
+	InitSnapshotBackup()
 }
 
 func initDB() {
@@ -60,6 +63,7 @@ func initDB() {
 		&model.AutoCheck{},
 		&model.Announce{},
 		&model.WebLink{},
+		&model.BackupSnapshot{},
 	)
 	if err != nil {
 		return
@@ -169,4 +173,17 @@ func initUpdateModinfos() {
 			}
 		}()
 	}
+}
+
+func InitSnapshotBackup() {
+	var backupService service.BackupService
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(">>>>>>>>>>>>>>>")
+				log.Println(r)
+			}
+		}()
+		backupService.ScheduleBackupSnapshots()
+	}()
 }

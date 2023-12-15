@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	textTemplate "text/template"
 )
 
 func GetBlacklistPath(clusterName string) string {
@@ -199,6 +200,30 @@ func ParseTemplate(templatePath string, data interface{}) string {
 		panic("模板解析错误")
 	}
 	return buf.String()
+}
+
+func ParseTemplate2(templatePath string, data interface{}) string {
+
+	// 读取文件内容
+	content, err := ioutil.ReadFile(templatePath)
+	if err != nil {
+		panic(err)
+	}
+
+	// 创建模板对象
+	tmpl, err := textTemplate.New("myTemplate").Parse(string(content))
+	if err != nil {
+		panic(err)
+	}
+
+	// 执行模板并保存结果到字符串
+	buf := new(bytes.Buffer)
+	err = tmpl.Execute(buf, data)
+	if err != nil {
+		panic(err)
+	}
+	return buf.String()
+
 }
 
 func DedicatedServerModsSetup(clusterName string, modConfig string) {

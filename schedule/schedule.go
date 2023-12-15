@@ -24,6 +24,10 @@ func init() {
 	StrategyMap["stop"] = &StopStrategy{}
 	StrategyMap["restart"] = &RestartStrategy{}
 	StrategyMap["regenerate"] = &RegenerateStrategy{}
+
+	StrategyMap["startGame"] = &StartGameStrategy{}
+	StrategyMap["stopGame"] = &StopGameStrategy{}
+
 }
 
 type Task struct {

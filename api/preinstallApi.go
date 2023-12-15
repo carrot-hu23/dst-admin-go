@@ -24,7 +24,7 @@ func (p *PreinstallApi) UsePreinstall(ctx *gin.Context) {
 	gameService.StopGame(cluster.ClusterName)
 
 	// 创建备份
-	backupService.CreateBackup(ctx, "")
+	backupService.CreateBackup(cluster.ClusterName, "")
 
 	name := ctx.DefaultQuery("name", "default")
 	log.Println(name)

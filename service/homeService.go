@@ -79,6 +79,38 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	newCluster.SteamGroupId = STEAM.Key("steam_group_id").MustString("")
 	newCluster.SteamGroupAdmins = STEAM.Key("steam_group_admins").MustString("")
 
+	// TODO 特殊处理下 房间名称和房间描述
+	cluster_ini, err := fileUtils.ReadLnFile(clusterIniPath)
+	if err != nil {
+		panic("read cluster.ini file error: " + err.Error())
+	}
+	for _, value := range cluster_ini {
+		if value == "" {
+			continue
+		}
+		if strings.Contains(value, "cluster_password") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				newCluster.ClusterPassword = s
+			}
+		}
+		if strings.Contains(value, "cluster_description") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				newCluster.ClusterDescription = s
+			}
+		}
+		if strings.Contains(value, "cluster_name") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				newCluster.ClusterName = s
+			}
+		}
+	}
+
 	return newCluster
 }
 
@@ -196,7 +228,7 @@ func (c *HomeService) SaveClusterToken(clusterName, token string) {
 
 func (c *HomeService) SaveClusterIni(clusterName string, cluster *level.ClusterIni) {
 	clusterIniPath := dstUtils.GetClusterIniPath(clusterName)
-	fileUtils.WriterTXT(clusterIniPath, dstUtils.ParseTemplate(ClusterIniTemplate, cluster))
+	fileUtils.WriterTXT(clusterIniPath, dstUtils.ParseTemplate2(ClusterIniTemplate, cluster))
 }
 
 func (c *HomeService) SaveAdminlist(clusterName string, str []string) {
