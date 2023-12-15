@@ -81,7 +81,12 @@ func (g *GameService) UpdateGame(clusterName string) error {
 	// TODO 关闭相应的世界
 	g.StopGame(clusterName)
 
-	updateGameCMd := dstUtils.GetDstUpdateCmd(clusterName)
+	cluster := clusterUtils.GetCluster(clusterName)
+
+	steamcmd := cluster.SteamCmd
+	dst_install_dir := cluster.ForceInstallDir
+	updateGameCMd := "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+
 	log.Println("正在更新游戏", "cluster: ", clusterName, "command: ", updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
 

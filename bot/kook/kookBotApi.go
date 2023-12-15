@@ -78,7 +78,7 @@ func getCommand(requestData *RequestData) string {
 }
 
 const BaseUrl = "https://www.kookapp.cn"
-const Token = "1/MjQ5MzU=/xigN7Aa0FDTkO64s3ksQkw=="
+const Token = ""
 
 var messageClient = http.NewMessageClient(BaseUrl, Token)
 var commandMap = map[string]func(data *RequestData){}

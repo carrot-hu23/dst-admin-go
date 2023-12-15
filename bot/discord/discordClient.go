@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-const Token = "MTE0MDgyMjMxNzU0NzY1NTE4OA.Gnk2Nc.X7prN532gJ1MpMtzIHnulPewe9YoNVP-Omk0m8"
+const Token = ""
 
 var gameArchive = service.GameArchive{}
 var playerService = service.PlayerService{}
