@@ -3,6 +3,7 @@ module dst-admin-go
 go 1.19
 
 require (
+	github.com/bwmarrin/discordgo v0.27.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-ini/ini v1.67.0
@@ -17,7 +18,6 @@ require (
 )
 
 require (
-	github.com/bwmarrin/discordgo v0.27.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

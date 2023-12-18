@@ -9,7 +9,6 @@ import (
 
 var backupService = service.BackupService{}
 var gameService = service.GameService{}
-var consoleService = service.GameConsoleService{}
 
 type Strategy interface {
 	Execute(string, string)

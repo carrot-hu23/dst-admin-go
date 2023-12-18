@@ -39,6 +39,7 @@ type AutoCheckManager struct {
 
 var gameConsoleService service.GameConsoleService
 var gameService service.GameService
+var logRecordService service.LogRecordService
 
 func (m *AutoCheckManager) ReStart(clusterName string) {
 	for s := range m.statusMap {
@@ -290,6 +291,13 @@ func (s *LevelModCheck) Run(clusterName, levelName string) error {
 type LevelDownCheck struct{}
 
 func (s *LevelDownCheck) Check(clusterName, levelName string) bool {
+	logRecord := logRecordService.GetLastLog(clusterName, levelName)
+	if logRecord.ID != 0 {
+		if logRecord.Action == model.STOP {
+			return true
+		}
+	}
+
 	status := gameService.GetLevelStatus(clusterName, levelName)
 	log.Println("世界状态", "clusterName", clusterName, "levelName", levelName, "status", status)
 	return status

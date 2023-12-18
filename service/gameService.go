@@ -2,6 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant/consts"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/utils/systemUtils"
@@ -27,6 +28,8 @@ var launchLock = sync.Mutex{}
 type GameService struct {
 	lock sync.Mutex
 	c    HomeService
+
+	logRecord LogRecordService
 }
 
 func (g *GameService) GetLastDstVersion() int64 {
@@ -155,6 +158,8 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 		}
 	}()
 
+	g.logRecord.RecordLog(clusterName, level, model.RUN)
+
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
 	ugcDirectory := cluster.Ugc_directory
@@ -186,6 +191,8 @@ func (g *GameService) StopLevel(clusterName, level string) {
 		if r := recover(); r != nil {
 		}
 	}()
+
+	g.logRecord.RecordLog(clusterName, level, model.STOP)
 
 	g.shutdownLevel(clusterName, level)
 	time.Sleep(3 * time.Second)

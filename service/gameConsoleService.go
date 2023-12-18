@@ -188,7 +188,7 @@ func (c *GameConsoleService) CSave(clusterName string, levelName string) {
 	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
 	shellUtils.Shell(cmd)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(5 * time.Second)
 }
 
 func (c *GameConsoleService) CSaveMaster(clusterName string) {
