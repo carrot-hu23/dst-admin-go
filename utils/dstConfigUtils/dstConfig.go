@@ -14,14 +14,15 @@ type DstConfig struct {
 	Steamcmd                   string `json:"steamcmd"`
 	Force_install_dir          string `json:"force_install_dir"`
 	DoNotStarveServerDirectory string `json:"donot_starve_server_directory"`
-	Persistent_storage_root    string `json:"persistent_storage_root"`
 	Cluster                    string `json:"cluster"`
 	Backup                     string `json:"backup"`
 	Mod_download_path          string `json:"mod_download_path"`
 	Bin                        int    `json:"bin"`
 	Beta                       int    `json:"beta"`
 
-	Ugc_directory string `json:"ugc_directory"`
+	Ugc_directory           string `json:"ugc_directory"`
+	Persistent_storage_root string `json:"persistent_storage_root"`
+	Conf_dir                string `json:"conf_dir"`
 }
 
 const dst_config_path = "./dst_config"
@@ -50,56 +51,56 @@ func GetDstConfig() DstConfig {
 			continue
 		}
 		// TODO 这里解析有问题，如果路径含有 steamcmd 就会存在问题
-		if strings.Contains(value, "steamcmd") {
+		if strings.Contains(value, "steamcmd=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Steamcmd = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "force_install_dir") {
+		if strings.Contains(value, "force_install_dir=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Force_install_dir = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "donot_starve_server_directory") {
+		if strings.Contains(value, "donot_starve_server_directory=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.DoNotStarveServerDirectory = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "persistent_storage_root") {
+		if strings.Contains(value, "persistent_storage_root=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Persistent_storage_root = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "cluster") {
+		if strings.Contains(value, "cluster=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Cluster = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "backup") {
+		if strings.Contains(value, "backup=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Backup = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "mod_download_path") {
+		if strings.Contains(value, "mod_download_path=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Mod_download_path = strings.Replace(s, "\\n", "", -1)
 			}
 		}
-		if strings.Contains(value, "bin") {
+		if strings.Contains(value, "bin=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
@@ -107,7 +108,7 @@ func GetDstConfig() DstConfig {
 				dstConfig.Bin = int(bin)
 			}
 		}
-		if strings.Contains(value, "beta") {
+		if strings.Contains(value, "beta=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
@@ -115,11 +116,18 @@ func GetDstConfig() DstConfig {
 				dstConfig.Beta = int(beta)
 			}
 		}
-		if strings.Contains(value, "ugc_directory") {
+		if strings.Contains(value, "ugc_directory=") {
 			split := strings.Split(value, "=")
 			if len(split) > 1 {
 				s := strings.TrimSpace(split[1])
 				dstConfig.Ugc_directory = strings.Replace(s, "\\n", "", -1)
+			}
+		}
+		if strings.Contains(value, "conf_dir=") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				dstConfig.Conf_dir = strings.Replace(s, "\\n", "", -1)
 			}
 		}
 	}
@@ -146,6 +154,8 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		"steamcmd=" + dstConfig.Steamcmd,
 		"force_install_dir=" + dstConfig.Force_install_dir,
 		"donot_starve_server_directory=" + dstConfig.DoNotStarveServerDirectory,
+		"ugc_directory=" + dstConfig.Ugc_directory,
+		"conf_dir=" + dstConfig.Conf_dir,
 		"persistent_storage_root=" + dstConfig.Persistent_storage_root,
 		"cluster=" + dstConfig.Cluster,
 		"backup=" + dstConfig.Backup,

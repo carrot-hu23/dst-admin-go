@@ -125,9 +125,16 @@ func initCollect() {
 
 	// autoCheck.AutoCheckObject = autoCheck.NewAutoCheckConfig(clusterName, dstConfig.Bin, dstConfig.Beta)
 
-	autoCheckManager := autoCheck.AutoCheckManager{}
-	autoCheckManager.Start()
-	autoCheck.Manager = &autoCheckManager
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		autoCheckManager := autoCheck.AutoCheckManager{}
+		autoCheckManager.Start()
+		autoCheck.Manager = &autoCheckManager
+	}()
 }
 
 func initSchedule() {

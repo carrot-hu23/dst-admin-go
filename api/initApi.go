@@ -24,7 +24,10 @@ func (f *InitApi) InitFirst(ctx *gin.Context) {
 	}
 
 	initData := &service.InitDstData{}
-	ctx.ShouldBind(initData)
+	err := ctx.ShouldBind(initData)
+	if err != nil {
+		log.Panicln(err)
+	}
 
 	initEvnService.InitDstEnv(initData, ctx)
 

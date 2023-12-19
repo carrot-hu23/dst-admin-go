@@ -16,14 +16,16 @@ import (
 func GetCluster(clusterName string) *model.Cluster {
 	config := dstConfigUtils.GetDstConfig()
 	cluster := model.Cluster{
-		SteamCmd:        config.Steamcmd,
-		ForceInstallDir: config.Force_install_dir,
-		ClusterName:     config.Cluster,
-		Backup:          config.Backup,
-		ModDownloadPath: config.Mod_download_path,
-		Bin:             config.Bin,
-		Beta:            config.Beta,
-		Ugc_directory:   config.Ugc_directory,
+		SteamCmd:                config.Steamcmd,
+		ForceInstallDir:         config.Force_install_dir,
+		ClusterName:             config.Cluster,
+		Backup:                  config.Backup,
+		ModDownloadPath:         config.Mod_download_path,
+		Bin:                     config.Bin,
+		Beta:                    config.Beta,
+		Ugc_directory:           config.Ugc_directory,
+		Persistent_storage_root: config.Persistent_storage_root,
+		Conf_dir:                config.Conf_dir,
 	}
 	return &cluster
 }
@@ -31,13 +33,16 @@ func GetCluster(clusterName string) *model.Cluster {
 func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
 	config := dstConfigUtils.GetDstConfig()
 	cluster := model.Cluster{
-		SteamCmd:        config.Steamcmd,
-		ForceInstallDir: config.Force_install_dir,
-		ClusterName:     config.Cluster,
-		Backup:          config.Backup,
-		ModDownloadPath: config.Mod_download_path,
-		Bin:             config.Bin,
-		Beta:            config.Beta,
+		SteamCmd:                config.Steamcmd,
+		ForceInstallDir:         config.Force_install_dir,
+		ClusterName:             config.Cluster,
+		Backup:                  config.Backup,
+		ModDownloadPath:         config.Mod_download_path,
+		Bin:                     config.Bin,
+		Beta:                    config.Beta,
+		Ugc_directory:           config.Ugc_directory,
+		Persistent_storage_root: config.Persistent_storage_root,
+		Conf_dir:                config.Conf_dir,
 	}
 	return &cluster
 }

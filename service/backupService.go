@@ -198,11 +198,13 @@ func (b *BackupService) ScheduleBackupSnapshots() {
 
 			// 定时创建备份，每隔 x 分钟 备份一次
 			cluster := clusterUtils.GetCluster("")
-			snapshotPrefix := "(snapshot)"
-			b.console.CSave(cluster.ClusterName, "Master")
-			b.CreateSnapshotBackup(snapshotPrefix, cluster.ClusterName)
-			// 删除快照
-			b.DeleteBackupSnapshots(snapshotPrefix, snapshot.MaxSnapshots, cluster.ClusterName, cluster.Backup)
+			if cluster.ClusterName != "" {
+				snapshotPrefix := "(snapshot)"
+				b.console.CSave(cluster.ClusterName, "Master")
+				b.CreateSnapshotBackup(snapshotPrefix, cluster.ClusterName)
+				// 删除快照
+				b.DeleteBackupSnapshots(snapshotPrefix, snapshot.MaxSnapshots, cluster.ClusterName, cluster.Backup)
+			}
 		} else {
 			time.Sleep(1 * time.Minute)
 		}

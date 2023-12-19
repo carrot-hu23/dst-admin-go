@@ -14,5 +14,7 @@ type Cluster struct {
 	Beta            int    `json:"beta"`
 	Bin             int    `json:"bin"`
 
-	Ugc_directory string `json:"ugc_directory"`
+	Ugc_directory           string `json:"ugc_directory"`
+	Persistent_storage_root string `json:"persistent_storage_root"`
+	Conf_dir                string `json:"conf_dir"`
 }

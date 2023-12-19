@@ -2,6 +2,7 @@ package autoCheck
 
 import (
 	"dst-admin-go/config/database"
+	"dst-admin-go/constant"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
@@ -102,6 +103,17 @@ func (m *AutoCheckManager) Start() {
 
 	db2.Where("uuid is null or uuid = '' ").Delete(&model.AutoCheck{})
 
+	for {
+		dstConfig := dstConfigUtils.GetDstConfig()
+		kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+		baseLevelPath := filepath.Join(kleiPath, dstConfig.Cluster)
+		if !fileUtils.Exists(baseLevelPath) {
+			time.Sleep(1 * time.Minute)
+		} else {
+			break
+		}
+	}
+	log.Println("开始自动维护")
 	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
 	var uuidSet []string
 	for i := range config.LevelList {
