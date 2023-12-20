@@ -339,8 +339,14 @@ func (s *GameUpdateCheck) Check(clusterName, levelName string) bool {
 func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
 	log.Println("正在更新游戏 ", clusterName, levelName)
 	SendAnnouncement2(clusterName, levelName)
-
-	return gameService.UpdateGame(clusterName)
+	err := gameService.UpdateGame(clusterName)
+	if err != nil {
+		return err
+	}
+	time.Sleep(3 * time.Minute)
+	// TODO 更新完游戏自动启动游戏
+	gameService.StartGame(clusterName)
+	return nil
 }
 
 func SendAnnouncement2(clusterName string, levelName string) {
