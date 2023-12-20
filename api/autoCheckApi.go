@@ -271,7 +271,7 @@ func (m *AutoCheckApi) GetAutoCheckList2(ctx *gin.Context) {
 		autoCheck3 := model.AutoCheck{
 			ClusterName:  cluster.ClusterName,
 			LevelName:    "",
-			Uuid:         "",
+			Uuid:         consts.UPDATE_GAME + "_" + cluster.ClusterName,
 			Enable:       0,
 			Announcement: "",
 			Times:        1,
@@ -326,7 +326,7 @@ func (m *AutoCheckApi) SaveAutoCheck2(ctx *gin.Context) {
 		log.Panicln("参数错误", err)
 	}
 	db := database.DB
-
+	autoCheck.Uuid = "UPDATE_GAME_" + autoCheck.ClusterName
 	db.Save(&autoCheck)
 	log.Println("ID", autoCheck.ID)
 	//var newAutoCheck model.AutoCheck

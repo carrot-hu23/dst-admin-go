@@ -126,7 +126,7 @@ func (m *AutoCheckManager) Start() {
 	db.Where("uuid in ?", uuidSet).Find(&autoChecks)
 
 	var autoCheck2 = model.AutoCheck{}
-	db.Where("check_type = ?", consts.UPDATE_GAME).Find(&autoCheck2)
+	db.Where("check_type = ?", consts.UPDATE_GAME).Last(&autoCheck2)
 	autoChecks = append(autoChecks, autoCheck2)
 
 	log.Println("autoChecks", autoChecks)
@@ -142,6 +142,7 @@ func (m *AutoCheckManager) Start() {
 		go func(index int) {
 			defer func() {
 				if r := recover(); r != nil {
+					log.Println("自动维护错误")
 					log.Println(r)
 				}
 			}()
@@ -182,7 +183,7 @@ func (m *AutoCheckManager) check(task model.AutoCheck) {
 		task = *m.GetAutoCheck(task.ClusterName, task.LevelName, task.CheckType, task.Uuid)
 	}
 
-	// log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
+	log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
 	if task.Enable != 1 {
 		time.Sleep(10 * time.Second)
 	} else {
