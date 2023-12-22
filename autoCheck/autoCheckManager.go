@@ -98,10 +98,20 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 }
 
 func (m *AutoCheckManager) Start() {
-	// TODO 这里是防止1.2.5 版本残留的问题
-	db2 := database.DB
 
-	db2.Where("uuid is null or uuid = '' ").Delete(&model.AutoCheck{})
+	// 修复之前自动宕机藏数据问题，之前清空之前的数据，重新设置
+	kvdb := database.DB
+	kv := model.KV{}
+	kvdb.Where("key = ?", "clear_old_auto_check").Find(&kv)
+	if kv.Value != "Y" {
+
+		db := database.DB
+		db.Unscoped().Where("1=1").Delete(&model.AutoCheck{})
+
+		kv.Key = "clear_old_auto_check"
+		kv.Value = "Y"
+		kvdb.Save(&kv)
+	}
 
 	for {
 		dstConfig := dstConfigUtils.GetDstConfig()
@@ -114,49 +124,100 @@ func (m *AutoCheckManager) Start() {
 		}
 	}
 	log.Println("开始自动维护")
-	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
-	var uuidSet []string
-	for i := range config.LevelList {
-		level := config.LevelList[i]
-		uuidSet = append(uuidSet, level.File)
-	}
-	var autoChecks []model.AutoCheck
-
-	db := database.DB
-	db.Where("uuid in ?", uuidSet).Find(&autoChecks)
-
-	var autoCheck2 = model.AutoCheck{}
-	db.Where("check_type = ?", consts.UPDATE_GAME).Last(&autoCheck2)
-	autoChecks = append(autoChecks, autoCheck2)
-
-	log.Println("autoChecks", autoChecks)
-	m.AutoChecks = autoChecks
 	m.statusMap = make(map[string]chan int)
-
-	for i := range autoChecks {
-		taskId := autoChecks[i].Uuid
-		m.statusMap[taskId] = make(chan int)
-	}
-
-	for i := range autoChecks {
-		go func(index int) {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println("自动维护错误")
-					log.Println(r)
-				}
-			}()
-			taskId := autoChecks[index].Uuid
-			if autoChecks[index].Uuid == "" {
-				taskId = autoChecks[index].ClusterName
+	// 游戏更新
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
 			}
-			m.run(autoChecks[index], m.statusMap[taskId])
-		}(i)
-	}
-
+		}()
+		m.StartGameUpdate()
+	}()
+	// 模组更新
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		m.StartGameModDown()
+	}()
+	// 宕机恢复
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		m.StartGameLevelDown()
+	}()
 }
 
-func (m *AutoCheckManager) run(task model.AutoCheck, stop chan int) {
+func (m *AutoCheckManager) StartGameUpdate() {
+	dstConfig := dstConfigUtils.GetDstConfig()
+	// config, _ := levelConfigUtils.GetLevelConfig(dstConfig.Cluster)
+	db := database.DB
+	autoCheck := model.AutoCheck{}
+	db.Where("cluster_name = ? and check_type = ?", dstConfig.Cluster, consts.UPDATE_GAME).Find(&autoCheck)
+
+	if autoCheck.ID == 0 {
+		autoCheck.ClusterName = dstConfig.Cluster
+		autoCheck.Uuid = consts.UPDATE_GAME + "_" + dstConfig.Cluster
+		autoCheck.Enable = 0
+		autoCheck.Interval = 30
+		autoCheck.CheckType = consts.UPDATE_GAME
+	}
+	log.Println("StartGameUpdate", autoCheck)
+	taskId := autoCheck.Uuid
+	m.run(&autoCheck, m.statusMap[taskId])
+}
+
+func (m *AutoCheckManager) StartGameLevelDown() {
+	dstConfig := dstConfigUtils.GetDstConfig()
+	config, _ := levelConfigUtils.GetLevelConfig(dstConfig.Cluster)
+	db := database.DB
+
+	for i := range config.LevelList {
+		autoCheck := model.AutoCheck{}
+		uuid := config.LevelList[i].File
+		db.Where("cluster_name = ? and check_type = ? and uuid = ?", dstConfig.Cluster, consts.LEVEL_DOWN, uuid).Find(&autoCheck)
+		if autoCheck.ID == 0 {
+			autoCheck.ClusterName = dstConfig.Cluster
+			autoCheck.Uuid = uuid
+			autoCheck.Enable = 0
+			autoCheck.Interval = 30
+			autoCheck.CheckType = consts.LEVEL_DOWN
+		}
+		log.Println("StartGameLevelDown", autoCheck)
+		taskId := autoCheck.Uuid
+		m.run(&autoCheck, m.statusMap[taskId])
+	}
+}
+
+func (m *AutoCheckManager) StartGameModDown() {
+	dstConfig := dstConfigUtils.GetDstConfig()
+	config, _ := levelConfigUtils.GetLevelConfig(dstConfig.Cluster)
+	db := database.DB
+
+	for i := range config.LevelList {
+		autoCheck := model.AutoCheck{}
+		uuid := config.LevelList[i].File
+		db.Where("cluster_name = ? and check_type = ? and uuid = ?", dstConfig.Cluster, consts.LEVEL_MOD, uuid).Find(&autoCheck)
+		if autoCheck.ID == 0 {
+			autoCheck.ClusterName = dstConfig.Cluster
+			autoCheck.Uuid = uuid
+			autoCheck.Enable = 0
+			autoCheck.Interval = 30
+			autoCheck.CheckType = consts.LEVEL_MOD
+		}
+		log.Println("StartGameModDown", autoCheck)
+		taskId := autoCheck.Uuid
+		m.run(&autoCheck, m.statusMap[taskId])
+	}
+}
+
+func (m *AutoCheckManager) run(task *model.AutoCheck, stop chan int) {
 	for {
 		select {
 		case <-stop:
@@ -166,10 +227,10 @@ func (m *AutoCheckManager) run(task model.AutoCheck, stop chan int) {
 		}
 	}
 }
-func (m *AutoCheckManager) GetAutoCheck(clusterName, levelName, checkType, uuid string) *model.AutoCheck {
+func (m *AutoCheckManager) GetAutoCheck(clusterName, checkType, uuid string) *model.AutoCheck {
 	db := database.DB
 	autoCheck := model.AutoCheck{}
-	db.Where("cluster_name = ? and level_name = ? and check_type = ? and uuid = ?", clusterName, levelName, checkType, uuid).Find(&autoCheck)
+	db.Where("cluster_name = ? and check_type = ? and uuid = ?", clusterName, checkType, uuid).Find(&autoCheck)
 	if autoCheck.Interval == 0 {
 		autoCheck.Interval = 10
 	}
@@ -177,13 +238,13 @@ func (m *AutoCheckManager) GetAutoCheck(clusterName, levelName, checkType, uuid 
 }
 
 // TODO 这里要修改
-func (m *AutoCheckManager) check(task model.AutoCheck) {
-
+func (m *AutoCheckManager) check(task *model.AutoCheck) {
+	// log.Println("开始检查 start", task)
 	if task.Uuid != "" {
-		task = *m.GetAutoCheck(task.ClusterName, task.LevelName, task.CheckType, task.Uuid)
+		task = m.GetAutoCheck(task.ClusterName, task.CheckType, task.Uuid)
 	}
 
-	log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
+	// log.Println("开始检查", task.ClusterName, task.LevelName, task.CheckType, task.Enable)
 	if task.Enable != 1 {
 		time.Sleep(10 * time.Second)
 	} else {
@@ -224,7 +285,7 @@ func (m *AutoCheckManager) AddAutoCheckTasks(task model.AutoCheck) {
 				log.Println(r)
 			}
 		}()
-		m.run(task, m.statusMap[taskId])
+		m.run(&task, m.statusMap[taskId])
 	}()
 
 }

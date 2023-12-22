@@ -326,7 +326,9 @@ func (m *AutoCheckApi) SaveAutoCheck2(ctx *gin.Context) {
 		log.Panicln("参数错误", err)
 	}
 	db := database.DB
-	autoCheck.Uuid = "UPDATE_GAME_" + autoCheck.ClusterName
+	if autoCheck.Uuid == "" {
+		autoCheck.Uuid = "UPDATE_GAME_" + autoCheck.ClusterName
+	}
 	db.Save(&autoCheck)
 	log.Println("ID", autoCheck.ID)
 	//var newAutoCheck model.AutoCheck

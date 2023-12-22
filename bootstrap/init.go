@@ -65,6 +65,7 @@ func initDB() {
 		&model.WebLink{},
 		&model.BackupSnapshot{},
 		&model.LogRecord{},
+		&model.KV{},
 	)
 	if err != nil {
 		return
