@@ -52,48 +52,6 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 	db := database.DB
 	db.Where("1 = 1").Delete(&model.AutoCheck{})
 
-	// TODO 添加表数据
-	var autoChecks []model.AutoCheck
-	config, _ := levelConfigUtils.GetLevelConfig(dstConfigUtils.GetDstConfig().Cluster)
-	for i := range config.LevelList {
-		level := config.LevelList[i]
-		autoChecks = append(autoChecks, model.AutoCheck{
-			ClusterName:  clusterName,
-			LevelName:    level.Name,
-			Uuid:         level.File,
-			Enable:       0,
-			Announcement: "",
-			Times:        1,
-			Sleep:        5,
-			Interval:     10,
-			CheckType:    consts.LEVEL_DOWN,
-		})
-		autoChecks = append(autoChecks, model.AutoCheck{
-			ClusterName:  clusterName,
-			LevelName:    level.Name,
-			Uuid:         level.File,
-			Enable:       0,
-			Announcement: "",
-			Times:        1,
-			Sleep:        5,
-			Interval:     10,
-			CheckType:    consts.LEVEL_MOD,
-		})
-	}
-
-	autoChecks = append(autoChecks, model.AutoCheck{
-		ClusterName:  clusterName,
-		LevelName:    clusterName,
-		Uuid:         clusterName,
-		Enable:       0,
-		Announcement: "",
-		Times:        1,
-		Sleep:        5,
-		Interval:     10,
-		CheckType:    consts.UPDATE_GAME,
-	})
-	db.Save(&autoChecks)
-
 	m.Start()
 }
 
