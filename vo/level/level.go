@@ -19,7 +19,6 @@ type ClusterIni struct {
 	ClusterLanguage    string `json:"cluster_language"`
 	WhitelistSlots     uint   `json:"whitelist_slots"`
 	TickRate           uint   `json:"tick_rate"`
-	Language           string `json:"language"`
 
 	// [MISC]
 	ConsoleEnabled bool `json:"console_enabled"`
@@ -66,7 +65,6 @@ func NewClusterIni() *ClusterIni {
 		WhitelistSlots:  0,
 		TickRate:        15,
 		ConsoleEnabled:  true,
-		Language:        "cn",
 		MaxSnapshots:    6,
 		ShardEnabled:    true,
 		BindIp:          "0.0.0.0",

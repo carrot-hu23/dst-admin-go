@@ -53,7 +53,7 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	newCluster.ClusterDescription = NETWORK.Key("cluster_description").String()
 	newCluster.ClusterName = NETWORK.Key("cluster_name").String()
 	newCluster.OfflineCluster = NETWORK.Key("offline_cluster").MustBool(false)
-	newCluster.ClusterLanguage = NETWORK.Key("cluster_language").String()
+	newCluster.ClusterLanguage = NETWORK.Key("cluster_language").MustString("zh")
 	newCluster.WhitelistSlots = NETWORK.Key("whitelist_slots").MustUint(0)
 	newCluster.TickRate = NETWORK.Key("tick_rate").MustUint(15)
 
