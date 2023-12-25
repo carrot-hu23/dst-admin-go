@@ -19,6 +19,7 @@ type ClusterIni struct {
 	ClusterLanguage    string `json:"cluster_language"`
 	WhitelistSlots     uint   `json:"whitelist_slots"`
 	TickRate           uint   `json:"tick_rate"`
+	Language           string `json:"language"`
 
 	// [MISC]
 	ConsoleEnabled bool `json:"console_enabled"`
@@ -32,9 +33,9 @@ type ClusterIni struct {
 	ClusterKey   string `json:"cluster_key"`
 
 	// [STEAM]
-	SteamGroupOnly   bool   `json:"steam_group_only"`
 	SteamGroupId     string `json:"steam_group_id"`
-	SteamGroupAdmins string `json:"steam_group_admins"`
+	SteamGroupOnly   bool   `json:"steam_group_only"`
+	SteamGroupAdmins bool   `json:"steam_group_admins"`
 }
 type ServerIni struct {
 
@@ -56,24 +57,26 @@ type ServerIni struct {
 
 func NewClusterIni() *ClusterIni {
 	return &ClusterIni{
-		Pvp:              false,
-		PauseWhenNobody:  true,
-		VoteEnabled:      true,
-		VoteKickEnabled:  true,
-		LanOnlyCluster:   false,
-		ClusterLanguage:  "zh",
-		WhitelistSlots:   0,
-		TickRate:         15,
-		ConsoleEnabled:   true,
-		MaxSnapshots:     6,
-		ShardEnabled:     true,
-		BindIp:           "0.0.0.0",
-		MasterIp:         "127.0.0.1",
-		MasterPort:       10888,
-		ClusterKey:       "",
-		SteamGroupOnly:   false,
+		Pvp:             false,
+		PauseWhenNobody: true,
+		VoteEnabled:     true,
+		VoteKickEnabled: true,
+		LanOnlyCluster:  false,
+		ClusterLanguage: "zh",
+		WhitelistSlots:  0,
+		TickRate:        15,
+		ConsoleEnabled:  true,
+		Language:        "cn",
+		MaxSnapshots:    6,
+		ShardEnabled:    true,
+		BindIp:          "0.0.0.0",
+		MasterIp:        "127.0.0.1",
+		MasterPort:      10888,
+		ClusterKey:      "",
+
 		SteamGroupId:     "",
-		SteamGroupAdmins: "",
+		SteamGroupOnly:   false,
+		SteamGroupAdmins: false,
 	}
 }
 

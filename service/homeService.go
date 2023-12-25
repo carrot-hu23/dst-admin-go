@@ -75,9 +75,9 @@ func (c *HomeService) GetClusterIni(clusterName string) *level.ClusterIni {
 	// [STEAM]
 	STEAM := cfg.Section("STEAM")
 
-	newCluster.SteamGroupOnly = STEAM.Key("steam_group_only").MustBool(false)
 	newCluster.SteamGroupId = STEAM.Key("steam_group_id").MustString("")
-	newCluster.SteamGroupAdmins = STEAM.Key("steam_group_admins").MustString("")
+	newCluster.SteamGroupOnly = STEAM.Key("steam_group_only").MustBool(false)
+	newCluster.SteamGroupAdmins = STEAM.Key("steam_group_admins").MustBool(false)
 
 	// TODO 特殊处理下 房间名称和房间描述
 	cluster_ini, err := fileUtils.ReadLnFile(clusterIniPath)
