@@ -311,7 +311,7 @@ func (s *LevelModCheck) Check(clusterName, levelName string) bool {
 // Run 更新会重启世界
 func (s *LevelModCheck) Run(clusterName, levelName string) error {
 	log.Println("正在更新模组 ", clusterName, levelName)
-	SendAnnouncement2(clusterName, levelName)
+	SendAnnouncement2(clusterName, levelName, consts.LEVEL_MOD)
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	bin := cluster.Bin
@@ -357,7 +357,7 @@ func (s *GameUpdateCheck) Check(clusterName, levelName string) bool {
 
 func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
 	log.Println("正在更新游戏 ", clusterName, levelName)
-	SendAnnouncement2(clusterName, levelName)
+	SendAnnouncement2(clusterName, levelName, consts.UPDATE_GAME)
 	err := gameService.UpdateGame(clusterName)
 	if err != nil {
 		return err
@@ -368,10 +368,10 @@ func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
 	return nil
 }
 
-func SendAnnouncement2(clusterName string, levelName string) {
+func SendAnnouncement2(clusterName string, levelName string, checkType string) {
 	db := database.DB
 	autoCheck := model.AutoCheck{}
-	db.Where("uuid = ?", levelName).Find(&autoCheck)
+	db.Where("cluster_name = ? and uuid = ? and check_type = ?", clusterName, levelName, checkType).Find(&autoCheck)
 	size := autoCheck.Times
 	for i := 0; i < size; i++ {
 		announcement := autoCheck.Announcement
