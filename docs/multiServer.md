@@ -6,7 +6,7 @@
 
 1. 重新使用steamcmd 生成一个饥荒服务
     ``` sh
-    ./steamcmd.sh +login anonymous +force_install_dir ~/dontstarve_dedicated_server +app_update 343050 validate +quit
+    ./steamcmd.sh +force_install_dir ~/dontstarve_dedicated_server +login anonymous +app_update 343050 validate +quit
     ```
 2. 把 libstdc++.so.6  拷贝过去
     ```
