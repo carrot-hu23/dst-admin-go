@@ -2,31 +2,34 @@ package service
 
 import (
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/constant/dst"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/dstUtils"
-	"dst-admin-go/vo/level"
-	"github.com/gin-gonic/gin"
+	"dst-admin-go/utils/levelConfigUtils"
+	"dst-admin-go/utils/systemUtils"
 	"io"
 	"net/http"
+	"runtime"
 	"strconv"
 
 	"dst-admin-go/constant/screenKey"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
-	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
 	"log"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 )
 
+var launchLock = sync.Mutex{}
+
 type GameService struct {
 	lock sync.Mutex
 	c    HomeService
+
+	logRecord LogRecordService
 }
 
 func (g *GameService) GetLastDstVersion() int64 {
@@ -78,12 +81,21 @@ func (g *GameService) UpdateGame(clusterName string) error {
 
 	g.lock.Lock()
 	defer g.lock.Unlock()
+	// TODO 关闭相应的世界
+	g.StopGame(clusterName)
 
-	g.stopMaster(clusterName)
-	g.stopCaves(clusterName)
-	updateGameCMd := dst.GetDstUpdateCmd(clusterName)
+	updateGameCMd := dstUtils.GetDstUpdateCmd(clusterName)
 	log.Println("正在更新游戏", "cluster: ", clusterName, "command: ", updateGameCMd)
 	_, err := shellUtils.Shell(updateGameCMd)
+
+	// TODO 写入 DedicatedServerModsSetup.lua
+	levelConfig, _ := levelConfigUtils.GetLevelConfig(clusterName)
+	for i := range levelConfig.LevelList {
+		level := homeServe.GetLevel(clusterName, levelConfig.LevelList[i].File)
+		modoverrides := level.Modoverrides
+		dstUtils.DedicatedServerModsSetup2(clusterName, modoverrides)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -97,6 +109,7 @@ func (g *GameService) GetLevelStatus(clusterName, level string) bool {
 		return false
 	}
 	res := strings.Split(result, "\n")[0]
+	log.Println("查询世界状态", cmd, result, res, res != "")
 	return res != ""
 }
 
@@ -131,18 +144,48 @@ func (g *GameService) killLevel(clusterName, level string) {
 	}
 }
 
-func (g *GameService) launchLevel(clusterName, level string, bin, beta int) {
+func (g *GameService) StartLevel(clusterName, level string, bin, beta int) {
+	g.StopLevel(clusterName, level)
+	g.LaunchLevel(clusterName, level, bin, beta)
+	ClearScreen()
+}
+
+func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
+	launchLock.Lock()
+	defer func() {
+		launchLock.Unlock()
+		if r := recover(); r != nil {
+		}
+	}()
+
+	g.logRecord.RecordLog(clusterName, level, model.RUN)
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
-
+	ugcDirectory := cluster.Ugc_directory
+	persistent_storage_root := cluster.Persistent_storage_root
+	conf_dir := cluster.Conf_dir
 	var startCmd = ""
 
 	if bin == 64 {
-		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level + "  ;"
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
+	} else if bin == 100 {
+		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64_luajit -console -cluster" + clusterName + " -shard " + level
 	} else {
-		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level + "  ;"
+		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
 	}
+
+	if ugcDirectory != "" {
+		startCmd += " -ugc_directory " + ugcDirectory
+	}
+	if persistent_storage_root != "" {
+		startCmd += " -persistent_storage_root " + persistent_storage_root
+	}
+	if conf_dir != "" {
+		startCmd += " -conf_dir " + conf_dir
+	}
+
+	startCmd += "  ;"
 
 	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", level, "command: ", startCmd)
 	_, err := shellUtils.Shell(startCmd)
@@ -152,20 +195,18 @@ func (g *GameService) launchLevel(clusterName, level string, bin, beta int) {
 
 }
 
-func (g *GameService) stopMaster(clusterName string) {
-	level := "Master"
-	g.stopLevel(clusterName, level)
-}
+func (g *GameService) StopLevel(clusterName, level string) {
 
-func (g *GameService) stopCaves(clusterName string) {
+	launchLock.Lock()
+	defer func() {
+		launchLock.Unlock()
+		if r := recover(); r != nil {
+		}
+	}()
 
-	level := "Caves"
-	g.stopLevel(clusterName, level)
-}
+	g.logRecord.RecordLog(clusterName, level, model.STOP)
 
-func (g *GameService) stopLevel(clusterName, level string) {
 	g.shutdownLevel(clusterName, level)
-
 	time.Sleep(3 * time.Second)
 
 	if g.GetLevelStatus(clusterName, level) {
@@ -185,122 +226,57 @@ func (g *GameService) stopLevel(clusterName, level string) {
 	g.killLevel(clusterName, level)
 }
 
-func (g *GameService) StopGame(clusterName string, opType int) {
-	if opType == consts.StopGame {
-		g.stopMaster(clusterName)
-		g.stopCaves(clusterName)
-	}
+func (g *GameService) StopGame(clusterName string) {
 
-	if opType == consts.StopMaster {
-		g.stopMaster(clusterName)
+	config, err := levelConfigUtils.GetLevelConfig(clusterName)
+	if err != nil {
+		log.Panicln(err)
 	}
-
-	if opType == consts.StopCaves {
-		g.stopCaves(clusterName)
+	var wg sync.WaitGroup
+	wg.Add(len(config.LevelList))
+	for i := range config.LevelList {
+		go func(i int) {
+			defer func() {
+				wg.Done()
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			levelName := config.LevelList[i].File
+			g.StopLevel(clusterName, levelName)
+		}(i)
 	}
+	wg.Wait()
 }
 
-func (g *GameService) launchMaster(clusterName string, bin, beta int) {
-	level := "Master"
-	g.launchLevel(clusterName, level, bin, beta)
-}
-
-func (g *GameService) launchCaves(clusterName string, bin, beta int) {
-	level := "Caves"
-	g.launchLevel(clusterName, level, bin, beta)
-}
-
-func (g *GameService) StartGame(clusterName string, bin, beta, opType int) {
+func (g *GameService) StartGame(clusterName string) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
-	if opType == consts.StartGame {
+	g.StopGame(clusterName)
+	cluster := clusterUtils.GetCluster(clusterName)
+	bin := cluster.Bin
+	beta := cluster.Beta
 
-		g.stopMaster(clusterName)
-		g.stopCaves(clusterName)
-
-		g.launchMaster(clusterName, bin, beta)
-		g.launchCaves(clusterName, bin, beta)
+	config, err := levelConfigUtils.GetLevelConfig(clusterName)
+	if err != nil {
+		log.Panicln(err)
 	}
-
-	if opType == consts.StartMaster {
-		g.stopMaster(clusterName)
-		g.launchMaster(clusterName, bin, beta)
-	}
-
-	if opType == consts.StartCaves {
-		g.stopCaves(clusterName)
-		g.launchCaves(clusterName, bin, beta)
-	}
-
-	ClearScreen()
-}
-
-func (g *GameService) GetClusterDashboard(clusterName string) vo.ClusterDashboardVO {
 	var wg sync.WaitGroup
-	wg.Add(10)
-
-	dashboardVO := vo.NewDashboardVO(clusterName)
-	go func() {
-		defer wg.Done()
-		dashboardVO.MasterStatus = g.GetLevelStatus(clusterName, "Master")
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.CavesStatus = g.GetLevelStatus(clusterName, "Caves")
-
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.HostInfo = systemUtils.GetHostInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.CpuInfo = systemUtils.GetCpuInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.MemInfo = systemUtils.GetMemInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
-	}()
-
-	go func() {
-		defer wg.Done()
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-		dashboardVO.MemStates = m.Alloc / 1024
-	}()
-
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				dashboardVO.Version = 0
-			}
-			wg.Done()
-		}()
-		dashboardVO.Version = g.GetLocalDstVersion(clusterName)
-	}()
-
-	// 获取master进程占用情况
-	go func() {
-		defer wg.Done()
-		dashboardVO.MasterPs = g.PsAuxSpecified(clusterName, "Master")
-	}()
-	// 获取caves进程占用情况
-	go func() {
-		defer wg.Done()
-		dashboardVO.CavesPs = g.PsAuxSpecified(clusterName, "Caves")
-	}()
-
+	wg.Add(len(config.LevelList))
+	for i := range config.LevelList {
+		go func(i int) {
+			defer func() {
+				wg.Done()
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			levelName := config.LevelList[i].File
+			g.LaunchLevel(clusterName, levelName, bin, beta)
+		}(i)
+	}
+	ClearScreen()
 	wg.Wait()
-	return *dashboardVO
 }
 
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
@@ -325,76 +301,80 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	return dstPsVo
 }
 
-func (g *GameService) GetGameConfig(ctx *gin.Context) *level.GameConfig {
-	gameConfig := level.GameConfig{}
-	var wg sync.WaitGroup
-	wg.Add(6)
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
-	go func() {
-		gameConfig.ClusterToken = g.c.GetClusterToken(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.ClusterIni = g.c.GetClusterIni(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Adminlist = g.c.GetAdminlist(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Blocklist = g.c.GetBlocklist(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Master = g.c.GetMasterWorld(clusterName)
-		wg.Done()
-	}()
-	go func() {
-		gameConfig.Caves = g.c.GetCavesWorld(clusterName)
-		wg.Done()
-	}()
-	wg.Wait()
-	return &gameConfig
+type SystemInfo struct {
+	HostInfo      *systemUtils.HostInfo `json:"host"`
+	CpuInfo       *systemUtils.CpuInfo  `json:"cpu"`
+	MemInfo       *systemUtils.MemInfo  `json:"mem"`
+	DiskInfo      *systemUtils.DiskInfo `json:"disk"`
+	PanelMemUsage uint64                `json:"panelMemUsage"`
+	PanelCpuUsage float64               `json:"panelCpuUsage"`
 }
 
-func (g *GameService) SaveGameConfig(ctx *gin.Context, gameConfig *level.GameConfig) {
+func (g *GameService) GetSystemInfo(clusterName string) *SystemInfo {
 	var wg sync.WaitGroup
-	wg.Add(6)
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
+	wg.Add(5)
+
+	dashboardVO := SystemInfo{}
 	go func() {
-		g.c.SaveClusterToken(clusterName, gameConfig.ClusterToken)
-		wg.Done()
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.HostInfo = systemUtils.GetHostInfo()
 	}()
 
 	go func() {
-		g.c.SaveClusterIni(clusterName, gameConfig.ClusterIni)
-		wg.Done()
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.CpuInfo = systemUtils.GetCpuInfo()
 	}()
 
 	go func() {
-		// SaveAdminlist(level.Adminlist)
-		wg.Done()
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.MemInfo = systemUtils.GetMemInfo()
 	}()
 
 	go func() {
-		// SaveBlocklist(level.Blocklist)
-		wg.Done()
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		dashboardVO.DiskInfo = systemUtils.GetDiskInfo()
 	}()
 
 	go func() {
-		g.c.SaveMasterWorld(clusterName, gameConfig.Master)
-		dstUtils.DedicatedServerModsSetup(clusterName, gameConfig.Master.Modoverrides)
-		dstUtils.DedicatedServerModsSetup2(clusterName, gameConfig.Caves.Modoverrides)
-		wg.Done()
-	}()
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		dashboardVO.PanelMemUsage = m.Alloc / 1024 // 将字节转换为MB
 
-	go func() {
-		g.c.SaveCavesWorld(clusterName, gameConfig.Caves)
-		wg.Done()
+		// 获取当前程序使用的CPU信息
+		//startCPU, _ := cpu.Percent(time.Second, false)
+		//time.Sleep(1 * time.Second) // 假设程序运行1秒
+		//endCPU, _ := cpu.Percent(time.Second, false)
+		//cpuUsage := endCPU[0] - startCPU[0]
+		//dashboardVO.PanelCpuUsage = cpuUsage
+
 	}()
 
 	wg.Wait()
+	return &dashboardVO
 }

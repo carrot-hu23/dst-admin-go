@@ -1,14 +1,19 @@
 package vo
 
 type GameArchive struct {
-	ClusterName     string     `json:"clusterName"`
-	ClusterPassword string     `json:"clusterPassword"`
-	GameMod         string     `json:"gameMod"`
-	Players         []PlayerVO `json:"players"`
-	MaxPlayers      int        `json:"maxPlayers"`
-	Mods            int        `json:"mods"`
-	IpConnect       string     `json:"ipConnect"`
-	Meta            Meta       `json:"meta"`
+	ClusterName        string     `json:"clusterName"`
+	ClusterDescription string     `json:"clusterDescription"`
+	ClusterPassword    string     `json:"clusterPassword"`
+	GameMod            string     `json:"gameMod"`
+	Players            []PlayerVO `json:"players"`
+	MaxPlayers         int        `json:"maxPlayers"`
+	Mods               int        `json:"mods"`
+	IpConnect          string     `json:"ipConnect"`
+	Port               uint       `json:"port"`
+	Ip                 string     `json:"ip"`
+	Meta               Meta       `json:"meta"`
+	Version            int64      `json:"version"`
+	LastVersion        int64      `json:"lastVersion"`
 }
 
 func NewGameArchie() *GameArchive {

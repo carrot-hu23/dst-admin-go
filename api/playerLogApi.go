@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/vo"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -84,4 +85,24 @@ func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 		},
 	})
 
+}
+
+func (l *PlayerLogApi) DeletePlayerLog(ctx *gin.Context) {
+	var payload struct {
+		Ids []int64 `json:"ids"`
+	}
+
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln(err)
+	}
+	db := database.DB
+
+	db.Delete(&model.PlayerLog{}, payload.Ids)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
 }

@@ -1,25 +1,28 @@
 # dst-admin-go
-
-> Don't Starve Together Server management panel
+> 饥荒联机版管理后台
 >
-> Date: 2023/09/07
 
-Preview Demo: http://1.12.223.51:8080/ （admin 123456）
+
+
+**Now，Support Windows and Linux  platform**
+
+**现已支持 windows 和 Linux 平台**
 
 This is a management panel for Don't Starve Together, developed in Go. It offers simple deployment, low memory usage, an aesthetically pleasing interface, and user-friendly operations. The panel provides a visual interface for easily configuring game rooms and managing online mods. It also supports the management of multiple rooms. All of these features are designed to provide a smoother and more streamlined user experience.
 
-这是一个使用 Go 编写的饥荒管理面板，它具有简单的部署流程、低内存占用、美观的界面和简洁的操作方式。该管理面板提供了直观的可视化界面，方便用户进行房间配置和在线模组配置，同时支持多房间的便捷管理。这一切旨在提供更加流畅的使用体验。
+使用go编写的饥荒管理面板,部署简单,占用内存少,界面美观,操作简单,提供可视化界面操作房间配置和模组在线配置,支持多房间管理，备份快照等功能
 
-新增 暗黑主题，国际化，支持更大屏幕显示
+新增 **暗黑主题**，**国际化**，支持**多层世界**，支持更大屏幕显示
 
-## 禁止商用，商用请联系本人授权！！！
-**关于定制或者接入问题，请先报价，不要上来问能不能做，不报价一律做不了**
+## 部署
+注意目录必须要有读写权限。
 
-## 部署文档
-[部署文档](docs/install/README.md)
+点击查看 [部署文档](docs/install.md)
 
 ## 预览
-![首页效果](docs/image/首页-dark.png)
+
+在线预览地址 http://1.12.223.51:8082/
+（admin 123456）
 ![首页效果](docs/image/登录.png)
 ![首页效果](docs/image/房间.png)
 ![首页效果](docs/image/mod.png)
@@ -60,9 +63,3 @@ set GOOS=linux
 go build
 ```
 
-## 请作者喝一杯咖啡
-<img src="docs/image/alipay.jpg" alt="WeChat Pay" width="200" />
-<img src="docs/image/wechatpay.png" alt="WeChat Pay" width="200" />
-
-## QQ群 反馈交流
-![首页效果](docs/image/饥荒开服面板交流issue群聊二维码.png)

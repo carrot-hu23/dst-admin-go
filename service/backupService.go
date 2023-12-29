@@ -1,8 +1,10 @@
 package service
 
 import (
+	"dst-admin-go/config/database"
 	"dst-admin-go/constant"
-	"dst-admin-go/constant/dst"
+	"dst-admin-go/constant/consts"
+	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -24,10 +26,12 @@ import (
 type BackupService struct {
 	HomeService
 	GameArchive
+
+	console GameConsoleService
 }
 
-func (b *BackupService) GetBackupList(ctx *gin.Context) []vo.BackupVo {
-	cluster := clusterUtils.GetClusterFromGin(ctx)
+func (b *BackupService) GetBackupList(clusterName string) []vo.BackupVo {
+	cluster := clusterUtils.GetCluster(clusterName)
 	var backupPath = cluster.Backup
 	var backupList []vo.BackupVo
 
@@ -86,7 +90,7 @@ func (b *BackupService) DeleteBackup(ctx *gin.Context, fileNames []string) {
 
 }
 
-// RestoreBackup TODO: 恢复存档
+// RestoreBackup TODO: 恢复存档 这里要改
 func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
@@ -97,94 +101,27 @@ func (b *BackupService) RestoreBackup(ctx *gin.Context, backupName string) {
 		log.Panicln("删除失败,", clusterPath, err)
 	}
 	log.Println("正在恢复存档", filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"))
-	// 先解压到临时目录
-	tmpDir := filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", "tmp_613e78awhjkdhjkasjkldaso")
-	defer func(path string) {
-		err := fileUtils.DeleteDir(path)
-		if err != nil {
-			log.Println("删除tmp失败")
-		}
-	}(tmpDir)
 
-	err = zip.Unzip(filePath, tmpDir)
+	// err = zip.Unzip2(filePath, filepath.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether"), cluster.ClusterName)
+	err = zip.Unzip3(filePath, clusterPath)
 	if err != nil {
 		log.Panicln("解压失败,", filePath, clusterPath, err)
 	}
-
-	tmpFile, err := os.Open(tmpDir)
-	if err != nil {
-		log.Panicln("打开tmp目录失败,", tmpFile, err)
-	}
-
-	var basePath string
-
-	// 遍历文件及其子目录
-	err = filepath.Walk(tmpFile.Name(), func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		// 找到 Master 目录
-		if info.IsDir() && info.Name() == "Master" {
-			basePath = filepath.Dir(path)
-			return filepath.SkipDir
-		}
-		return nil
-	})
-	log.Println(basePath, err)
-	if basePath == "" {
-		log.Panicln("未找到存档")
-	}
-
-	pathList := []string{
-		"Master",
-		"Caves",
-		"cluster.ini",
-		"cluster_token.txt",
-		"blacklist.txt",
-		"adminlist.txt",
-	}
-	for _, p := range pathList {
-		fp := filepath.Join(basePath, p)
-		if fileUtils.Exists(fp) {
-			fileUtils.Copy(fp, clusterPath)
-		}
-	}
-
 	// 安装mod
-	modoverride, err := fileUtils.ReadFile(dst.GetMasterModoverridesPath(cluster.ClusterName))
+	modoverride, err := fileUtils.ReadFile(dstUtils.GetMasterModoverridesPath(cluster.ClusterName))
 	if err != nil {
 		log.Println("读取模组失败", err)
 	}
 	dstUtils.DedicatedServerModsSetup(cluster.ClusterName, modoverride)
 
-	//去掉 leveldataoverride 文件的 \n
-	masterLeveldataoverridePath := dst.GetMasterLeveldataoverridePath(cluster.ClusterName)
-	masterLeveldataoverride, err := fileUtils.ReadFile(masterLeveldataoverridePath)
-	if err != nil {
-		log.Println("读取 Master leveldataoverride 文件失败", err)
-	}
-	newMasterLeveldataoverride := strings.Replace(masterLeveldataoverride, "\n", "", -1)
-	err = fileUtils.WriterTXT(masterLeveldataoverridePath, newMasterLeveldataoverride)
-	if err != nil {
-		log.Println("写入 Master leveldataoverride 文件失败", err)
-	}
-
-	cavesLeveldataoverridePath := dst.GetCavesLeveldataoverridePath(cluster.ClusterName)
-	cavesLeveldataoverride, err := fileUtils.ReadFile(cavesLeveldataoverridePath)
-	if err != nil {
-		log.Println("读取 Caves leveldataoverride 文件失败", err)
-	}
-	newCavesLeveldataoverride := strings.Replace(cavesLeveldataoverride, "\n", "", -1)
-	err = fileUtils.WriterTXT(cavesLeveldataoverridePath, newCavesLeveldataoverride)
-	if err != nil {
-		log.Println("写入 Caves leveldataoverride 文件失败", err)
-	}
 }
 
-func (b *BackupService) CreateBackup(ctx *gin.Context, backupName string) {
+func (b *BackupService) CreateBackup(clusterName, backupName string) {
 
-	cluster := clusterUtils.GetClusterFromGin(ctx)
+	cluster := clusterUtils.GetCluster(clusterName)
 	backupPath := cluster.Backup
+
+	b.console.CSave(cluster.ClusterName, "Master")
 
 	src := constant.GET_DST_USER_GAME_CONFG_PATH()
 	if !fileUtils.Exists(backupPath) {
@@ -244,6 +181,77 @@ func (b *BackupService) UploadBackup(c *gin.Context) {
 
 }
 
+func (b *BackupService) ScheduleBackupSnapshots() {
+	log.Println("开始创建快照")
+	for {
+		db := database.DB
+		snapshot := model.BackupSnapshot{}
+		db.First(&snapshot)
+		if snapshot.Enable == 1 {
+			if snapshot.Interval == 0 {
+				snapshot.Interval = 8
+			}
+			if snapshot.MaxSnapshots == 0 {
+				snapshot.MaxSnapshots = 6
+			}
+			time.Sleep(time.Duration(snapshot.Interval) * time.Minute)
+
+			// 定时创建备份，每隔 x 分钟 备份一次
+			cluster := clusterUtils.GetCluster("")
+			if cluster.ClusterName != "" {
+				snapshotPrefix := "(snapshot)"
+				b.console.CSave(cluster.ClusterName, "Master")
+				b.CreateSnapshotBackup(snapshotPrefix, cluster.ClusterName)
+				// 删除快照
+				b.DeleteBackupSnapshots(snapshotPrefix, snapshot.MaxSnapshots, cluster.ClusterName, cluster.Backup)
+			}
+		} else {
+			time.Sleep(1 * time.Minute)
+		}
+	}
+}
+
+func (b *BackupService) CreateSnapshotBackup(prefix, clusterName string) {
+
+	cluster := clusterUtils.GetCluster(clusterName)
+	src := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+	dst := filepath.Join(cluster.Backup, b.GenBackUpSnapshotName(prefix, cluster.ClusterName))
+	log.Println("[Snapshot]正在定时创建游戏备份", "src: ", src, "dst: ", dst)
+	err := zip.Zip(src, dst)
+	if err != nil {
+		log.Println("[Snapshot]create backup error", err)
+	}
+}
+
+func (b *BackupService) DeleteBackupSnapshots(prefix string, maxSnapshots int, clusterName, backupPath string) {
+
+	log.Println("[Snapshot]正在删除快照备份", "maxSnapshots", maxSnapshots, "clusterName: ", clusterName)
+
+	backupList := b.GetBackupList(clusterName)
+	var newBackupList []vo.BackupVo
+	for i := range backupList {
+		name := backupList[i].FileName
+		if strings.HasPrefix(name, prefix) {
+			newBackupList = append(newBackupList, backupList[i])
+		}
+	}
+	if len(newBackupList) > maxSnapshots {
+		deleteBackupList := newBackupList[:len(newBackupList)-maxSnapshots]
+		for i := range deleteBackupList {
+			filePath := filepath.Join(backupPath, deleteBackupList[i].FileName)
+			log.Println("删除快照备份", filePath)
+			if !fileUtils.Exists(filePath) {
+				continue
+			}
+			err := fileUtils.DeleteFile(filePath)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+}
+
 func (b *BackupService) backupPath() string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	backupPath := dstConfig.Backup
@@ -260,7 +268,7 @@ var SeasonMap = map[string]string{
 	"winter": "冬天",
 }
 
-// TODO 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
+// GenGameBackUpName 备份名称增加存档信息如  猜猜我是谁的世界-10天-spring-1-20-2023071415
 func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	name := b.GetClusterIni(clusterName).ClusterName
 	snapshoot := b.Snapshoot(clusterName)
@@ -272,8 +280,14 @@ func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	days := strconv.Itoa(snapshoot.Clock.Cycles)
 	elapsedDayInSeason := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason)
 	seasonDays := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason + snapshoot.Seasons.RemainingDaysInSeason)
-	archiveDesc := days + "day_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "|" + seasonDays + ")"
-	backupName := time.Now().Format("20060102150405") + "_" + name + "_" + archiveDesc + ".zip"
+	archiveDesc := days + "day_" + snapshoot.Clock.Phase + "_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "|" + seasonDays + ")"
+	backupName := time.Now().Format("2006年01月02日15点04分05秒") + "_" + name + "_" + archiveDesc + ".zip"
 
+	return backupName
+}
+
+func (b *BackupService) GenBackUpSnapshotName(prefix, clusterName string) string {
+	backupName := b.GenGameBackUpName(clusterName)
+	backupName = prefix + backupName
 	return backupName
 }

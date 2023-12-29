@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
-	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -15,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"sync"
 )
@@ -134,6 +132,15 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 
 func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 
+	if cluster.ClusterName == "" {
+		log.Panicln("create cluster is error, cluster name is null")
+	}
+	if cluster.SteamCmd == "" {
+		log.Panicln("create cluster is error, steamCmd is null")
+	}
+	if cluster.ForceInstallDir == "" {
+		log.Panicln("create cluster is error, forceInstallDir is null")
+	}
 	db := database.DB
 	tx := db.Begin()
 
@@ -148,7 +155,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 
 	if err != nil {
 		if err.Error() == "Error 1062: Duplicate entry" {
-			log.Panicln("集群名称重复，请更换另一个名字！！！")
+			log.Panicln("唯一索引冲突！")
 		}
 		log.Panicln("创建集群失败！")
 	}
@@ -157,7 +164,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	log.Println("正在安装饥荒。。。。。。")
 	if !fileUtils.Exists(cluster.ForceInstallDir) {
 		// app_update 343050 beta updatebeta validate +quit
-		cmd := "cd " + cluster.SteamCmd + " ; ./steamcmd.sh +force_install_dir " + cluster.ForceInstallDir + " +login anonymous +app_update 343050 validate +quit"
+		cmd := "cd " + cluster.SteamCmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + cluster.ForceInstallDir + " +app_update 343050 validate +quit"
 		output, err := shellUtils.Shell(cmd)
 		if err != nil {
 			log.Panicln("饥荒安装失败")
@@ -182,46 +189,24 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 }
 
 func (c *ClusterManager) DeleteCluster(id uint) (*model.Cluster, error) {
-
 	db := database.DB
-	cluster1 := model.Cluster{}
-	db.Where("id = ?", id).First(&cluster1)
-
-	if cluster1.ID == 0 {
-		log.Panicln("删除集群失败, ID 不存在 ", id)
-	}
 
 	cluster := model.Cluster{}
-	result := db.Where("id = ?", id).Unscoped().Delete(&cluster)
+
+	result := db.Where("id = ?", id).Delete(&cluster)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
-
-	log.Println("正在删除 cluster", cluster1)
-
-	// 停止服务
-	c.s.StopGame(cluster1.ClusterName, 0)
 
 	// TODO 删除集群 和 饥荒、备份、mod 下载
 
 	// 删除集群
 
 	// 删除饥荒
-	log.Println("正在删除集群: ", cluster1.ForceInstallDir)
-	err := fileUtils.DeleteDir(cluster1.ForceInstallDir)
-	if err != nil {
-		return nil, err
-	}
 
-	clusterPath := filepath.Join(consts.KleiDstPath, cluster1.ClusterName)
-	log.Println("正在删除存档: ", clusterPath)
-	err = fileUtils.DeleteDir(clusterPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cluster1, nil
+	// 停止服务
+	return &cluster, nil
 }
 
 func (c *ClusterManager) FindClusterByUuid(uuid string) *model.Cluster {

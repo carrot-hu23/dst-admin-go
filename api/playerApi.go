@@ -22,7 +22,7 @@ func (p *PlayerApi) GetDstPlayerList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: playerService.GetPlayerList(clusterName),
+		Data: playerService.GetPlayerList(clusterName, "Master"),
 	})
 }
 
@@ -46,7 +46,7 @@ func (p *PlayerApi) GetDstBlcaklistPlayerList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: playerService.GetDstBlcaklistPlayerList(clusterName),
+		Data: playerService.GetDstBlacklistPlayerList(clusterName),
 	})
 }
 

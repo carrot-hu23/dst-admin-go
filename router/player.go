@@ -23,6 +23,8 @@ func initPlayerRouter(router *gin.RouterGroup) {
 	playerLog := router.Group("/api/player")
 	{
 		playerLog.GET("/log", playerLogApi.PlayerLogQueryPage)
+		playerLog.POST("/log/delete", playerLogApi.DeletePlayerLog)
+
 	}
 
 }

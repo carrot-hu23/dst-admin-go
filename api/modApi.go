@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/mod"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -42,13 +43,13 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
-	modinfo, err, status := mod.GetModInfo(moId)
+	modinfo, err, status := mod.SubscribeModByModId(moId)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
 	var mod_config map[string]interface{}
-	json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
-	mod := map[string]interface{}{
+	_ = json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
+	modData := map[string]interface{}{
 		"auth":          modinfo.Auth,
 		"consumer_id":   modinfo.ConsumerAppid,
 		"creator_appid": modinfo.CreatorAppid,
@@ -60,11 +61,12 @@ func (m *ModApi) GetModInfo(ctx *gin.Context) {
 		"name":          modinfo.Name,
 		"v":             modinfo.V,
 		"mod_config":    mod_config,
+		"update":        modinfo.Update,
 	}
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: mod,
+		Data: modData,
 	})
 }
 
@@ -76,10 +78,33 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 	db.Find(&modInfos)
 
 	var modDataList []map[string]interface{}
+
+	//var workshopIds []string
+	//for i := range modInfos {
+	//	workshopIds = append(workshopIds, modInfos[i].Modid)
+	//}
+	//publishedFileDetails, err := mod.GetPublishedFileDetailsWithGet(workshopIds)
+
 	for _, modinfo := range modInfos {
+
+		//update := false
+		//tags := []string{}
+		//if err == nil {
+		//	for i := range publishedFileDetails {
+		//		publishedfiledetail := publishedFileDetails[i]
+		//		if modinfo.Modid == publishedfiledetail.Publishedfileid && modinfo.LastTime < publishedfiledetail.TimeUpdated {
+		//			update = true
+		//			for _, tag := range publishedfiledetail.Tags {
+		//				tags = append(tags, tag.Tag)
+		//			}
+		//		}
+		//	}
+		//}
+
 		var mod_config map[string]interface{}
-		json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
-		mod := map[string]interface{}{
+		_ = json.Unmarshal([]byte(modinfo.ModConfig), &mod_config)
+
+		modData := map[string]interface{}{
 			"auth":          modinfo.Auth,
 			"consumer_id":   modinfo.ConsumerAppid,
 			"creator_appid": modinfo.CreatorAppid,
@@ -91,8 +116,9 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 			"name":          modinfo.Name,
 			"v":             modinfo.V,
 			"mod_config":    mod_config,
+			"update":        modinfo.Update,
 		}
-		modDataList = append(modDataList, mod)
+		modDataList = append(modDataList, modData)
 	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -101,6 +127,16 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 		Data: modDataList,
 	})
 
+}
+
+func (m *ModApi) UpdateAllModInfos(ctx *gin.Context) {
+
+	mod.UpdateModinfoList()
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
 }
 
 func (m *ModApi) DeleteMod(ctx *gin.Context) {
@@ -191,7 +227,7 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 	fileUtils.DeleteDir(mod_path)
 
-	modinfo, err, status := mod.GetModInfo(modId)
+	modinfo, err, status := mod.SubscribeModByModId(modId)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -209,10 +245,57 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 		"name":          modinfo.Name,
 		"v":             modinfo.V,
 		"mod_config":    mod_config,
+		"update":        modinfo.Update,
 	}
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
 		Data: mod,
 	})
+}
+
+// AddModInfoFile 手动添加模组
+func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+
+	var payload struct {
+		WorkshopId string `json:"workshopId"`
+		Modinfo    string `json:"modinfo"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln("参数解析失败")
+	}
+	if payload.WorkshopId == "" {
+		log.Panicln("workshopId can not be null")
+	}
+
+	// 创建workshop文件
+	workshopDirPath := filepath.Join(cluster.ModDownloadPath, "/steamapps/workshop/content/322330", payload.WorkshopId)
+	fileUtils.CreateDirIfNotExists(workshopDirPath)
+	modinfoPath := filepath.Join(workshopDirPath, "modinfo.lua")
+
+	err = fileUtils.CreateFileIfNotExists(modinfoPath)
+	if err != nil {
+		log.Panicln("创建 modinfo.lua 失败", modinfoPath, err)
+	}
+	err = fileUtils.WriterTXT(modinfoPath, payload.Modinfo)
+	if err != nil {
+		log.Panicln("写入 modinfo.lua 失败， path: ", modinfoPath, "error: ", err)
+	}
+
+	mod.AddModInfo(payload.WorkshopId)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+
+}
+
+// AddModInfoFile 手动添加模组
+func (m *ModApi) UploadModFile(ctx *gin.Context) {
+
 }

@@ -1,4 +1,4 @@
-package dst
+package dstUtils2
 
 import (
 	"dst-admin-go/constant"
@@ -47,6 +47,14 @@ func GetAdminlistPath(clusterName string) string {
 
 func GetBlocklistPath(clusterName string) string {
 	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blocklist.txt")
+}
+
+func GetBlacklistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "blocklist.txt")
+}
+
+func GetWhitelistPath(clusterName string) string {
+	return path.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", clusterName, "whitelist.txt")
 }
 
 func GetModSetup(clusterName string) string {

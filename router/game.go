@@ -22,11 +22,21 @@ func InitGameRouter(router *gin.RouterGroup) {
 		gameConsole.GET("/backup/restore", gameConsoleApi.RestoreBackup)
 
 		gameConsole.GET("/archive", gameConsoleApi.GetGameArchive)
+
+		// TODO 删除
 		gameConsole.GET("/clean", gameConsoleApi.CleanWorld)
+		gameConsole.GET("/clean/level", gameConsoleApi.CleanLevel)
+		gameConsole.GET("/clean/level/all", gameConsoleApi.CleanAllLevel)
 		gameConsole.GET("/announce/setting", gameConsoleApi.GetAnnounceSetting)
+
 		gameConsole.POST("/announce/setting", gameConsoleApi.SaveAnnounceSetting)
 		gameConsole.GET("/level/server/log", gameConsoleApi.ReadLevelServeLog)
 		gameConsole.GET("/level/server/chat/log", gameConsoleApi.ReadLevelServeChatLog)
+
+		gameConsole.GET("/level/server/download", gameConsoleApi.DownloadDstLogFile)
+		gameConsole.GET("/dst-admin-go/log", gameConsoleApi.ReadServerLog)
+		gameConsole.GET("/dst-admin-go/log/download", gameConsoleApi.DownloadServerLogFile)
+
 	}
 
 	gameConfigApi := api.GameConfigApi{}
@@ -40,9 +50,7 @@ func InitGameRouter(router *gin.RouterGroup) {
 	game := router.Group("/api/game")
 	{
 		game.GET("/update", gameApi.UpdateGame)
-		game.GET("/dashboard", gameApi.GetDashboardInfo)
-		game.GET("/start", gameApi.StartGame)
-		game.GET("/stop", gameApi.StopGame)
+		game.GET("/system/info", gameApi.GetSystemInfo)
 	}
 
 }

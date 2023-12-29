@@ -32,9 +32,9 @@ type ClusterIni struct {
 	ClusterKey   string `json:"cluster_key"`
 
 	// [STEAM]
+	SteamGroupId     string `json:"steam_group_id"`
 	SteamGroupOnly   bool   `json:"steam_group_only"`
-	SteamGroupId     uint   `json:"steam_group_id"`
-	SteamGroupAdmins string `json:"steam_group_admins"`
+	SteamGroupAdmins bool   `json:"steam_group_admins"`
 }
 type ServerIni struct {
 
@@ -50,30 +50,31 @@ type ServerIni struct {
 	EncodeUserPath bool `json:"encode_user_path"`
 
 	// [STEAM]
-	AuthenticationPort string `json:"authentication_port"`
-	MasterServerPort   string `json:"master_server_port"`
+	AuthenticationPort uint `json:"authentication_port"`
+	MasterServerPort   uint `json:"master_server_port"`
 }
 
 func NewClusterIni() *ClusterIni {
 	return &ClusterIni{
-		Pvp:              false,
-		PauseWhenNobody:  true,
-		VoteEnabled:      true,
-		VoteKickEnabled:  true,
-		LanOnlyCluster:   false,
-		ClusterLanguage:  "zh",
-		WhitelistSlots:   0,
-		TickRate:         15,
-		ConsoleEnabled:   true,
-		MaxSnapshots:     6,
-		ShardEnabled:     true,
-		BindIp:           "0.0.0.0",
-		MasterIp:         "127.0.0.1",
-		MasterPort:       10888,
-		ClusterKey:       "",
+		Pvp:             false,
+		PauseWhenNobody: true,
+		VoteEnabled:     true,
+		VoteKickEnabled: true,
+		LanOnlyCluster:  false,
+		ClusterLanguage: "zh",
+		WhitelistSlots:  0,
+		TickRate:        15,
+		ConsoleEnabled:  true,
+		MaxSnapshots:    6,
+		ShardEnabled:    true,
+		BindIp:          "0.0.0.0",
+		MasterIp:        "127.0.0.1",
+		MasterPort:      10888,
+		ClusterKey:      "",
+
+		SteamGroupId:     "",
 		SteamGroupOnly:   false,
-		SteamGroupId:     0,
-		SteamGroupAdmins: "",
+		SteamGroupAdmins: false,
 	}
 }
 
@@ -94,14 +95,15 @@ func NewCavesServerIni() *ServerIni {
 		Name:               "Caves",
 		Id:                 10010,
 		EncodeUserPath:     true,
-		AuthenticationPort: "8766",
-		MasterServerPort:   "27016",
+		AuthenticationPort: 8766,
+		MasterServerPort:   27016,
 	}
 }
 
 type World struct {
-	WorldName         string     `json:"world_name"`
+	LevelName         string     `json:"levelName"`
 	IsMaster          bool       `json:"is_master"`
+	Uuid              string     `json:"uuid"`
 	Leveldataoverride string     `json:"leveldataoverride"`
 	Modoverrides      string     `json:"modoverrides"`
 	ServerIni         *ServerIni `json:"server_ini"`

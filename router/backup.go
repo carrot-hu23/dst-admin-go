@@ -16,6 +16,11 @@ func initBackupRouter(router *gin.RouterGroup) {
 		backup.PUT("", backupApi.RenameBackup)
 		backup.GET("/download", backupApi.DownloadBackup)
 		backup.POST("/upload", backupApi.UploadBackup)
+
+		backup.POST("/snapshot/setting", backupApi.SaveBackupSnapshotsSetting)
+		backup.GET("/snapshot/setting", backupApi.GetBackupSnapshotsSetting)
+		backup.GET("/snapshot/list", backupApi.BackupSnapshotsList)
+
 	}
 
 }

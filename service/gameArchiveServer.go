@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/luaUtils"
@@ -30,29 +29,20 @@ type GameArchive struct {
 func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(6)
 
 	gameArchie := vo.NewGameArchie()
-	basePath := dst.GetClusterBasePath(clusterName)
+	basePath := dstUtils.GetClusterBasePath(clusterName)
 
 	// 获取基础信息
 	go func() {
 		clusterIni := d.GetClusterIni(clusterName)
 		gameArchie.ClusterName = clusterIni.ClusterName
+		gameArchie.ClusterDescription = clusterIni.ClusterDescription
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
 		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
 		wg.Done()
-	}()
-
-	go func() {
-		defer func() {
-			wg.Done()
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-		}()
-		gameArchie.Players = d.GetPlayerList(clusterName)
 	}()
 
 	// 获取mod数量
@@ -68,12 +58,22 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	// 获取天数和季节
 	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+			}
+		}()
 		gameArchie.Meta = d.Snapshoot(clusterName)
-		wg.Done()
 	}()
 
 	// 获取直连ip
 	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+
+			}
+		}()
 		clusterIni := d.GetClusterIni(clusterName)
 		password := clusterIni.ClusterPassword
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
@@ -88,7 +88,34 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
 			}
 		}
-		wg.Done()
+		gameArchie.Port = serverIni.ServerPort
+		gameArchie.Ip = ipv4
+
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+
+			}
+		}()
+		localVersion := d.GetLocalDstVersion(clusterName)
+		version := d.GetLastDstVersion()
+
+		gameArchie.Version = localVersion
+		gameArchie.LastVersion = version
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+		// TODO 默认取Master世界人数
+		gameArchie.Players = d.GetPlayerList(clusterName, "Master")
 	}()
 
 	wg.Wait()

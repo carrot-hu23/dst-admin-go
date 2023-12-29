@@ -1,12 +1,9 @@
 package schedule
 
 import (
-	"dst-admin-go/constant/consts"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
-	"dst-admin-go/utils/zip"
 	"log"
-	"path/filepath"
 	"time"
 )
 
@@ -14,108 +11,83 @@ var backupService = service.BackupService{}
 var gameService = service.GameService{}
 
 type Strategy interface {
-	Execute(string)
+	Execute(string, string)
 }
 
 type BackupStrategy struct{}
 
-func (b *BackupStrategy) Execute(clusterName string) {
-	cluster := clusterUtils.GetCluster(clusterName)
-	src := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+func (b *BackupStrategy) Execute(clusterName string, levelName string) {
 
-	dst := filepath.Join(cluster.Backup, backupService.GenGameBackUpName(clusterName))
-	log.Println("正在定时创建游戏备份", "src: ", src, "dst: ", dst)
+	//consoleService.CSave(clusterName, "Master")
+	//
+	//// 保存存档
+	//cluster := clusterUtils.GetCluster(clusterName)
+	//src := filepath.Join(consts.KleiDstPath, cluster.ClusterName)
+	//
+	//dst := filepath.Join(cluster.Backup, backupService.GenGameBackUpName(clusterName))
+	//log.Println("正在定时创建游戏备份", "src: ", src, "dst: ", dst)
+	//err := zip.Zip(src, dst)
+	//if err != nil {
+	//	log.Println("create backup error", err)
+	//}
 
-	gameConsoleService.MasterConsole(clusterName, "c_save()")
-
-	// 等待一分钟在备份
-	time.Sleep(1 * time.Minute)
-	err := zip.Zip(src, dst)
-	if err != nil {
-		log.Panicln("create backup error", err)
-	}
+	backupService.CreateBackup(clusterName, backupService.GenGameBackUpName(clusterName))
 
 }
 
 type UpdateStrategy struct{}
 
-func (u *UpdateStrategy) Execute(clusterName string) {
+func (u *UpdateStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时更新游戏 clusterName: ", clusterName)
 	err := gameService.UpdateGame(clusterName)
 	if err != nil {
 		log.Println("更新游戏失败: ", err)
 		return
 	}
+	time.Sleep(1 * time.Minute)
+	gameService.StartGame(clusterName)
 }
 
 type StartStrategy struct{}
 
-func (s *StartStrategy) Execute(clusterName string) {
+func (s *StartStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时启动游戏 clusterName: ", clusterName)
 	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, 0)
+	gameService.StartLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
 }
 
 type StopStrategy struct{}
 
-func (s *StopStrategy) Execute(clusterName string) {
+func (s *StopStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时关闭游戏 clusterName: ", clusterName)
-	gameService.StopGame(clusterName, 0)
+	gameService.StopLevel(clusterName, levelName)
 }
 
 type RestartStrategy struct{}
 
-func (s *RestartStrategy) Execute(clusterName string) {
+func (s *RestartStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时重启游戏 clusterName: ", clusterName)
-	gameService.StopGame(clusterName, 0)
 	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, 0)
+	gameService.StartLevel(clusterName, levelName, cluster.Bin, cluster.Beta)
 }
 
-type RestartMasterStrategy struct{}
+type RegenerateStrategy struct{}
 
-func (s *RestartMasterStrategy) Execute(clusterName string) {
-	log.Println("正在定时重启森林 clusterName: ", clusterName)
-	gameService.StopGame(clusterName, consts.StopMaster)
-	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartMaster)
+func (s *RegenerateStrategy) Execute(clusterName string, levelName string) {
+	log.Println("正在定时重置游戏 clusterName: ", clusterName)
+	gameConsoleService.Regenerateworld(clusterName)
 }
 
-type RestartCavesStrategy struct{}
+type StartGameStrategy struct{}
 
-func (s *RestartCavesStrategy) Execute(clusterName string) {
-	log.Println("正在定时重启洞穴 clusterName: ", clusterName)
-	gameService.StopGame(clusterName, consts.StopCaves)
-	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartCaves)
+func (s *StartGameStrategy) Execute(clusterName string, levelName string) {
+	log.Println("正在定时启动游戏(所有) clusterName: ", clusterName)
+	gameService.StartGame(clusterName)
 }
 
-type StartMasterStrategy struct{}
+type StopGameStrategy struct{}
 
-func (s *StartMasterStrategy) Execute(clusterName string) {
-	log.Println("正在定时启动森林 clusterName: ", clusterName)
-	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartMaster)
-}
-
-type StartCavesStrategy struct{}
-
-func (s *StartCavesStrategy) Execute(clusterName string) {
-	log.Println("正在定时启动洞穴 clusterName: ", clusterName)
-	cluster := clusterUtils.GetCluster(clusterName)
-	gameService.StartGame(clusterName, cluster.Bin, cluster.Beta, consts.StartCaves)
-}
-
-type StopMasterStrategy struct{}
-
-func (s *StopMasterStrategy) Execute(clusterName string) {
-	log.Println("正在定时关闭森林 clusterName: ", clusterName)
-	gameService.StopGame(clusterName, consts.StopMaster)
-}
-
-type StopCavesStrategy struct{}
-
-func (s *StopCavesStrategy) Execute(clusterName string) {
-	log.Println("正在定时关闭洞穴 clusterName: ", clusterName)
-	gameService.StopGame(clusterName, consts.StopCaves)
+func (s *StopGameStrategy) Execute(clusterName string, levelName string) {
+	log.Println("正在定时关闭游戏(所有) clusterName: ", clusterName)
+	gameService.StopGame(clusterName)
 }

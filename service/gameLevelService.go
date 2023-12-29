@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/constant/dst"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo/level"
@@ -63,7 +62,7 @@ func (g *GameLevelService) parseLevelConfig(lines []string) []LevelConfig {
 }
 
 func (g *GameLevelService) createLevel(clusterName string, levelConfig LevelConfig, templatePath string) {
-	levelPath := filepath.Join(dst.GetClusterBasePath(clusterName), levelConfig.Name)
+	levelPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), levelConfig.Name)
 	fileUtils.CreateDirIfNotExists(levelPath)
 
 	// 初始化 level 和 mod server.ini 文件
@@ -142,7 +141,7 @@ func (g *GameLevelService) DeleteLevelConfig(clusterName, levelName string) {
 		log.Panicln("写入 level_config 文件失败", err)
 	}
 
-	levelPath := filepath.Join(dst.GetClusterBasePath(clusterName), levelName)
+	levelPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), levelName)
 	err = fileUtils.DeleteDir(levelPath)
 	if err != nil {
 		log.Panicln("删除level失败", levelName, err)
@@ -150,12 +149,12 @@ func (g *GameLevelService) DeleteLevelConfig(clusterName, levelName string) {
 }
 
 func (g *GameLevelService) getLevelConfigPath(clusterName string) string {
-	levelConfigPath := filepath.Join(dst.GetClusterBasePath(clusterName), LevelConfigName)
+	levelConfigPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), LevelConfigName)
 	return levelConfigPath
 }
 
 func (g *GameLevelService) GetLeveldataoverride(clusterName, levelName string) string {
-	leveldataoverridePath := dst.GetLevelLeveldataoverridePath(clusterName, levelName)
+	leveldataoverridePath := dstUtils.GetLevelLeveldataoverridePath(clusterName, levelName)
 	log.Println("leveldataoverridePath: ", leveldataoverridePath)
 	if !fileUtils.Exists(leveldataoverridePath) {
 		return "return {}"
@@ -168,7 +167,7 @@ func (g *GameLevelService) GetLeveldataoverride(clusterName, levelName string) s
 }
 
 func (g *GameLevelService) GetModoverrides(clusterName, levelName string) string {
-	modoverridesPath := dst.GetLevelModoverridesPath(clusterName, levelName)
+	modoverridesPath := dstUtils.GetLevelModoverridesPath(clusterName, levelName)
 	log.Println("modoverridesPath: ", modoverridesPath)
 	if !fileUtils.Exists(modoverridesPath) {
 		return "return {}"
@@ -181,7 +180,7 @@ func (g *GameLevelService) GetModoverrides(clusterName, levelName string) string
 }
 
 func (g *GameLevelService) GetServerIni(clusterName, levelName string) *level.ServerIni {
-	levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	levelServerIniPath := dstUtils.GetLevelServerIniPath(clusterName, levelName)
 	log.Println("levelServerIniPath: ", levelServerIniPath)
 	if !fileUtils.Exists(levelServerIniPath) {
 		return &level.ServerIni{}
@@ -191,7 +190,7 @@ func (g *GameLevelService) GetServerIni(clusterName, levelName string) *level.Se
 }
 
 func (g *GameLevelService) SaveLeveldataoverride(clusterName, levelName string, leveldataoverride string) {
-	leveldataoverridePath := dst.GetLevelLeveldataoverridePath(clusterName, levelName)
+	leveldataoverridePath := dstUtils.GetLevelLeveldataoverridePath(clusterName, levelName)
 	err := fileUtils.CreateFileIfNotExists(leveldataoverridePath)
 	if err != nil {
 		log.Panicln("创建失败 leveldataoverride ", err)
@@ -203,7 +202,7 @@ func (g *GameLevelService) SaveLeveldataoverride(clusterName, levelName string, 
 }
 
 func (g *GameLevelService) SaveModoverrides(clusterName, levelName string, modoverrides string) {
-	modoverridesPath := dst.GetLevelModoverridesPath(clusterName, levelName)
+	modoverridesPath := dstUtils.GetLevelModoverridesPath(clusterName, levelName)
 	err := fileUtils.CreateFileIfNotExists(modoverridesPath)
 	if err != nil {
 		log.Panicln("创建失败 modoverrides ", err)
@@ -215,7 +214,7 @@ func (g *GameLevelService) SaveModoverrides(clusterName, levelName string, modov
 }
 
 func (g *GameLevelService) SaveServerIni(clusterName, levelName string, serverIni *level.ServerIni) {
-	levelServerIniPath := dst.GetLevelServerIniPath(clusterName, levelName)
+	levelServerIniPath := dstUtils.GetLevelServerIniPath(clusterName, levelName)
 	err := fileUtils.CreateFileIfNotExists(levelServerIniPath)
 	if err != nil {
 		log.Panicln("创建失败 serverIni ", err)

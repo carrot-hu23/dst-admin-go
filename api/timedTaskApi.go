@@ -63,6 +63,7 @@ func (j *TimedTaskApi) AddJobTask(ctx *gin.Context) {
 		Corn:         jobTask.Cron,
 		F:            schedule.StrategyMap[jobTask.Category].Execute,
 		ClusterName:  jobTask.ClusterName,
+		LevelName:    jobTask.Uuid,
 		Announcement: jobTask.Announcement,
 		Sleep:        jobTask.Sleep,
 		Times:        jobTask.Times,

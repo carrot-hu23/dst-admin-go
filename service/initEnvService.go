@@ -34,8 +34,24 @@ type InitDstData struct {
 func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
 	i.InitUserInfo(initDst.UserInfo)
-	// TODO 写入默认配置
 	log.Println("初始化用户完成")
+	kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+	baseLevelPath := filepath.Join(kleiPath, "MyDediServer")
+	if fileUtils.Exists(baseLevelPath) {
+		log.Println("存档已经存在", baseLevelPath)
+		return
+	}
+
+	fileUtils.CreateDirIfNotExists(baseLevelPath)
+
+	info := i.GetUserInfo()
+	i.InitClusterIni(baseLevelPath, info["displayName"].(string))
+	i.InitClusterToken(baseLevelPath, "")
+	i.InitBaseMaster(baseLevelPath)
+	i.InitBaseCaves(baseLevelPath)
+
+	// TODO 写入默认配置
+	log.Println("初始化世界完成")
 }
 
 func (i *InitService) InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {

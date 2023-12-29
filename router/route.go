@@ -10,7 +10,7 @@ func NewRoute() *gin.Engine {
 	app := gin.Default()
 
 	app.Use(middleware.Recover)
-	app.Use(middleware.ShellInjectionInterceptor())
+	// app.Use(middleware.ShellInjectionInterceptor())
 	app.Use(middleware.Authentication())
 
 	// app.Use(middleware.CheckDstHandler())
@@ -35,9 +35,13 @@ func NewRoute() *gin.Engine {
 	initTimedTaskRouter(router)
 
 	initAutoCheck(router)
-	initLevel(router)
+
 	initWebLinkRouter(router)
 	initWebhookRouter(router)
+
+	initLevel2(router)
+
+	initBotRouter(router)
 
 	initStaticFile(app)
 

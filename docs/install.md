@@ -1,77 +1,49 @@
-# 安装部署环境
+# Deployment/部署
 
-以 Ubuntu 系统为例
+注意目录必须要有读写权限
 
-## 1. 安装 steamcmd （如果服务器之前已经安装过请跳过此步）
-```
-#!/bin/bash
+### 脚本一键部署
 
-#准备安装饥荒
-sudo apt-get install -y lib32gcc1
-sudo apt-get install -y libcurl4-gnutls-dev:i386
-sudo apt-get install -y screen
+请加QQ群获取
 
-mkdir ~/steamcmd
-cd ~/steamcmd
-if [[ ! -f 'steamcmd_linux.tar.gz' ]]; then
-    wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
-else
-    echo -e "steamcmd_linux.tar.gz 已下载"
-fi
+### 二进制部署
 
-tar -xvzf steamcmd_linux.tar.gz
-./steamcmd.sh +force_install_dir ~/dontstarve_dedicated_server +login anonymous +app_update 343050 validate +quit
+请下载最新的release版本
 
-cp ~/steamcmd/linux32/libstdc++.so.6 ~/dontstarve_dedicated_server/bin/lib32/
-mkdir -p ~/.klei/DoNotStarveTogether/MyCluster1
-cd ~
-```
+[部署教程](https://blog.csdn.net/Dig_hoof/article/details/131296762)
 
-**记住 steamcmd 路径** 等下要用到
+[视频教程](https://www.bilibili.com/read/cv25125509)
 
+### docker 部署
 
-## 2. 从 release 下载 稳定的版本，并解压
-1. 从release下载 dst-admin-go.tgz
-
-2. 解压，上传到服务器
-
-3. 修改config.yml 配置（端口）
-    | 配置              | 解释                      | 是否必须|
-    | ----------------- | ------------------------- | -------|
-    | port          | 端口          | 是 |
-    | db | 数据库名称（可以随便叫啥）              | 是 |
-
-    **参考配置**
-    ```yml
-    port: 8082
-    database: dst-database
-    ```
-## 3. 启动
+**第一次启动时会自动下载steamcmd和饥荒服务器，请耐心等待10-20分钟，你也可以使用挂载路径避免下载**
 
 ```
-chmod +x dst-admin-go
-nohup ./dst-admin-go >log.log &
+docker pull hujinbo23/dst-admin-go:1.2.7
+docker run -d -p8082:8082 hujinbo23/dst-admin-go:1.2.7
 ```
-如果想要关掉服务
+
+**路径参考**
+
 ```
-ps -ef | grep dst-admin-go
++ 容器存档启动路径: /root/.klei/DoNotStarveTogether
++ 容器存档备份路径: /app/backup
++ 容器存档模组路径: /app/mod
++ 容器玩家日志路径: /app/dst-db
++ 容器服务日志路径: /app/dst-admin-go.log
++ 容器启动饥荒路径: /app/dst-dedicated-server
++ 容器启steamcmd：/app/steamcmd
 ```
-找到进程号 kill -9
 
-## 4. 在浏览器 输入 http://xxx:8082 进入页面
-初始化用户信息,进入页面
 
-点击右上角新建集群按钮,按照要求输入相应路径,
-等待5~20分钟会自动创建饥荒服务和世界配置
 
-### 创建集群时请不要使用 纯数字、中文、或者特殊字符，集群名称就是你存档的名称
-错误集群名称示例
-+ 1
-+ ——
-+ @@@
-+ 1213
+#### 1.2.5 及其之前的版本
 
-正确集群名称示例
-+ caicai1
-+ caicai2
-+ caicai3
+启动后记得 去页面 `系统设置页面` 改成这样
+
+```
+steamcmd安装路径
+/app/steamcmd
+饥荒服务器安装路径
+/app/dst-dedicated-server
+```
