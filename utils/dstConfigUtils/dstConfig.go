@@ -136,10 +136,14 @@ func GetDstConfig() DstConfig {
 		dstConfig.Cluster = "Cluster1"
 	}
 	if dstConfig.Backup == "" {
-		dstConfig.Backup = consts.KleiDstPath
+		defaultPath := filepath.Join(consts.KleiDstPath, "backup")
+		fileUtils.CreateDirIfNotExists(defaultPath)
+		dstConfig.Backup = defaultPath
 	}
 	if dstConfig.Mod_download_path == "" {
-		dstConfig.Backup = consts.KleiDstPath
+		defaultPath := filepath.Join(consts.KleiDstPath, "mod_config_download")
+		fileUtils.CreateDirIfNotExists(defaultPath)
+		dstConfig.Mod_download_path = defaultPath
 	}
 	if dstConfig.Bin == 0 {
 		dstConfig.Bin = 32
