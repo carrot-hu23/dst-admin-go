@@ -36,7 +36,7 @@ func GetUgcModPath() string {
 	if dstConfig.Ugc_directory != "" {
 		ugcModPath = dstConfig.Ugc_directory
 	} else {
-		filepath.Join(dstConfig.Force_install_dir, "ugc_mods")
+		ugcModPath = filepath.Join(dstConfig.Force_install_dir, "ugc_mods")
 	}
 	return ugcModPath
 }
