@@ -2,7 +2,6 @@ package autoCheck
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/constant"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
@@ -73,7 +72,7 @@ func (m *AutoCheckManager) Start() {
 
 	for {
 		dstConfig := dstConfigUtils.GetDstConfig()
-		kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+		kleiPath := filepath.Join(dstUtils.GetKleiDstPath())
 		baseLevelPath := filepath.Join(kleiPath, dstConfig.Cluster)
 		if !fileUtils.Exists(baseLevelPath) {
 			time.Sleep(1 * time.Minute)
@@ -195,7 +194,6 @@ func (m *AutoCheckManager) GetAutoCheck(clusterName, checkType, uuid string) *mo
 	return &autoCheck
 }
 
-// TODO 这里要修改
 func (m *AutoCheckManager) check(task *model.AutoCheck) {
 	// log.Println("开始检查 start", task)
 	if task.Uuid != "" {
@@ -280,7 +278,6 @@ type LevelModCheck struct{}
 
 func (s *LevelModCheck) Check(clusterName, levelName string) bool {
 	// 找到当前存档的modId, 然后根据判断当前存档的
-	cluster := clusterUtils.GetCluster(clusterName)
 	modoverridesPath := dstUtils.GetLevelModoverridesPath(clusterName, levelName)
 	content, err := fileUtils.ReadFile(modoverridesPath)
 	if err != nil {
@@ -291,7 +288,7 @@ func (s *LevelModCheck) Check(clusterName, levelName string) bool {
 		return true
 	}
 
-	acfPath := filepath.Join(cluster.ForceInstallDir, "ugc_mods", cluster.ClusterName, levelName, "appworkshop_322330.acf")
+	acfPath := dstUtils.GetUgcAcfPath(clusterName, levelName)
 	acfWorkshops := dstUtils.ParseACFFile(acfPath)
 
 	log.Println("acf path: ", acfPath)
@@ -363,8 +360,28 @@ func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
 		return err
 	}
 	time.Sleep(3 * time.Minute)
-	// TODO 更新完游戏自动启动游戏
-	gameService.StartGame(clusterName)
+
+	// 只启动选择的世界
+	levelConfig, err := levelConfigUtils.GetLevelConfig(clusterName)
+	if err != nil {
+		return err
+	}
+	dstConfig := dstConfigUtils.GetDstConfig()
+	for i := range levelConfig.LevelList {
+		item := levelConfig.LevelList[i]
+
+		logRecord := logRecordService.GetLastLog(clusterName, item.File)
+		if logRecord.ID != 0 {
+			if logRecord.Action == model.STOP {
+				continue
+			} else {
+				gameService.StartLevel(clusterName, levelName, dstConfig.Bin, dstConfig.Beta)
+				time.Sleep(30 * time.Second)
+			}
+		}
+	}
+
+	// gameService.StartGame(clusterName)
 	return nil
 }
 

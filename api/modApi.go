@@ -323,11 +323,7 @@ func (m *ModApi) GetUgcModAcf(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	levelName := ctx.Query("levelName")
 
-	ugcDirectory := cluster.Ugc_directory
-	if ugcDirectory == "" {
-		ugcDirectory = filepath.Join(cluster.ForceInstallDir, "ugc_mods")
-	}
-	acfPath := filepath.Join(ugcDirectory, cluster.ClusterName, levelName, "appworkshop_322330.acf")
+	acfPath := dstUtils.GetUgcAcfPath(cluster.ClusterName, levelName)
 	acfWorkshops := dstUtils.ParseACFFile(acfPath)
 
 	var workshopItemDetails []WorkshopItemDetail
@@ -406,15 +402,11 @@ func (m *ModApi) DeleteUgcModFile(ctx *gin.Context) {
 	levelName := ctx.Query("levelName")
 	workshopId := ctx.Query("workshopId")
 
-	ugcDirectory := cluster.Ugc_directory
-	if ugcDirectory == "" {
-		ugcDirectory = filepath.Join(cluster.ForceInstallDir, "ugc_mods")
-	}
-	modFilePath := filepath.Join(ugcDirectory, clusterName, levelName, workshopId)
+	modFilePath := dstUtils.GetUgcWorkshopModPath(clusterName, levelName, workshopId)
 
 	log.Println("modFilePath", modFilePath)
 	if fileUtils.Exists(modFilePath) {
-		err := fileUtils.DeleteFile(modFilePath)
+		err := fileUtils.DeleteDir(modFilePath)
 		if err != nil {
 			log.Panicln(err)
 		}

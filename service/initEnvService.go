@@ -1,7 +1,8 @@
 package service
 
 import (
-	"dst-admin-go/constant"
+	"dst-admin-go/config/global"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -35,7 +36,7 @@ func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 
 	i.InitUserInfo(initDst.UserInfo)
 	log.Println("初始化用户完成")
-	kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+	kleiPath := filepath.Join(dstUtils.GetKleiDstPath())
 	baseLevelPath := filepath.Join(kleiPath, "MyDediServer")
 	if fileUtils.Exists(baseLevelPath) {
 		log.Println("存档已经存在", baseLevelPath)
@@ -57,22 +58,23 @@ func (i *InitService) InitDstEnv(initDst *InitDstData, ctx *gin.Context) {
 func (i *InitService) InitDstConfig(dstConfig *dstConfigUtils.DstConfig) {
 
 	if dstConfig.Backup == "" {
-		dstConfig.Backup = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+		dstConfig.Backup = filepath.Join(dstUtils.GetKleiDstPath())
 	}
 	if dstConfig.Mod_download_path == "" {
-		dstConfig.Mod_download_path = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether", "mod_download")
+		dstConfig.Mod_download_path = filepath.Join(dstUtils.GetKleiDstPath(), "mod_download")
 		fileUtils.CreateDirIfNotExists(dstConfig.Mod_download_path)
 	}
 	dstConfigUtils.SaveDstConfig(dstConfig)
+	global.Collect.ReCollect(filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster), dstConfig.Cluster)
 }
 
 func (i *InitService) InitBaseLevel(dstConfig *dstConfigUtils.DstConfig, username, token string, exsitesNotInit bool) {
 	clusterName := dstConfig.Cluster
 	klei_path := ""
 	if runtime.GOOS == "windows" {
-		klei_path = filepath.Join(constant.HOME_PATH, "Documents", "klei", "DoNotStarveTogether")
+		klei_path = filepath.Join(consts.HomePath, "Documents", "klei", "DoNotStarveTogether")
 	} else {
-		klei_path = filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+		klei_path = filepath.Join(consts.HomePath, ".klei", "DoNotStarveTogether")
 	}
 	baseLevelPath := filepath.Join(klei_path, clusterName)
 
@@ -177,7 +179,7 @@ func (i *InitService) InitBaseCaves(basePath string) {
 
 func (i *InitService) InitCluster(cluster *model.Cluster, token string) {
 
-	kleiPath := filepath.Join(constant.HOME_PATH, ".klei", "DoNotStarveTogether")
+	kleiPath := filepath.Join(dstUtils.GetKleiDstPath())
 	baseLevelPath := filepath.Join(kleiPath, cluster.ClusterName)
 	if fileUtils.Exists(baseLevelPath) {
 		return

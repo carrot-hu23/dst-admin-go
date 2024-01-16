@@ -8,4 +8,5 @@ type BackupSnapshot struct {
 	Interval     int    `json:"interval"`
 	MaxSnapshots int    `json:"maxSnapshots"`
 	Enable       int    `json:"enable"`
+	IsCSave      int    `json:"isCSave"`
 }
