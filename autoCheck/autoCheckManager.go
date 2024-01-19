@@ -310,6 +310,9 @@ func (s *LevelModCheck) Run(clusterName, levelName string) error {
 	log.Println("正在更新模组 ", clusterName, levelName)
 	SendAnnouncement2(clusterName, levelName, consts.LEVEL_MOD)
 
+	// TODO 删除acf文件
+	fileUtils.DeleteFile(dstUtils.GetUgcAcfPath(clusterName, levelName))
+
 	cluster := clusterUtils.GetCluster(clusterName)
 	bin := cluster.Bin
 	beta := cluster.Beta
@@ -355,10 +358,7 @@ func (s *GameUpdateCheck) Check(clusterName, levelName string) bool {
 func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
 	log.Println("正在更新游戏 ", clusterName, levelName)
 	SendAnnouncement2(clusterName, levelName, consts.UPDATE_GAME)
-	err := gameService.UpdateGame(clusterName)
-	if err != nil {
-		return err
-	}
+	gameService.UpdateGame(clusterName)
 	time.Sleep(3 * time.Minute)
 
 	// 只启动选择的世界
@@ -375,7 +375,8 @@ func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
 			if logRecord.Action == model.STOP {
 				continue
 			} else {
-				gameService.StartLevel(clusterName, levelName, dstConfig.Bin, dstConfig.Beta)
+				log.Println("正在重启", clusterName, item.File, dstConfig.Bin, dstConfig.Beta)
+				gameService.StartLevel(clusterName, item.File, dstConfig.Bin, dstConfig.Beta)
 				time.Sleep(30 * time.Second)
 			}
 		}

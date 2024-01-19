@@ -2,6 +2,7 @@ package service
 
 import (
 	"dst-admin-go/constant/screenKey"
+	dst_cli_window "dst-admin-go/dst-cli-window"
 	"dst-admin-go/utils/collectionUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -66,6 +67,60 @@ var memo *Memo
 
 func init() {
 	memo = New(func(key string) (interface{}, error) {
+
+		if isWindows() {
+			split := strings.Split(key, ":")
+			if len(split) != 2 {
+				return []vo.PlayerVO{}, nil
+			}
+			clusterName := split[0]
+			levelName := split[1]
+			if !gameServe.GetLevelStatus(clusterName, levelName) {
+				return make([]vo.PlayerVO, 0), nil
+			}
+
+			id := strconv.FormatInt(time.Now().Unix(), 10)
+
+			command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s \", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
+
+			_, err := dst_cli_window.DstCliClient.Command(clusterName, levelName, command)
+			if err != nil {
+				return make([]vo.PlayerVO, 0), nil
+			}
+
+			// 读取日志
+			dstLogs := dstUtils.ReadLevelLog(clusterName, levelName, 100)
+			playerVOList := make([]vo.PlayerVO, 0)
+
+			for _, line := range dstLogs {
+				if strings.Contains(line, id) && strings.Contains(line, "KU") && !strings.Contains(line, "Host") {
+					str := strings.Split(line, " ")
+					log.Println("players:", str)
+					playerVO := vo.PlayerVO{Key: str[2], Day: str[3], KuId: str[4], Name: str[5], Role: str[6]}
+					playerVOList = append(playerVOList, playerVO)
+				}
+			}
+
+			// 创建一个map，用于存储不重复的KuId和对应的PlayerVO对象
+			uniquePlayers := make(map[string]vo.PlayerVO)
+
+			// 遍历players切片
+			for _, player := range playerVOList {
+				// 将PlayerVO对象添加到map中，以KuId作为键
+				uniquePlayers[player.KuId] = player
+			}
+
+			// 将不重复的PlayerVO对象从map中提取到新的切片中
+			filteredPlayers := make([]vo.PlayerVO, 0, len(uniquePlayers))
+			for _, player := range uniquePlayers {
+				filteredPlayers = append(filteredPlayers, player)
+			}
+
+			return filteredPlayers, nil
+		}
+
+		// #################################################################
+
 		split := strings.Split(key, ":")
 		log.Println("-----------", key)
 		if len(split) != 2 {

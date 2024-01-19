@@ -33,6 +33,9 @@ type GameService struct {
 }
 
 func (g *GameService) GetLastDstVersion() int64 {
+	if isWindows() {
+		return WindowService.GetLastDstVersion()
+	}
 
 	url := "http://ver.tugos.cn/getLocalVersion"
 	resp, err := http.Get(url)
@@ -52,6 +55,10 @@ func (g *GameService) GetLastDstVersion() int64 {
 }
 
 func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
+	if isWindows() {
+		return WindowService.GetLocalDstVersion(clusterName)
+	}
+
 	cluster := clusterUtils.GetCluster(clusterName)
 	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
 	version, err := fileUtils.ReadFile(versionTextPath)
@@ -69,6 +76,10 @@ func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
 }
 
 func ClearScreen() bool {
+	if isWindows() {
+		return true
+	}
+
 	result, err := shellUtils.Shell(consts.ClearScreenCmd)
 	if err != nil {
 		return false
@@ -78,6 +89,9 @@ func ClearScreen() bool {
 }
 
 func (g *GameService) UpdateGame(clusterName string) error {
+	if isWindows() {
+		return WindowService.UpdateGame(clusterName)
+	}
 
 	g.lock.Lock()
 	defer g.lock.Unlock()
@@ -103,6 +117,11 @@ func (g *GameService) UpdateGame(clusterName string) error {
 }
 
 func (g *GameService) GetLevelStatus(clusterName, level string) bool {
+
+	if isWindows() {
+		return WindowService.GetLevelStatus(clusterName, level)
+	}
+
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
 	result, err := shellUtils.Shell(cmd)
 	if err != nil {
@@ -145,12 +164,20 @@ func (g *GameService) killLevel(clusterName, level string) {
 }
 
 func (g *GameService) StartLevel(clusterName, level string, bin, beta int) {
+	if isWindows() {
+		WindowService.StartLevel(clusterName, level, bin, beta)
+		return
+	}
 	g.StopLevel(clusterName, level)
 	g.LaunchLevel(clusterName, level, bin, beta)
 	ClearScreen()
 }
 
 func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
+	if isWindows() {
+		WindowService.LaunchLevel(clusterName, level, bin, beta)
+		return
+	}
 	launchLock.Lock()
 	defer func() {
 		launchLock.Unlock()
@@ -196,7 +223,10 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 }
 
 func (g *GameService) StopLevel(clusterName, level string) {
-
+	if isWindows() {
+		WindowService.StopLevel(clusterName, level)
+		return
+	}
 	launchLock.Lock()
 	defer func() {
 		launchLock.Unlock()
@@ -228,6 +258,10 @@ func (g *GameService) StopLevel(clusterName, level string) {
 
 func (g *GameService) StopGame(clusterName string) {
 
+	if isWindows() {
+		WindowService.StopGame(clusterName)
+		return
+	}
 	config, err := levelConfigUtils.GetLevelConfig(clusterName)
 	if err != nil {
 		log.Panicln(err)
@@ -250,6 +284,10 @@ func (g *GameService) StopGame(clusterName string) {
 }
 
 func (g *GameService) StartGame(clusterName string) {
+	if isWindows() {
+		WindowService.StartGame(clusterName)
+		return
+	}
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	g.StopGame(clusterName)
@@ -280,6 +318,9 @@ func (g *GameService) StartGame(clusterName string) {
 }
 
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
+	if isWindows() {
+		return vo.NewDstPsVo()
+	}
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
 

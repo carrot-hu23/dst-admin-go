@@ -279,7 +279,7 @@ func (b *BackupService) GenGameBackUpName(clusterName string) string {
 	days := strconv.Itoa(snapshoot.Clock.Cycles)
 	elapsedDayInSeason := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason)
 	seasonDays := strconv.Itoa(snapshoot.Seasons.ElapsedDaysInSeason + snapshoot.Seasons.RemainingDaysInSeason)
-	archiveDesc := days + "day_" + snapshoot.Clock.Phase + "_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "|" + seasonDays + ")"
+	archiveDesc := days + "day_" + snapshoot.Clock.Phase + "_" + SeasonMap[snapshoot.Seasons.Season] + "(" + elapsedDayInSeason + "_" + seasonDays + ")"
 	backupName := time.Now().Format("2006年01月02日15点04分05秒") + "_" + name + "_" + archiveDesc + ".zip"
 
 	return backupName

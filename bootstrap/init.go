@@ -156,7 +156,7 @@ func initUpdateModinfos() {
 			for {
 				select {
 				case <-ticker.C:
-					log.Println("正在定时更新模组配置 间隔: ", 30, "分钟")
+					log.Println("正在定时更新模组配置 间隔: ", t, "分钟")
 					// 每隔10分钟执行的任务
 					mod.UpdateModinfoList()
 				}
@@ -174,7 +174,7 @@ func initUpdateModinfos() {
 			for {
 				select {
 				case <-ticker.C:
-					log.Println("正在定时检查模组配置是否更新 间隔: ", 5, "分钟")
+					log.Println("正在定时检查模组配置是否更新 间隔: ", t, "分钟")
 					// 每隔10分钟执行的任务
 					mod.CheckModInfoUpdate()
 				}

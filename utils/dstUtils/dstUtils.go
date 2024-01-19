@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	textTemplate "text/template"
@@ -149,6 +150,9 @@ func GetDstUpdateCmd(clusterName string) string {
 	cluster := dstConfigUtils.GetDstConfig()
 	steamcmd := cluster.Steamcmd
 	dst_install_dir := cluster.Force_install_dir
+	if runtime.GOOS == "windows" {
+		return "cd /d " + steamcmd + " && Start steamcmd.exe +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+	}
 	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
 }
 

@@ -17,4 +17,6 @@ type Config struct {
 		CheckInterval       int  `yaml:"checkInterval"`
 		UpdateCheckInterval int  `yaml:"updateCheckInterval"`
 	} `yaml:"autoUpdateModinfo"`
+
+	DstCliPort string `yaml:"dstCliPort"`
 }

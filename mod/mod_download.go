@@ -7,15 +7,16 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/shellUtils"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -74,11 +75,11 @@ func get_dst_ucgs_mods_installed_path(modid string) (string, bool) {
 	masterModFilePath := ""
 	caveModFilePath := ""
 	if dstConfig.Ugc_directory != "" {
-		masterModFilePath = path.Join(dstUtils.GetUgcModPath(), "content", "322330", modid)
-		caveModFilePath = path.Join(dstUtils.GetUgcModPath(), "content", "322330", modid)
+		masterModFilePath = filepath.Join(dstUtils.GetUgcModPath(), "content", "322330", modid)
+		caveModFilePath = filepath.Join(dstUtils.GetUgcModPath(), "content", "322330", modid)
 	} else {
-		masterModFilePath = path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Master/content/322330", modid)
-		caveModFilePath = path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Caves/content/322330", modid)
+		masterModFilePath = filepath.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "Master", "content", "322330", modid)
+		caveModFilePath = filepath.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "Caves", "content", "322330", modid)
 	}
 
 	log.Println("masterModFilePath: ", masterModFilePath)
@@ -109,31 +110,43 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 	mod_download_path := dstConfig.Mod_download_path
 	fileUtils.CreateFileIfNotExists(mod_download_path)
 	// 下载的模组位置
-	mod_path := path.Join(mod_download_path, "/steamapps/workshop/content/322330/", mod_id)
+	mod_path := filepath.Join(mod_download_path, "steamapps", "workshop", "content", "322330", mod_id)
 	if _, err := os.Stat(mod_path); err == nil {
 		fmt.Println("Mod already downloaded to:", mod_path)
 	} else {
 		// 调用 SteamCMD 命令下载 mod
 		steamcmd := dstConfig.Steamcmd
-		cmd := exec.Command(path.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+		if runtime.GOOS == "windows" {
+			cmd := "cd /d " + steamcmd + " && Start steamcmd.exe +login anonymous +force_install_dir " + mod_download_path + " +workshop_download_item 322330 " + mod_id + " +quit"
+			log.Println("正在下载模组 command: ", cmd)
+			_, err := shellUtils.ExecuteCommandInWin(cmd)
 
-		log.Println("正在现在模组 command: ", cmd)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Panicln("下载mod失败，请检查steamcmd路径是否配置正确", err)
-			return make(map[string]interface{})
+			if err != nil {
+				log.Panicln("下载mod失败，请检查steamcmd路径是否配置正确", err)
+				return make(map[string]interface{})
+			}
+		} else {
+			cmd := exec.Command(filepath.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+
+			log.Println("正在下载模组 command: ", cmd)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				log.Panicln("下载mod失败，请检查steamcmd路径是否配置正确", err)
+				return make(map[string]interface{})
+			}
+
+			// 解析 SteamCMD 输出，提取 mod 文件路径
+			re := regexp.MustCompile(`Downloaded item \d+ to "([^"]+)"`)
+			match := re.FindStringSubmatch(string(output))
+			if len(match) < 2 {
+				fmt.Println("Error parsing output")
+				log.Println(string(output))
+				return make(map[string]interface{})
+			}
+			path := match[1]
+			fmt.Println("Mod downloaded to:", path)
 		}
 
-		// 解析 SteamCMD 输出，提取 mod 文件路径
-		re := regexp.MustCompile(`Downloaded item \d+ to "([^"]+)"`)
-		match := re.FindStringSubmatch(string(output))
-		if len(match) < 2 {
-			fmt.Println("Error parsing output")
-			log.Println(string(output))
-			return make(map[string]interface{})
-		}
-		path := match[1]
-		fmt.Println("Mod downloaded to:", path)
 	}
 
 	// 查找 modinfo.lua 文件
