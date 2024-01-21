@@ -128,7 +128,7 @@ func (g *GameService) GetLevelStatus(clusterName, level string) bool {
 		return false
 	}
 	res := strings.Split(result, "\n")[0]
-	log.Println("查询世界状态", cmd, result, res, res != "")
+	// log.Println("查询世界状态", cmd, result, res, res != "")
 	return res != ""
 }
 
@@ -193,6 +193,9 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 	persistent_storage_root := cluster.Persistent_storage_root
 	conf_dir := cluster.Conf_dir
 	var startCmd = ""
+
+	dstInstallDir = dstUtils.EscapePath(dstInstallDir)
+	log.Println(dstInstallDir)
 
 	if bin == 64 {
 		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
