@@ -95,7 +95,7 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 			}
 		}
 
-		cmd := "ps -aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName
+		cmd := "ps -aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName + " |awk '{print $3, $4, $5, $6,$16}'"
 		info, err := shellUtils.Shell(cmd)
 		if err != nil {
 			log.Println(cmd + " error: " + err.Error())
@@ -104,14 +104,17 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 			for lineIndex := range lines {
 				dstPsVo := vo.NewDstPsVo()
 				arr := strings.Split(lines[lineIndex], " ")
-				if len(arr) > 10 {
-					dstPsVo.CpuUage = strings.Replace(arr[7], "\n", "", -1)
-					dstPsVo.MemUage = strings.Replace(arr[8], "\n", "", -1)
-					dstPsVo.VSZ = strings.Replace(arr[9], "\n", "", -1)
-					dstPsVo.RSS = strings.Replace(arr[10], "\n", "", -1)
+				//for i := range arr {
+				//	log.Println(i, arr[i])
+				//}
+				if len(arr) > 4 {
+					dstPsVo.CpuUage = strings.Replace(arr[0], "\n", "", -1)
+					dstPsVo.MemUage = strings.Replace(arr[1], "\n", "", -1)
+					dstPsVo.VSZ = strings.Replace(arr[2], "\n", "", -1)
+					dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
 					for i := range result {
 						levelName := result[i].Uuid
-						if strings.Contains(lines[lineIndex], levelName) {
+						if strings.Contains(arr[4], levelName) {
 							result[i].Ps = dstPsVo
 							result[i].Status = true
 						}
