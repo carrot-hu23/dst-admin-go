@@ -13,4 +13,5 @@ type JobTask struct {
 	Announcement string `json:"announcement"`
 	Sleep        int    `json:"sleep"`
 	Times        int    `json:"times"`
+	Script       int    `json:"script"`
 }

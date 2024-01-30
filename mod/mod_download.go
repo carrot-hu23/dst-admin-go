@@ -126,7 +126,12 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 				return make(map[string]interface{})
 			}
 		} else {
-			cmd := exec.Command(filepath.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+			var cmd *exec.Cmd
+			if fileUtils.Exists(filepath.Join(steamcmd, "steamcmd")) {
+				cmd = exec.Command(filepath.Join(steamcmd, "steamcmd"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+			} else {
+				cmd = exec.Command(filepath.Join(steamcmd, "steamcmd.sh"), "+login anonymous", "+force_install_dir", mod_download_path, "+workshop_download_item 322330 "+mod_id, "+quit")
+			}
 
 			log.Println("正在下载模组 command: ", cmd)
 			output, err := cmd.CombinedOutput()

@@ -8,6 +8,7 @@ import (
 	"dst-admin-go/utils/systemUtils"
 	"io"
 	"net/http"
+	"path/filepath"
 	"runtime"
 	"strconv"
 
@@ -17,7 +18,6 @@ import (
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"log"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -61,6 +61,20 @@ func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
+
+	// 使用filepath.Clean确保路径格式正确
+	cleanPath := filepath.Clean(versionTextPath)
+
+	// 使用filepath.Abs获取绝对路径
+	absPath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		log.Println("Error getting absolute path:", err)
+		return 0
+	}
+
+	// 打印绝对路径
+	log.Println("Absolute Path:", absPath)
+
 	version, err := fileUtils.ReadFile(versionTextPath)
 	if err != nil {
 		log.Println(err)

@@ -311,7 +311,7 @@ func (s *LevelModCheck) Run(clusterName, levelName string) error {
 	SendAnnouncement2(clusterName, levelName, consts.LEVEL_MOD)
 
 	// TODO 删除acf文件
-	fileUtils.DeleteFile(dstUtils.GetUgcAcfPath(clusterName, levelName))
+	// fileUtils.DeleteFile(dstUtils.GetUgcAcfPath(clusterName, levelName))
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	bin := cluster.Bin

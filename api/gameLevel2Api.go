@@ -6,12 +6,15 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/level"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net"
 	"net/http"
+	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -43,22 +46,46 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 	levelList := gameLevel2Service.GetLevelList(clusterName)
 	length := len(levelList)
 	result := make([]LevelInfo, length)
-	var wg sync.WaitGroup
-	wg.Add(length)
-	for i := range levelList {
-		go func(index int) {
-			defer func() {
-				wg.Done()
-				if r := recover(); r != nil {
 
+	if runtime.GOOS == "windows" {
+
+		var wg sync.WaitGroup
+		wg.Add(length)
+		for i := range levelList {
+			go func(index int) {
+				defer func() {
+					wg.Done()
+					if r := recover(); r != nil {
+
+					}
+				}()
+				world := levelList[index]
+				ps := gameService.PsAuxSpecified(clusterName, world.Uuid)
+				status := gameService.GetLevelStatus(clusterName, world.Uuid)
+				result[index] = LevelInfo{
+					Ps:                ps,
+					Status:            status,
+					LevelName:         world.LevelName,
+					IsMaster:          world.IsMaster,
+					Uuid:              world.Uuid,
+					Leveldataoverride: world.Leveldataoverride,
+					Modoverrides:      world.Modoverrides,
+					ServerIni:         world.ServerIni,
 				}
-			}()
-			world := levelList[index]
-			ps := gameService.PsAuxSpecified(clusterName, world.Uuid)
-			status := gameService.GetLevelStatus(clusterName, world.Uuid)
-			result[index] = LevelInfo{
-				Ps:                ps,
-				Status:            status,
+			}(i)
+		}
+		wg.Wait()
+		ctx.JSON(http.StatusOK, vo.Response{
+			Code: 200,
+			Msg:  "success",
+			Data: result,
+		})
+	} else {
+		for i := range levelList {
+			world := levelList[i]
+			result[i] = LevelInfo{
+				Ps:                &vo.DstPsVo{},
+				Status:            false,
 				LevelName:         world.LevelName,
 				IsMaster:          world.IsMaster,
 				Uuid:              world.Uuid,
@@ -66,14 +93,41 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 				Modoverrides:      world.Modoverrides,
 				ServerIni:         world.ServerIni,
 			}
-		}(i)
+		}
+
+		cmd := "ps -aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName
+		info, err := shellUtils.Shell(cmd)
+		if err != nil {
+			log.Println(cmd + " error: " + err.Error())
+		} else {
+			lines := strings.Split(info, "\n")
+			for lineIndex := range lines {
+				dstPsVo := vo.NewDstPsVo()
+				arr := strings.Split(lines[lineIndex], " ")
+				if len(arr) > 10 {
+					dstPsVo.CpuUage = strings.Replace(arr[7], "\n", "", -1)
+					dstPsVo.MemUage = strings.Replace(arr[8], "\n", "", -1)
+					dstPsVo.VSZ = strings.Replace(arr[9], "\n", "", -1)
+					dstPsVo.RSS = strings.Replace(arr[10], "\n", "", -1)
+					for i := range result {
+						levelName := result[i].Uuid
+						if strings.Contains(lines[lineIndex], levelName) {
+							result[i].Ps = dstPsVo
+							result[i].Status = true
+						}
+					}
+				}
+
+			}
+		}
+
+		ctx.JSON(http.StatusOK, vo.Response{
+			Code: 200,
+			Msg:  "success",
+			Data: result,
+		})
 	}
-	wg.Wait()
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: result,
-	})
+
 }
 
 // Start 启动世界

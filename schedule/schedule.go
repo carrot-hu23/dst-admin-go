@@ -129,7 +129,7 @@ func (s *Schedule) initDBTask() {
 		entryID, err := s.cron.AddFunc(task.Cron, func() {
 			// 发送公告
 			s.SendAnnouncement(task.ClusterName, task.Announcement, task.Sleep, task.Times)
-			StrategyMap[task.Category].Execute(task.ClusterName, task.LevelName)
+			StrategyMap[task.Category].Execute(task.ClusterName, task.Uuid)
 		})
 		if err != nil {
 			log.Println("初始化任务失败", err)
