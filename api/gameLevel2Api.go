@@ -243,6 +243,19 @@ func (g *GameLevel2Api) SendCommand(ctx *gin.Context) {
 	})
 }
 
+// GetAllOnlinePlayers 获取所有在线玩家
+func (g *GameLevel2Api) GetAllOnlinePlayers(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	playerList := playerService.GetPlayerList(clusterName, "#ALL_LEVEL")
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: playerList,
+	})
+}
+
 // GetOnlinePlayers 获取在线玩家
 func (g *GameLevel2Api) GetOnlinePlayers(ctx *gin.Context) {
 	levelName := ctx.Query("levelName")

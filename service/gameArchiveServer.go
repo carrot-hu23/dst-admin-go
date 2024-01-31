@@ -114,7 +114,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 			}
 		}()
 		// 默认取Master世界人数
-		gameArchie.Players = d.GetPlayerList(clusterName, "Master")
+		gameArchie.Players = d.GetPlayerList(clusterName, "#ALL_LEVEL")
 	}()
 
 	wg.Wait()
