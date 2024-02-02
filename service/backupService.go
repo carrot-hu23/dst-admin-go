@@ -7,6 +7,7 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/utils/zip"
 	"dst-admin-go/vo"
 	"fmt"
@@ -210,9 +211,34 @@ func (b *BackupService) ScheduleBackupSnapshots() {
 	}
 }
 
+func sumMd5(filePath string) string {
+	// find save -type f -exec md5sum {} \; | awk '{print $1}' | sort | md5sum
+	comamd := "find " + filePath + " -type f -exec md5sum {} \\; | awk '{print $1}' | sort | md5sum"
+	info, err := shellUtils.ExecuteCommand(comamd)
+	if err != nil {
+		return ""
+	}
+	return info
+}
+
 func (b *BackupService) CreateSnapshotBackup(prefix, clusterName string) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
+
+	snapshotMd5FilePath := "./snapshotMd5"
+	fileUtils.CreateFileIfNotExists(snapshotMd5FilePath)
+	oldMd5, _ := fileUtils.ReadFile(snapshotMd5FilePath)
+	saveDirPath := filepath.Join(dstUtils.GetClusterBasePath(clusterName), "Master", "save")
+	md5 := sumMd5(saveDirPath)
+	log.Println("oldMd5", oldMd5, "md5", md5)
+	if oldMd5 == md5 {
+		log.Println("两次md5 相等")
+		return
+	}
+	if md5 != "" {
+		fileUtils.WriterTXT(snapshotMd5FilePath, md5)
+	}
+
 	src := filepath.Join(dstUtils.GetKleiDstPath(), cluster.ClusterName)
 	dst := filepath.Join(cluster.Backup, b.GenBackUpSnapshotName(prefix, cluster.ClusterName))
 	log.Println("[Snapshot]正在定时创建游戏备份", "src: ", src, "dst: ", dst)
