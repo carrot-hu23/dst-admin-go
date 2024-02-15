@@ -93,7 +93,7 @@ func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 
 	b_reader := bytes.NewReader(bytesData)
 
-	url := "https://dst.liuyh.com/index/serverlist/getserverlist.html"
+	url := "http://dst.liuyh.com/index/serverlist/getserverlist.html"
 	req, _ := http.NewRequest("POST", url, b_reader)
 	// 比如说设置个token
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")
@@ -133,7 +133,7 @@ func (t *ThirdPartyApi) GetDstHomeDetailList(c *gin.Context) {
 
 	b_reader := bytes.NewReader(bytesData)
 
-	url := "https://dst.liuyh.com/index/serverlist/getserverdetail.html"
+	url := "http://dst.liuyh.com/index/serverlist/getserverdetail.html"
 	req, _ := http.NewRequest("POST", url, b_reader)
 	// 比如说设置个token
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")

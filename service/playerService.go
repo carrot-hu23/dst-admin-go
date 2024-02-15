@@ -76,12 +76,18 @@ func init() {
 			}
 			clusterName := split[0]
 			levelName := split[1]
-			if !gameServe.GetLevelStatus(clusterName, levelName) {
-				return make([]vo.PlayerVO, 0), nil
+
+			if levelName != "#ALL_LEVEL" {
+				if !gameServe.GetLevelStatus(clusterName, levelName) {
+					return []vo.PlayerVO{}, nil
+				}
 			}
 
 			id := strconv.FormatInt(time.Now().Unix(), 10)
 
+			if levelName == "#ALL_LEVEL" {
+				levelName = "Master"
+			}
 			command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s \", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 
 			_, err := dst_cli_window.DstCliClient.Command(clusterName, levelName, command)

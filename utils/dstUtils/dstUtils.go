@@ -156,7 +156,7 @@ func GetDstUpdateCmd(clusterName string) string {
 	if runtime.GOOS == "windows" {
 		return "cd /d " + steamcmd + " && Start steamcmd.exe +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
 	}
-	if fileUtils.Exists(filepath.Join(steamcmd, "steamcmd")) {
+	if !fileUtils.Exists(filepath.Join(steamcmd, "steamcmd.sh")) {
 		return "cd " + steamcmd + " ; ./steamcmd +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
 	}
 	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
