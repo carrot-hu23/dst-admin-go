@@ -59,20 +59,41 @@ func (t *ThirdPartyApi) GetDstHomeServerList(c *gin.Context) {
 	query_data["sort_type"] = param.SortType
 	query_data["sort_way"] = param.SortWay
 	query_data["search_type"] = param.Search_type
-	query_data["search_content"] = param.Search_content
-	if param.Mod != "" {
-		// 不区分是否使用mod
+	if param.Search_content != "" {
+		query_data["search_content"] = param.Search_content
+	}
+	if param.Mode != "" {
+		query_data["mode"] = param.Mode
+	}
+	if param.Season != "" {
+		query_data["season"] = param.Season
+	}
+	if param.Pvp != -1 {
+		query_data["pvp"] = param.Pvp
+	}
+	if param.Mod != -1 {
 		query_data["mod"] = param.Mod
+	}
+	if param.Password != -1 {
+		query_data["password"] = param.Password
+	}
+	if param.World != -1 {
+		query_data["world"] = param.World
+	}
+	if param.Playerpercent != "" {
+		query_data["playerpercent"] = param.Playerpercent
 	}
 
 	bytesData, err := json.Marshal(query_data)
+	log.Println("param", string(bytesData))
+
 	if err != nil {
 		log.Println("josn 解析异常")
 	}
 
 	b_reader := bytes.NewReader(bytesData)
 
-	url := "https://dst.liuyh.com/index/serverlist/getserverlist.html"
+	url := "http://dst.liuyh.com/index/serverlist/getserverlist.html"
 	req, _ := http.NewRequest("POST", url, b_reader)
 	// 比如说设置个token
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")
@@ -112,7 +133,7 @@ func (t *ThirdPartyApi) GetDstHomeDetailList(c *gin.Context) {
 
 	b_reader := bytes.NewReader(bytesData)
 
-	url := "https://dst.liuyh.com/index/serverlist/getserverdetail.html"
+	url := "http://dst.liuyh.com/index/serverlist/getserverdetail.html"
 	req, _ := http.NewRequest("POST", url, b_reader)
 	// 比如说设置个token
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")

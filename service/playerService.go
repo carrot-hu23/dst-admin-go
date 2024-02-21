@@ -95,15 +95,13 @@ func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo
 
 	id := strconv.FormatInt(time.Now().Unix(), 10)
 
-	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
+	command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"player: {[%s] [%d] [%s] [%s] [%s] [%s]} \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
+	// command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\\\"%s %d %s %s %s %s \\\", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 
 	playerCMD := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
 
 	shellUtils.Shell(playerCMD)
-
 	time.Sleep(time.Duration(500) * time.Millisecond)
-
-	// TODO 如果只启动了洞穴，应该去读取洞穴的日志
 
 	// 读取日志
 	dstLogs := dstUtils.ReadLevelLog(clusterName, levelName, 100)
@@ -111,10 +109,33 @@ func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo
 
 	for _, line := range dstLogs {
 		if strings.Contains(line, id) && strings.Contains(line, "KU") && !strings.Contains(line, "Host") {
-			str := strings.Split(line, " ")
-			log.Println("players:", str)
-			playerVO := vo.PlayerVO{Key: str[2], Day: str[3], KuId: str[4], Name: str[5], Role: str[6]}
-			playerVOList = append(playerVOList, playerVO)
+			//str := strings.Split(line, " ")
+			//log.Println("players:", str)
+			//playerVO := vo.PlayerVO{Key: str[2], Day: str[3], KuId: str[4], Name: str[5], Role: str[6]}
+			//playerVOList = append(playerVOList, playerVO)
+
+			log.Println(line)
+
+			// 提取 {} 中的内容
+			reCurlyBraces := regexp.MustCompile(`\{([^}]*)\}`)
+			curlyBracesMatches := reCurlyBraces.FindStringSubmatch(line)
+
+			if len(curlyBracesMatches) > 1 {
+				// curlyBracesMatches[1] 包含 {} 中的内容
+				contentInsideCurlyBraces := curlyBracesMatches[1]
+
+				// 提取 [] 中的内容
+				reSquareBrackets := regexp.MustCompile(`\[([^\]]*)\]`)
+				squareBracketsMatches := reSquareBrackets.FindAllStringSubmatch(contentInsideCurlyBraces, -1)
+				var result []string
+				for _, match := range squareBracketsMatches {
+					// match[1] 包含 [] 中的内容
+					contentInsideSquareBrackets := match[1]
+					result = append(result, contentInsideSquareBrackets)
+				}
+				playerVO := vo.PlayerVO{Key: result[1], Day: result[2], KuId: result[3], Name: result[4], Role: result[5]}
+				playerVOList = append(playerVOList, playerVO)
+			}
 		}
 	}
 
