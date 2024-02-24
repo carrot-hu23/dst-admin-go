@@ -269,10 +269,10 @@ func (m *AutoCheckApi) GetAutoCheckList2(ctx *gin.Context) {
 	} else {
 		autoCheck3 := model.AutoCheck{
 			ClusterName:  cluster.ClusterName,
-			LevelName:    "",
-			Uuid:         "",
+			LevelName:    "Master",
+			Uuid:         "Master",
 			Enable:       0,
-			Announcement: "",
+			Announcement: "房间即将重启更新，请稍后进入",
 			Times:        1,
 			Sleep:        5,
 			Interval:     5,

@@ -77,7 +77,7 @@ func GetDstServerInfo(clusterName string) []DstHomeInfo {
 	log.Println("查询: ", d2)
 	data := []byte(d2)
 	// 创建HTTP请求
-	url := "https://dst.liuyh.com/index/serverlist/getserverlist.html"
+	url := "http://dst.liuyh.com/index/serverlist/getserverlist.html"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
 		log.Println("33333", err)

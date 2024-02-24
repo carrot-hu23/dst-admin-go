@@ -110,7 +110,8 @@ func (m *AutoCheckManager) Start() {
 
 	clusterList := m.getClusterList()
 	for i := range clusterList {
-		config, _ := levelConfigUtils.GetLevelConfig(clusterList[i].ClusterName)
+		clusterName := clusterList[i].ClusterName
+		config, _ := levelConfigUtils.GetLevelConfig(clusterName)
 		var uuidSet []string
 		for i := range config.LevelList {
 			level := config.LevelList[i]
@@ -119,10 +120,14 @@ func (m *AutoCheckManager) Start() {
 		var autoChecks []model.AutoCheck
 
 		db := database.DB
-		db.Where("uuid in ? and cluster_name = ?", uuidSet, clusterList[i].ClusterName).Find(&autoChecks)
+		db.Where("uuid in ? and cluster_name = ? and check_type != 'UPDATE_GAME' ", uuidSet, clusterName).Find(&autoChecks)
 
 		var autoCheck2 = model.AutoCheck{}
-		db.Where("check_type = ? and cluster_name = ?", consts.UPDATE_GAME, clusterList[i].ClusterName).Find(&autoCheck2)
+		db.Where("check_type = ? and cluster_name = ?", consts.UPDATE_GAME, clusterName).Find(&autoCheck2)
+		autoCheck2.ClusterName = clusterName
+		autoCheck2.LevelName = "Master"
+		autoCheck2.Uuid = "Master"
+
 		autoChecks = append(autoChecks, autoCheck2)
 
 		log.Println("autoChecks", autoChecks)
@@ -174,7 +179,7 @@ func (m *AutoCheckManager) GetAutoCheck(clusterName, levelName, checkType, uuid 
 
 // TODO 这里要修改
 func (m *AutoCheckManager) check(task model.AutoCheck) {
-
+	log.Println("task", task)
 	if task.Uuid != "" {
 		task = *m.GetAutoCheck(task.ClusterName, task.LevelName, task.CheckType, task.Uuid)
 	}
@@ -192,7 +197,7 @@ func (m *AutoCheckManager) check(task model.AutoCheck) {
 				log.Println(task.ClusterName, task.Uuid, task.CheckType, "has not started, starting it...")
 				err := strategy.Run(task.ClusterName, task.Uuid)
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 				}
 			}
 		}
@@ -337,7 +342,7 @@ func (s *GameUpdateCheck) Check(clusterName, levelName string) bool {
 }
 
 func (s *GameUpdateCheck) Run(clusterName, levelName string) error {
-	log.Println("正在更新游戏 ", clusterName, levelName)
+	log.Println("自动更新正在更新游戏 ", clusterName, levelName)
 	SendAnnouncement2(clusterName, levelName)
 
 	return gameService.UpdateGame(clusterName)
