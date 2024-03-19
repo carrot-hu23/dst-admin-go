@@ -1,8 +1,9 @@
 # dst-admin-go
 > 饥荒联机版管理后台
 >
-
-
+## 推广
+[【腾讯云】热卖套餐配置低至32元/月起，助您一键开服，即刻畅玩，立享优惠！](https://cloud.tencent.com/act/cps/redirect?redirect=5878&cps_key=8478a20880d339923787a350f9f8cbf5&from=console)
+![tengxunad1](docs/image/tengxunad1.png)
 
 **Now，Support Windows and Linux  platform**
 
@@ -62,4 +63,8 @@ set GOOS=linux
 
 go build
 ```
+
+## QQ 群
+![QQ 群](docs/image/饥荒开服面板交流issue群聊二维码.png)
+
 
