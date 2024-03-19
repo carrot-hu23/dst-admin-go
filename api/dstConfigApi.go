@@ -2,11 +2,14 @@ package api
 
 import (
 	"dst-admin-go/autoCheck"
+	"dst-admin-go/config/global"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/vo"
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +35,7 @@ func (d *DstConfigApi) SaveDstConfig(ctx *gin.Context) {
 		log.Panicln(err)
 	}
 	dstConfigUtils.SaveDstConfig(dstConfig)
+	global.Collect.ReCollect(filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster), dstConfig.Cluster)
 	initEvnService.InitBaseLevel(dstConfig, "默认初始化的世界", "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw=", true)
 
 	autoCheck.Manager.ReStart(dstConfig.Cluster)

@@ -21,6 +21,9 @@ func initModRouter(router *gin.RouterGroup) {
 		mod.POST("/modinfo/file", modApi.AddModInfoFile)
 
 		mod.PUT("/modinfo", modApi.UpdateAllModInfos)
+
+		mod.GET("/ugc/acf", modApi.GetUgcModAcf)
+		mod.DELETE("/ugc", modApi.DeleteUgcModFile)
 	}
 
 }

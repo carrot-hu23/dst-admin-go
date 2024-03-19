@@ -6,11 +6,15 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -298,4 +302,119 @@ func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 // AddModInfoFile 手动添加模组
 func (m *ModApi) UploadModFile(ctx *gin.Context) {
 
+}
+
+const (
+	steamAPIKey = "73DF9F781D195DFD3D19DED1CB72EEE6"
+)
+
+type WorkshopItemDetail struct {
+	WorkShopId  string  `json:"workshopId"`
+	Name        string  `json:"name"`
+	Timeupdated int64   `json:"timeupdated"`
+	Timelast    float64 `json:"timelast"`
+	Img         string  `json:"img"`
+}
+
+type AppworkshopAcf struct {
+}
+
+func (m *ModApi) GetUgcModAcf(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	levelName := ctx.Query("levelName")
+
+	acfPath := dstUtils.GetUgcAcfPath(cluster.ClusterName, levelName)
+	acfWorkshops := dstUtils.ParseACFFile(acfPath)
+
+	var workshopItemDetails []WorkshopItemDetail
+
+	var modIds []string
+	for key := range acfWorkshops {
+		modIds = append(modIds, key)
+	}
+
+	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
+	data := url.Values{}
+	data.Set("key", steamAPIKey)
+	data.Set("language", "6")
+	for i := range modIds {
+		data.Set("publishedfileids["+strconv.Itoa(i)+"]", modIds[i])
+	}
+	urlStr = urlStr + "?" + data.Encode()
+
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(resp.Body)
+
+	var result map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	dataList, ok := result["response"].(map[string]interface{})["publishedfiledetails"].([]interface{})
+	if !ok {
+		log.Panicln(err)
+	}
+	for i := range dataList {
+		workshop := dataList[i].(map[string]interface{})
+		_, find := workshop["time_updated"]
+		if find {
+			timeUpdated := workshop["time_updated"].(float64)
+			modId := workshop["publishedfileid"].(string)
+			value, ok := acfWorkshops[modId]
+			if ok {
+				img := workshop["preview_url"].(string)
+				img = fmt.Sprintf("%s?imw=64&imh=64&ima=fit&impolicy=Letterbox&imcolor=%%23000000&letterbox=true", img)
+				workshopItemDetails = append(workshopItemDetails, WorkshopItemDetail{
+					WorkShopId:  modId,
+					Timeupdated: value.TimeUpdated,
+					Timelast:    timeUpdated,
+					Img:         img,
+					Name:        workshop["title"].(string),
+				})
+			}
+		}
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: workshopItemDetails,
+	})
+}
+
+func (m *ModApi) DeleteUgcModFile(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+	levelName := ctx.Query("levelName")
+	workshopId := ctx.Query("workshopId")
+
+	modFilePath := dstUtils.GetUgcWorkshopModPath(clusterName, levelName, workshopId)
+
+	log.Println("modFilePath", modFilePath)
+	if fileUtils.Exists(modFilePath) {
+		err := fileUtils.DeleteDir(modFilePath)
+		if err != nil {
+			log.Panicln(err)
+		}
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
 }

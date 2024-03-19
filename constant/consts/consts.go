@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
 	"path/filepath"
+	"runtime"
 )
 
 const (
@@ -41,7 +42,9 @@ const (
 )
 
 var HomePath string
-var KleiDstPath string
+var DefaultKleiDstPath string
+
+const PasswordPath = "./password.txt"
 
 func init() {
 	home, err := systemUtils.Home()
@@ -51,6 +54,12 @@ func init() {
 	HomePath = home
 	fmt.Println("home path: " + HomePath)
 
-	KleiDstPath = filepath.Join(home, ".klei/DoNotStarveTogether")
+	if runtime.GOOS == "windows" {
+		//klei_path = filepath.Join(consts.HomePath, "Documents", "klei", "DoNotStarveTogether")
+		DefaultKleiDstPath = filepath.Join(home, "Documents", "klei", "DoNotStarveTogether")
+	} else {
+		// klei_path = filepath.Join(consts.HomePath, ".klei", "DoNotStarveTogether")
+		DefaultKleiDstPath = filepath.Join(home, ".klei", "DoNotStarveTogether")
+	}
 
 }

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"dst-admin-go/constant"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/session"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -15,7 +15,7 @@ type LoginService struct {
 }
 
 func (l *LoginService) GetUserInfo() map[string]interface{} {
-	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+	user, err := fileUtils.ReadLnFile(consts.PasswordPath)
 
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
@@ -37,7 +37,7 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 
 	response := &vo.Response{}
 
-	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+	user, err := fileUtils.ReadLnFile(consts.PasswordPath)
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
@@ -78,13 +78,13 @@ func (l *LoginService) Logout(ctx *gin.Context, sessions *session.Manager) {
 }
 
 func (l *LoginService) ChangeUser(username, password string) {
-	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+	user, err := fileUtils.ReadLnFile(consts.PasswordPath)
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
 	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
+	fileUtils.WriterLnFile(consts.PasswordPath, []string{
 		"username = " + username,
 		"password = " + password,
 		"displayName=" + displayName,
@@ -95,7 +95,7 @@ func (l *LoginService) ChangeUser(username, password string) {
 func (l *LoginService) ChangePassword(newPassword string) *vo.Response {
 
 	response := &vo.Response{}
-	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+	user, err := fileUtils.ReadLnFile(consts.PasswordPath)
 
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
@@ -103,7 +103,7 @@ func (l *LoginService) ChangePassword(newPassword string) *vo.Response {
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
 	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
+	fileUtils.WriterLnFile(consts.PasswordPath, []string{
 		"username = " + username,
 		"password = " + newPassword,
 		"displayName=" + displayName,
@@ -121,5 +121,5 @@ func (l *LoginService) InitUserInfo(userInfo *vo.UserInfo) {
 	password := "password=" + userInfo.Password
 	displayName := "displayName=" + userInfo.DisplayeName
 	photoURL := "photoURL=" + userInfo.PhotoURL
-	fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{username, password, displayName, photoURL})
+	fileUtils.WriterLnFile(consts.PasswordPath, []string{username, password, displayName, photoURL})
 }

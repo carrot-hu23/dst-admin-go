@@ -10,6 +10,7 @@ import (
 	"dst-admin-go/vo/level"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net"
 	"net/http"
 	"sync"
 )
@@ -378,4 +379,30 @@ func (g *GameLevel2Api) CreateNewLevel(ctx *gin.Context) {
 		Msg:  "success",
 		Data: newLevel,
 	})
+}
+
+func (g *GameLevel2Api) GetScanUDPPorts(ctx *gin.Context) {
+	ports, err := findFreeUDPPorts(10998, 11038)
+	if err != nil {
+		log.Panicln(err)
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: ports,
+	})
+}
+
+func findFreeUDPPorts(startPort, endPort int) ([]int, error) {
+	var freePorts []int
+
+	for port := startPort; port <= endPort; port++ {
+		conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: port})
+		if err == nil {
+			conn.Close()
+			freePorts = append(freePorts, port)
+		}
+	}
+
+	return freePorts, nil
 }

@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"encoding/json"
 	"fmt"
@@ -70,8 +71,15 @@ func get_dst_ucgs_mods_installed_path(modid string) (string, bool) {
 	// 先从 mods 文件读取
 
 	dstConfig := dstConfigUtils.GetDstConfig()
-	masterModFilePath := path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Master/content/322330", modid)
-	caveModFilePath := path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Caves/content/322330", modid)
+	masterModFilePath := ""
+	caveModFilePath := ""
+	if dstConfig.Ugc_directory != "" {
+		masterModFilePath = path.Join(dstUtils.GetUgcModPath(), "content", "322330", modid)
+		caveModFilePath = path.Join(dstUtils.GetUgcModPath(), "content", "322330", modid)
+	} else {
+		masterModFilePath = path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Master/content/322330", modid)
+		caveModFilePath = path.Join(dstConfig.Force_install_dir, "ugc_mods", dstConfig.Cluster, "/Caves/content/322330", modid)
+	}
 
 	log.Println("masterModFilePath: ", masterModFilePath)
 	log.Println("caveModFilePath: ", caveModFilePath)
@@ -870,8 +878,6 @@ func UploadMod(ctx *gin.Context) {
 	if err != nil {
 		log.Panicln(err)
 	}
-
-	// TODO 解压
 
 	// 如果上传的是 创意工坊的内容
 	if strings.Contains(modName, "workshop-") {

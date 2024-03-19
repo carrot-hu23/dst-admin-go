@@ -1,7 +1,6 @@
 package dstConfigUtils
 
 import (
-	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/fileUtils"
 	"log"
@@ -20,9 +19,11 @@ type DstConfig struct {
 	Bin                        int    `json:"bin"`
 	Beta                       int    `json:"beta"`
 
-	Ugc_directory           string `json:"ugc_directory"`
+	Ugc_directory string `json:"ugc_directory"`
+	// 根目录位置
 	Persistent_storage_root string `json:"persistent_storage_root"`
-	Conf_dir                string `json:"conf_dir"`
+	// 存档相对位置
+	Conf_dir string `json:"conf_dir"`
 }
 
 const dst_config_path = "./dst_config"
@@ -136,12 +137,12 @@ func GetDstConfig() DstConfig {
 		dstConfig.Cluster = "Cluster1"
 	}
 	if dstConfig.Backup == "" {
-		defaultPath := filepath.Join(consts.KleiDstPath, "backup")
+		defaultPath := filepath.Join(consts.DefaultKleiDstPath, "backup")
 		fileUtils.CreateDirIfNotExists(defaultPath)
 		dstConfig.Backup = defaultPath
 	}
 	if dstConfig.Mod_download_path == "" {
-		defaultPath := filepath.Join(consts.KleiDstPath, "mod_config_download")
+		defaultPath := filepath.Join(consts.DefaultKleiDstPath, "mod_config_download")
 		fileUtils.CreateDirIfNotExists(defaultPath)
 		dstConfig.Mod_download_path = defaultPath
 	}
@@ -170,5 +171,5 @@ func SaveDstConfig(dstConfig *DstConfig) {
 	if err != nil {
 		log.Panicln("write dst_config error:", err)
 	}
-	global.Collect.ReCollect(filepath.Join(consts.KleiDstPath, dstConfig.Cluster), dstConfig.Cluster)
+	// global.Collect.ReCollect(filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster), dstConfig.Cluster)
 }

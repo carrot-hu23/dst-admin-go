@@ -1,7 +1,7 @@
 package api
 
 import (
-	"dst-admin-go/constant"
+	"dst-admin-go/constant/consts"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -66,7 +66,7 @@ func (l *LoginApi) UpdateUserInfo(ctx *gin.Context) {
 		log.Panicln("参数解析错误: " + err.Error())
 		return
 	}
-	err := fileUtils.WriterLnFile(constant.PASSWORD_PATH, []string{
+	err := fileUtils.WriterLnFile(consts.PasswordPath, []string{
 		"username = " + body.Username,
 		"password = " + body.Password,
 		"displayName=" + body.DisplayName,

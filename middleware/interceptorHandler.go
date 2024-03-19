@@ -2,10 +2,7 @@ package middleware
 
 import (
 	"dst-admin-go/api"
-	"dst-admin-go/constant"
-	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
-	"log"
 	"net/http"
 	"strings"
 
@@ -41,10 +38,11 @@ func checkIsInstallDst(path string) bool {
 		return true
 	}
 
-	dstPath := constant.DST_INSTALL_DIR + "/bin" + constant.SINGLE_SLASH + constant.DST_START_PROGRAM
-	log.Println("dst_path", dstPath)
-
-	return fileUtils.Exists(dstPath)
+	//dstPath := constant.DST_INSTALL_DIR + "/bin" + constant.SINGLE_SLASH + constant.DST_START_PROGRAM
+	//log.Println("dst_path", dstPath)
+	//
+	//return fileUtils.Exists(dstPath)
+	return true
 }
 
 func apiFilter(s []string, str string) bool {

@@ -11,7 +11,7 @@ import (
 	"dst-admin-go/schedule"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/dstConfigUtils"
-	"dst-admin-go/utils/systemUtils"
+	"dst-admin-go/utils/dstUtils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -116,10 +116,10 @@ func initCollect() {
 	//	global.CollectMap.AddNewCollect(cluster.ClusterName)
 	//}
 
-	home, _ := systemUtils.Home()
+	// home, _ := systemUtils.Home()
 	dstConfig := dstConfigUtils.GetDstConfig()
 	clusterName := dstConfig.Cluster
-	newCollect := collect.NewCollect(filepath.Join(home, ".klei/DoNotStarveTogether", clusterName), clusterName)
+	newCollect := collect.NewCollect(filepath.Join(dstUtils.GetKleiDstPath(), clusterName), clusterName)
 	newCollect.StartCollect()
 	global.Collect = newCollect
 
