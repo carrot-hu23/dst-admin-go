@@ -9,6 +9,10 @@ func initStaticFile(app *gin.Engine) {
 		}
 	}()
 
+	app.Use(func(context *gin.Context) {
+		context.Writer.Header().Set("Cache-Control", "public, max-age=30672000")
+	})
+
 	app.LoadHTMLGlob("dist/index.html") // 添加入口index.html
 	//r.LoadHTMLFiles("dist//*") // 添加资源路径
 	app.Static("/assets", "./dist/assets")
