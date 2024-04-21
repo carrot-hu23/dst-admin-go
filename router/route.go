@@ -2,6 +2,7 @@ package router
 
 import (
 	"dst-admin-go/middleware"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,6 +10,7 @@ func NewRoute() *gin.Engine {
 
 	app := gin.Default()
 
+	app.Use(gzip.Gzip(gzip.BestCompression))
 	app.Use(middleware.Recover)
 	// app.Use(middleware.ShellInjectionInterceptor())
 	app.Use(middleware.Authentication())
