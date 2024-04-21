@@ -8,6 +8,7 @@ import (
 	"dst-admin-go/utils/systemUtils"
 	"io"
 	"net/http"
+	"regexp"
 	"runtime"
 	"strconv"
 
@@ -279,9 +280,25 @@ func (g *GameService) StartGame(clusterName string) {
 	wg.Wait()
 }
 
+func memResize(rssOld string) string {
+	re := regexp.MustCompile(`([\d\.]*)`)
+	resb := re.FindStringSubmatch(rssOld)
+	if len(resb) > 0 {
+		rss := resb[1]
+		if strings.Contains(rssOld, "g") {
+			rssf, _ := strconv.ParseFloat(rss, 32)
+			return strconv.Itoa(int(rssf * 1024 * 1024))
+		}
+		return rss
+	}
+	return rssOld
+}
+
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo := vo.NewDstPsVo()
-	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
+	cmd := `top -cb -n1 -d1 -o+%MEM -ek -w200 | grep -v grep | grep -v SCREEN | grep ` + clusterName + ` | grep ` + level + ` | awk '{print $9, $10, $5, $6}'`
+	// top -bc -n 1 -d 1 -o +%MEM -e k -w 200 | grep -v grep | grep -v SCREEN | grep server | grep Master |  awk '{print $9, $10, $5, $6}'
+	// 13.2 40.7 2775924 1.6g
 
 	info, err := shellUtils.Shell(cmd)
 	if err != nil {
@@ -297,6 +314,9 @@ func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	dstPsVo.MemUage = strings.Replace(arr[1], "\n", "", -1)
 	dstPsVo.VSZ = strings.Replace(arr[2], "\n", "", -1)
 	dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
+
+	dstPsVo.VSZ = memResize(dstPsVo.VSZ)
+	dstPsVo.RSS = memResize(dstPsVo.RSS)
 
 	return dstPsVo
 }
