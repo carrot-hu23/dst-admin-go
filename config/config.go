@@ -9,7 +9,7 @@ type Config struct {
 	OPENAI_API_KEY string `yaml:"OPENAI_API_KEY"`
 	Prompt         string `yaml:"prompt"`
 	Flag           string `yaml:"flag"`
-
+	WanIP           string `yaml:"wanip"`
 	Token string `yaml:"token"`
 
 	AutoUpdateModinfo struct {
