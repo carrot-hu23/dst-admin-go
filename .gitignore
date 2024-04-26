@@ -5,12 +5,10 @@
 /dst
 
 first
-version
 dst-admin-go
 dst-admin-go.log
 dst-db
 password.txt
-
 /.pnp
 .pnp.js
 
