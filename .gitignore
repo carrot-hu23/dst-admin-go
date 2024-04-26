@@ -14,7 +14,7 @@ password.txt
 
 # testing
 /coverage
-
+.vscode
 # production
 /build
 
