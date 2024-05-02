@@ -55,7 +55,7 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 }
 
 func (m *AutoCheckManager) Start() {
-
+	log.Println("开始自动维护-清理旧数据")
 	// 修复之前自动宕机藏数据问题，之前清空之前的数据，重新设置
 	kvdb := database.DB
 	kv := model.KV{}
@@ -80,7 +80,7 @@ func (m *AutoCheckManager) Start() {
 			break
 		}
 	}
-	log.Println("开始自动维护")
+	log.Println("开始自动维护-检查更新和运行状态")
 	m.statusMap = make(map[string]chan int)
 	// 游戏更新
 	go func() {
@@ -109,6 +109,7 @@ func (m *AutoCheckManager) Start() {
 		}()
 		m.StartGameLevelDown()
 	}()
+	log.Println("自动维护结束")
 }
 
 func (m *AutoCheckManager) StartGameUpdate() {
@@ -134,7 +135,6 @@ func (m *AutoCheckManager) StartGameLevelDown() {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	config, _ := levelConfigUtils.GetLevelConfig(dstConfig.Cluster)
 	db := database.DB
-
 	for i := range config.LevelList {
 		autoCheck := model.AutoCheck{}
 		uuid := config.LevelList[i].File
@@ -148,7 +148,16 @@ func (m *AutoCheckManager) StartGameLevelDown() {
 		}
 		log.Println("StartGameLevelDown", autoCheck)
 		taskId := autoCheck.Uuid
-		m.run(&autoCheck, m.statusMap[taskId])
+		//因为sleep机制 永远不会返回 所以改协程执行
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			m.run(&autoCheck, m.statusMap[taskId])
+			log.Println("StartGameLevelDownOver", autoCheck)
+		}()
 	}
 }
 
@@ -170,8 +179,17 @@ func (m *AutoCheckManager) StartGameModDown() {
 		}
 		log.Println("StartGameModDown", autoCheck)
 		taskId := autoCheck.Uuid
-		m.run(&autoCheck, m.statusMap[taskId])
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			m.run(&autoCheck, m.statusMap[taskId])
+			log.Println("StartGameModDownOver", autoCheck)
+		}()
 	}
+	log.Println("StartGameModDownOk")
 }
 
 func (m *AutoCheckManager) run(task *model.AutoCheck, stop chan int) {
