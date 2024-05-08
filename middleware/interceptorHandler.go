@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"dst-admin-go/api"
+	"dst-admin-go/service"
 	"dst-admin-go/vo"
 	"net/http"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var loginService = service.LoginService{}
 var (
 	whitelist = []string{"/api/login", "/api/logout", "/ws", "/api/bootstrap", "/api/init", "/api/install/steamcmd"}
 )
@@ -69,7 +71,13 @@ func Authentication() gin.HandlerFunc {
 			// sessionID := url.QueryEscape(session.SessionID())
 			if cookieName == nil {
 				// 如果用户未登录，返回 HTTP 401
+				if loginService.IsWhiteIP(c) {
+					loginService.DirectLogin(c, api.Sessions())
+					c.Next()
+					return
+				}
 				c.AbortWithStatus(http.StatusUnauthorized)
+
 			} else {
 				c.Next()
 			}
