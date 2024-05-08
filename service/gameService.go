@@ -57,6 +57,7 @@ func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
 		return 0
 	}
 	version = strings.Replace(version, "\n", "", -1)
+	version = strings.Replace(version, "\r", "", -1)
 	l, err := strconv.ParseInt(version, 10, 64)
 	if err != nil {
 		log.Println(err)
