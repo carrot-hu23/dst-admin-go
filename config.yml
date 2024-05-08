@@ -1,5 +1,6 @@
 #启动端口
 port: 8082
+dstCliPort: 8102
 #数据库
 database: dst-db
 #自动检测 单位都是 分钟
