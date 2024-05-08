@@ -17,6 +17,9 @@ type GameConsoleService struct {
 }
 
 func (c *GameConsoleService) ClearScreen() bool {
+	if isWindows() {
+		return true
+	}
 	result, err := shellUtils.Shell("screen -wipe")
 	if err != nil {
 		return false
@@ -26,7 +29,10 @@ func (c *GameConsoleService) ClearScreen() bool {
 }
 
 func (c *GameConsoleService) SentBroadcast2(clusterName string, levelName string, message string) {
-
+	if isWindows() {
+		WindowGameConsoleService.SentBroadcast2(clusterName, levelName, message)
+		return
+	}
 	if c.GetLevelStatus(clusterName, levelName) {
 		broadcast := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"c_announce(\\\""
 		broadcast += message
@@ -38,7 +44,10 @@ func (c *GameConsoleService) SentBroadcast2(clusterName string, levelName string
 }
 
 func (c *GameConsoleService) SentBroadcast(clusterName string, message string) {
-
+	if isWindows() {
+		WindowGameConsoleService.SentBroadcast(clusterName, message)
+		return
+	}
 	if c.GetLevelStatus(clusterName, "Master") {
 		broadcast := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_announce(\\\""
 		broadcast += message
@@ -58,7 +67,10 @@ func (c *GameConsoleService) SentBroadcast(clusterName string, message string) {
 }
 
 func (c *GameConsoleService) KickPlayer(clusterName, KuId string) {
-
+	if isWindows() {
+		WindowGameConsoleService.KickPlayer(clusterName, KuId)
+		return
+	}
 	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
 	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"TheNet:Kick(\\\"" + KuId + "\\\")\\n\""
 
@@ -67,6 +79,12 @@ func (c *GameConsoleService) KickPlayer(clusterName, KuId string) {
 }
 
 func (c *GameConsoleService) KillPlayer(clusterName, KuId string) {
+
+	if isWindows() {
+		WindowGameConsoleService.KillPlayer(clusterName, KuId)
+		return
+	}
+
 	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
 	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')\\n\""
 
@@ -76,6 +94,11 @@ func (c *GameConsoleService) KillPlayer(clusterName, KuId string) {
 
 func (c *GameConsoleService) RespawnPlayer(clusterName string, KuId string) {
 
+	if isWindows() {
+		WindowGameConsoleService.RespawnPlayer(clusterName, KuId)
+		return
+	}
+
 	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
 	cavesCMD := "screen -S \"" + screenKey.Key(clusterName, "Caves") + "\" -p 0 -X stuff \"UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')\\n\""
 
@@ -84,6 +107,12 @@ func (c *GameConsoleService) RespawnPlayer(clusterName string, KuId string) {
 }
 
 func (c *GameConsoleService) RollBack(clusterName string, dayNum int) {
+
+	if isWindows() {
+		WindowGameConsoleService.RollBack(clusterName, dayNum)
+		return
+	}
+
 	days := fmt.Sprint(dayNum)
 	c.SentBroadcast(clusterName, ":pig 正在回档"+days+"天")
 
@@ -107,6 +136,11 @@ func (c *GameConsoleService) CleanWorld(clusterName string) {
 
 func (c *GameConsoleService) Regenerateworld(clusterName string) {
 
+	if isWindows() {
+		WindowGameConsoleService.Regenerateworld(clusterName)
+		return
+	}
+
 	c.SentBroadcast(clusterName, ":pig 即将重置世界！！！")
 
 	masterCMD := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"c_regenerateworld()\\n\""
@@ -116,18 +150,28 @@ func (c *GameConsoleService) Regenerateworld(clusterName string) {
 }
 
 func (c *GameConsoleService) MasterConsole(clusterName string, command string) {
-
+	if isWindows() {
+		WindowGameConsoleService.MasterConsole(clusterName, command)
+		return
+	}
 	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	shellUtils.Shell(cmd)
 }
 
 func (c *GameConsoleService) CavesConsole(clusterName string, command string) {
-
+	if isWindows() {
+		WindowGameConsoleService.CavesConsole(clusterName, command)
+		return
+	}
 	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
 	shellUtils.Shell(cmd)
 }
 
 func (c *GameConsoleService) OperatePlayer(clusterName string, otype, kuId string) {
+	if isWindows() {
+		WindowGameConsoleService.OperatePlayer(clusterName, otype, kuId)
+		return
+	}
 	command := ""
 	//复活
 	if otype == "0" {
@@ -176,12 +220,21 @@ func (c *GameConsoleService) ReadLevelServerChatLog(clusterName, levelName strin
 }
 
 func (c *GameConsoleService) SendCommand(clusterName string, levelName string, command string) {
-
+	if isWindows() {
+		WindowGameConsoleService.SendCommand(clusterName, levelName, command)
+		return
+	}
 	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
 	shellUtils.Shell(cmd)
 }
 
 func (c *GameConsoleService) CSave(clusterName string, levelName string) {
+
+	if isWindows() {
+		WindowGameConsoleService.CSave(clusterName, levelName)
+		return
+	}
+
 	log.Println("正在 s_save() 存档", clusterName, levelName)
 	command := "c_save()"
 	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
@@ -191,5 +244,11 @@ func (c *GameConsoleService) CSave(clusterName string, levelName string) {
 }
 
 func (c *GameConsoleService) CSaveMaster(clusterName string) {
+
+	if isWindows() {
+		WindowGameConsoleService.CSaveMaster(clusterName)
+		return
+	}
+
 	c.CSave(clusterName, "Master")
 }

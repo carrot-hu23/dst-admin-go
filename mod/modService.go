@@ -54,6 +54,12 @@ type PublishedFileDetailsData struct {
 	} `json:"response"`
 }
 
+type PublishedFileDetailsDataGet struct {
+	Response struct {
+		Publishedfiledetails []Publishedfiledetail `json:"publishedfiledetails"`
+	} `json:"response"`
+}
+
 func GetPublishedFileDetails(workshopIds []string) ([]Publishedfiledetail, error) {
 	url := "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/"
 	log.Println(url)
@@ -107,6 +113,32 @@ func GetPublishedFileDetails(workshopIds []string) ([]Publishedfiledetail, error
 	return nil, errors.New("请求失败")
 }
 
+func GetPublishedFileDetailsBatched(workshopIds []string, batchSize int) ([]Publishedfiledetail, error) {
+	var allPublishedFileDetails []Publishedfiledetail
+
+	// 拆分 workshopIds 到批次
+	for i := 0; i < len(workshopIds); i += batchSize {
+		end := i + batchSize
+		if end > len(workshopIds) {
+			end = len(workshopIds)
+		}
+
+		// 获取当前批次的 workshopIds
+		batch := workshopIds[i:end]
+
+		// 调用原始函数
+		publishedFileDetails, err := GetPublishedFileDetailsWithGet(batch)
+		if err != nil {
+			return nil, err
+		}
+
+		// 将结果添加到总结果中
+		allPublishedFileDetails = append(allPublishedFileDetails, publishedFileDetails...)
+	}
+
+	return allPublishedFileDetails, nil
+}
+
 func GetPublishedFileDetailsWithGet(workshopIds []string) ([]Publishedfiledetail, error) {
 	urlStr := "http://api.steampowered.com/IPublishedFileService/GetDetails/v1/"
 	data := url.Values{}
@@ -126,17 +158,14 @@ func GetPublishedFileDetailsWithGet(workshopIds []string) ([]Publishedfiledetail
 	}
 	defer res.Body.Close()
 
-	var publishedFileDetailsData PublishedFileDetailsData
+	var publishedFileDetailsData PublishedFileDetailsDataGet
 	err = json.NewDecoder(res.Body).Decode(&publishedFileDetailsData)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-
-	if publishedFileDetailsData.Response.Result == 1 {
-		return publishedFileDetailsData.Response.Publishedfiledetails, nil
-	}
-	return nil, errors.New("请求失败")
+	return publishedFileDetailsData.Response.Publishedfiledetails, nil
+	// return nil, errors.New("请求失败")
 }
 
 // GetModModinfoLua TODO 获取模组 modinfo.lua
@@ -187,37 +216,38 @@ func UpdateModinfoList() {
 	for i := range modInfos {
 		workshopIds = append(workshopIds, modInfos[i].Modid)
 	}
-	publishedFileDetails, err := GetPublishedFileDetails(workshopIds)
-	if err == nil {
-		for i := range publishedFileDetails {
-			publishedfiledetail := publishedFileDetails[i]
-			for j := range modInfos {
-				if modInfos[j].Modid == publishedfiledetail.Publishedfileid && modInfos[j].LastTime < publishedfiledetail.TimeUpdated {
-					needUpdateList = append(needUpdateList, modInfos[i])
-				}
+	publishedFileDetails, err := GetPublishedFileDetailsBatched(workshopIds, 20)
+	if err != nil {
+		log.Panicln(err)
+	}
+	for i := range publishedFileDetails {
+		publishedfiledetail := publishedFileDetails[i]
+		for j := range modInfos {
+			if modInfos[j].Modid == publishedfiledetail.Publishedfileid && modInfos[j].LastTime < publishedfiledetail.TimeUpdated {
+				needUpdateList = append(needUpdateList, modInfos[i])
 			}
 		}
-		var wg sync.WaitGroup
-		wg.Add(len(needUpdateList))
-
-		for i := range needUpdateList {
-			go func(i int) {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Println(r)
-					}
-					wg.Done()
-				}()
-				modId := needUpdateList[i].Modid
-				// 删除之前的数据
-				dstConfig := dstConfigUtils.GetDstConfig()
-				mod_download_path := dstConfig.Mod_download_path
-				mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
-				_ = fileUtils.DeleteDir(mod_path)
-				_, _, _ = SubscribeModByModId(modId)
-			}(i)
-		}
-		wg.Wait()
 	}
+	var wg sync.WaitGroup
+	wg.Add(len(needUpdateList))
+
+	for i := range needUpdateList {
+		go func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+				wg.Done()
+			}()
+			modId := needUpdateList[i].Modid
+			// 删除之前的数据
+			dstConfig := dstConfigUtils.GetDstConfig()
+			mod_download_path := dstConfig.Mod_download_path
+			mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
+			_ = fileUtils.DeleteDir(mod_path)
+			_, _, _ = SubscribeModByModId(modId)
+		}(i)
+	}
+	wg.Wait()
 
 }

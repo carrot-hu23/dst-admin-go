@@ -8,6 +8,15 @@ import (
 	"os/exec"
 )
 
+func ExecuteCommandInWin(command string) (string, error) {
+	cmd := exec.Command("cmd", "/C", command)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(output), nil
+}
+
 // ExecuteCommand 执行给定的 Shell 命令，并返回输出和错误（如果有的话）。
 func ExecuteCommand(command string) (string, error) {
 	cmd := exec.Command("sh", "-c", command)

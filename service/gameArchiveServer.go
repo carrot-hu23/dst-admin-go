@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/luaUtils"
 	"dst-admin-go/vo"
+	"dst-admin-go/config/global"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -76,19 +77,29 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		clusterIni := d.GetClusterIni(clusterName)
 		password := clusterIni.ClusterPassword
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
-		ipv4, err := d.GetPublicIP()
-		if err != nil {
+		wanip := global.Config.WanIP
+		if wanip != "" {
+			
+		}else{
+			ipv4, err := d.GetPublicIP()
+			if err != nil {
+				wanip = ""
+			}else{
+				wanip = ipv4
+			}
+		}
+		if wanip == ""{
 			gameArchie.IpConnect = ""
-		} else {
+		}else{
 			// c_connect("IP address", port, "password")
 			if password != "" {
-				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ",\"" + password + "\"" + ")"
+				gameArchie.IpConnect = "c_connect(\"" + wanip + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ",\"" + password + "\"" + ")"
 			} else {
-				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
+				gameArchie.IpConnect = "c_connect(\"" + wanip + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
 			}
 		}
 		gameArchie.Port = serverIni.ServerPort
-		gameArchie.Ip = ipv4
+		gameArchie.Ip = wanip
 
 	}()
 
@@ -114,7 +125,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 			}
 		}()
 		// 默认取Master世界人数
-		gameArchie.Players = d.GetPlayerList(clusterName, "Master")
+		gameArchie.Players = d.GetPlayerList(clusterName, "#ALL_LEVEL")
 	}()
 
 	wg.Wait()

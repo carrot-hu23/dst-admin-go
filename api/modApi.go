@@ -151,7 +151,7 @@ func (m *ModApi) DeleteMod(ctx *gin.Context) {
 
 	dstConfig := dstConfigUtils.GetDstConfig()
 	mod_download_path := dstConfig.Mod_download_path
-	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
+	mod_path := filepath.Join(mod_download_path, "steamapps", "workshop", "content", "322330", modId)
 	fileUtils.DeleteDir(mod_path)
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -324,6 +324,7 @@ func (m *ModApi) GetUgcModAcf(ctx *gin.Context) {
 	levelName := ctx.Query("levelName")
 
 	acfPath := dstUtils.GetUgcAcfPath(cluster.ClusterName, levelName)
+	log.Println("acfPath", acfPath)
 	acfWorkshops := dstUtils.ParseACFFile(acfPath)
 
 	var workshopItemDetails []WorkshopItemDetail

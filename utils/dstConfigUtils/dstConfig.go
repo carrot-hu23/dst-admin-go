@@ -155,6 +155,32 @@ func GetDstConfig() DstConfig {
 func SaveDstConfig(dstConfig *DstConfig) {
 	log.Println(dstConfig)
 
+	oldDstConfig := GetDstConfig()
+	if dstConfig.Steamcmd == "" {
+		dstConfig.Steamcmd = oldDstConfig.Steamcmd
+	}
+	if dstConfig.Force_install_dir == "" {
+		dstConfig.Force_install_dir = oldDstConfig.Force_install_dir
+	}
+	if dstConfig.Ugc_directory == "" {
+		dstConfig.Ugc_directory = oldDstConfig.Ugc_directory
+	}
+	if dstConfig.Conf_dir == "" {
+		dstConfig.Conf_dir = oldDstConfig.Conf_dir
+	}
+	if dstConfig.Persistent_storage_root == "" {
+		dstConfig.Persistent_storage_root = oldDstConfig.Persistent_storage_root
+	}
+	if dstConfig.Cluster == "" {
+		dstConfig.Cluster = oldDstConfig.Cluster
+	}
+	if dstConfig.Backup == "" {
+		dstConfig.Backup = oldDstConfig.Backup
+	}
+	if dstConfig.Mod_download_path == "" {
+		dstConfig.Mod_download_path = oldDstConfig.Mod_download_path
+	}
+
 	err := fileUtils.WriterLnFile(dst_config_path, []string{
 		"steamcmd=" + dstConfig.Steamcmd,
 		"force_install_dir=" + dstConfig.Force_install_dir,

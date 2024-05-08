@@ -28,6 +28,8 @@ func initLevel2(router *gin.RouterGroup) {
 		group2.POST("/clusterIni", gameLevelApi.SaveClusterIni)
 
 		group2.GET("/players", gameLevelApi.GetOnlinePlayers)
+		group2.GET("/players/all", gameLevelApi.GetAllOnlinePlayers)
+
 		group2.GET("/adminilist", gameLevelApi.GetAdministrators)
 		group2.GET("/whitelist", gameLevelApi.GetWhitelist)
 		group2.GET("/blacklist", gameLevelApi.GetBlacklist)
@@ -36,7 +38,7 @@ func initLevel2(router *gin.RouterGroup) {
 		group2.POST("/whitelist", gameLevelApi.SaveWhitelist)
 		group2.POST("/blacklist", gameLevelApi.SaveBlacklist)
 
-		group2.GET("/command", gameLevelApi.SendCommand)
+		group2.POST("/command", gameLevelApi.SendCommand)
 
 		group2.GET("/udp/port", gameLevelApi.GetScanUDPPorts)
 	}

@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	textTemplate "text/template"
@@ -149,6 +150,15 @@ func GetDstUpdateCmd(clusterName string) string {
 	cluster := dstConfigUtils.GetDstConfig()
 	steamcmd := cluster.Steamcmd
 	dst_install_dir := cluster.Force_install_dir
+
+	dst_install_dir = EscapePath(dst_install_dir)
+
+	if runtime.GOOS == "windows" {
+		return "cd /d " + steamcmd + " && Start steamcmd.exe +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+	}
+	if !fileUtils.Exists(filepath.Join(steamcmd, "steamcmd.sh")) {
+		return "cd " + steamcmd + " ; ./steamcmd +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+	}
 	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
 }
 
@@ -396,4 +406,23 @@ func ParseACFFile(filePath string) map[string]WorkshopItem {
 func GetModSetup2(clusterName string) string {
 	cluster := clusterUtils.GetCluster(clusterName)
 	return path.Join(cluster.ForceInstallDir, "mods", "dedicated_server_mods_setup.lua")
+}
+
+func EscapePath(path string) string {
+
+	// windows 就跳过
+	//if runtime.GOOS == "windows" {
+	//	return path
+	//}
+	if runtime.GOOS == "windows" {
+		return path
+	}
+	// 在这里添加需要转义的特殊字符
+	escapedChars := []string{" ", "'", "(", ")"}
+
+	for _, char := range escapedChars {
+		path = strings.ReplaceAll(path, char, "\\"+char)
+	}
+
+	return path
 }

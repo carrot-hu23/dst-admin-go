@@ -8,6 +8,7 @@ import (
 	"dst-admin-go/utils/systemUtils"
 	"io"
 	"net/http"
+	"path/filepath"
 	"runtime"
 	"strconv"
 
@@ -17,7 +18,6 @@ import (
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"log"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -33,6 +33,9 @@ type GameService struct {
 }
 
 func (g *GameService) GetLastDstVersion() int64 {
+	if isWindows() {
+		return WindowService.GetLastDstVersion()
+	}
 
 	url := "http://ver.tugos.cn/getLocalVersion"
 	resp, err := http.Get(url)
@@ -52,8 +55,26 @@ func (g *GameService) GetLastDstVersion() int64 {
 }
 
 func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
+	if isWindows() {
+		return WindowService.GetLocalDstVersion(clusterName)
+	}
+
 	cluster := clusterUtils.GetCluster(clusterName)
 	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
+
+	// 使用filepath.Clean确保路径格式正确
+	cleanPath := filepath.Clean(versionTextPath)
+
+	// 使用filepath.Abs获取绝对路径
+	absPath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		log.Println("Error getting absolute path:", err)
+		return 0
+	}
+
+	// 打印绝对路径
+	log.Println("Absolute Path:", absPath)
+
 	version, err := fileUtils.ReadFile(versionTextPath)
 	if err != nil {
 		log.Println(err)
@@ -69,6 +90,10 @@ func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
 }
 
 func ClearScreen() bool {
+	if isWindows() {
+		return true
+	}
+
 	result, err := shellUtils.Shell(consts.ClearScreenCmd)
 	if err != nil {
 		return false
@@ -78,6 +103,9 @@ func ClearScreen() bool {
 }
 
 func (g *GameService) UpdateGame(clusterName string) error {
+	if isWindows() {
+		return WindowService.UpdateGame(clusterName)
+	}
 
 	g.lock.Lock()
 	defer g.lock.Unlock()
@@ -103,13 +131,18 @@ func (g *GameService) UpdateGame(clusterName string) error {
 }
 
 func (g *GameService) GetLevelStatus(clusterName, level string) bool {
+
+	if isWindows() {
+		return WindowService.GetLevelStatus(clusterName, level)
+	}
+
 	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' "
 	result, err := shellUtils.Shell(cmd)
 	if err != nil {
 		return false
 	}
 	res := strings.Split(result, "\n")[0]
-	log.Println("查询世界状态", cmd, result, res, res != "")
+	// log.Println("查询世界状态", cmd, result, res, res != "")
 	return res != ""
 }
 
@@ -145,12 +178,20 @@ func (g *GameService) killLevel(clusterName, level string) {
 }
 
 func (g *GameService) StartLevel(clusterName, level string, bin, beta int) {
+	if isWindows() {
+		WindowService.StartLevel(clusterName, level, bin, beta)
+		return
+	}
 	g.StopLevel(clusterName, level)
 	g.LaunchLevel(clusterName, level, bin, beta)
 	ClearScreen()
 }
 
 func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
+	if isWindows() {
+		WindowService.LaunchLevel(clusterName, level, bin, beta)
+		return
+	}
 	launchLock.Lock()
 	defer func() {
 		launchLock.Unlock()
@@ -167,10 +208,13 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 	conf_dir := cluster.Conf_dir
 	var startCmd = ""
 
+	dstInstallDir = dstUtils.EscapePath(dstInstallDir)
+	log.Println(dstInstallDir)
+
 	if bin == 64 {
 		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
 	} else if bin == 100 {
-		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64_luajit -console -cluster" + clusterName + " -shard " + level
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64_luajit -console -cluster " + clusterName + " -shard " + level
 	} else {
 		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
 	}
@@ -196,7 +240,10 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 }
 
 func (g *GameService) StopLevel(clusterName, level string) {
-
+	if isWindows() {
+		WindowService.StopLevel(clusterName, level)
+		return
+	}
 	launchLock.Lock()
 	defer func() {
 		launchLock.Unlock()
@@ -228,6 +275,10 @@ func (g *GameService) StopLevel(clusterName, level string) {
 
 func (g *GameService) StopGame(clusterName string) {
 
+	if isWindows() {
+		WindowService.StopGame(clusterName)
+		return
+	}
 	config, err := levelConfigUtils.GetLevelConfig(clusterName)
 	if err != nil {
 		log.Panicln(err)
@@ -250,6 +301,10 @@ func (g *GameService) StopGame(clusterName string) {
 }
 
 func (g *GameService) StartGame(clusterName string) {
+	if isWindows() {
+		WindowService.StartGame(clusterName)
+		return
+	}
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	g.StopGame(clusterName)
@@ -280,6 +335,9 @@ func (g *GameService) StartGame(clusterName string) {
 }
 
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
+	if isWindows() {
+		return vo.NewDstPsVo()
+	}
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
 
