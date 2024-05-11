@@ -179,7 +179,7 @@ func (m *AutoCheckManager) GetAutoCheck(clusterName, levelName, checkType, uuid 
 
 // TODO 这里要修改
 func (m *AutoCheckManager) check(task model.AutoCheck) {
-	log.Println("task", task)
+	// log.Println("task", task)
 	if task.Uuid != "" {
 		task = *m.GetAutoCheck(task.ClusterName, task.LevelName, task.CheckType, task.Uuid)
 	}

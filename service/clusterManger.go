@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
-	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/session"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -23,12 +23,27 @@ type ClusterManager struct {
 	GameArchive
 }
 
-func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
+func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
 	//获取查询参数
 	db := database.DB
 	clusters := make([]model.Cluster, 0)
-	if err := db.Find(&clusters).Error; err != nil {
-		fmt.Println(err.Error())
+	session := sessions.Start(ctx.Writer, ctx.Request)
+	role := session.Get("role")
+	userId := session.Get("userId")
+	log.Println("role", role, "userId", userId)
+	if role == "admin" {
+		if err := db.Find(&clusters).Error; err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		db2 := database.DB
+		userClusterList := []model.UserCluster{}
+		db2.Where("user_id = ?", userId).Find(&userClusterList)
+		ids := []int{}
+		for i := range userClusterList {
+			ids = append(ids, userClusterList[i].ClusterId)
+		}
+		db.Where("id in ?", ids).Find(&clusters)
 	}
 
 	var clusterVOList = make([]vo.ClusterVO, len(clusters))
@@ -51,35 +66,35 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				UpdatedAt:       cluster.UpdatedAt,
 				Ugc_directory:   cluster.Ugc_directory,
 			}
-			clusterIni := c.GetClusterIni(cluster.ClusterName)
-			name := clusterIni.ClusterName
-			maxPlayers := clusterIni.MaxPlayers
-			// mode := clusterIni.GameMode
-			password := clusterIni.ClusterPassword
-			var hasPassword int
-			if password == "" {
-				hasPassword = 0
-			} else {
-				hasPassword = 1
-			}
-			// http 请求服务信息
-			homeInfos := clusterUtils.GetDstServerInfo(name)
-			if len(homeInfos) > 0 {
-				for _, info := range homeInfos {
-					if info.Name == name &&
-						uint(info.MaxConnect) == maxPlayers &&
-						int(info.Password) == hasPassword {
-						clusterVO.RowId = info.Row
-						clusterVO.Connected = int(info.Connected)
-						clusterVO.MaxConnections = int(info.MaxConnect)
-						clusterVO.Mode = info.Mode
-						clusterVO.Mods = int(info.Mods)
-						clusterVO.Season = info.Season
-						clusterVO.Region = info.Region
-					}
-
-				}
-			}
+			//clusterIni := c.GetClusterIni(cluster.ClusterName)
+			//name := clusterIni.ClusterName
+			//maxPlayers := clusterIni.MaxPlayers
+			//// mode := clusterIni.GameMode
+			//password := clusterIni.ClusterPassword
+			//var hasPassword int
+			//if password == "" {
+			//	hasPassword = 0
+			//} else {
+			//	hasPassword = 1
+			//}
+			//// http 请求服务信息
+			//homeInfos := clusterUtils.GetDstServerInfo(name)
+			//if len(homeInfos) > 0 {
+			//	for _, info := range homeInfos {
+			//		if info.Name == name &&
+			//			uint(info.MaxConnect) == maxPlayers &&
+			//			int(info.Password) == hasPassword {
+			//			clusterVO.RowId = info.Row
+			//			clusterVO.Connected = int(info.Connected)
+			//			clusterVO.MaxConnections = int(info.MaxConnect)
+			//			clusterVO.Mode = info.Mode
+			//			clusterVO.Mods = int(info.Mods)
+			//			clusterVO.Season = info.Season
+			//			clusterVO.Region = info.Region
+			//		}
+			//
+			//	}
+			//}
 			clusterVO.GameArchive = c.GetGameArchive(clusterVO.ClusterName)
 			clusterVO.Status = c.GetLevelStatus(clusterVO.ClusterName, "Master")
 			clusterVOList[i] = clusterVO

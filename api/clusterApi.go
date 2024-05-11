@@ -17,7 +17,7 @@ type ClusterApi struct{}
 var clusterManager = service.ClusterManager{}
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
-	clusterManager.QueryCluster(ctx)
+	clusterManager.QueryCluster(ctx, sessions)
 }
 
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
