@@ -202,9 +202,10 @@ func PsAux(processName string) string {
 func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, length uint) []string {
 	// levelServerIniPath := dstUtils2.GetLevelServerIniPath(clusterName, levelName)
 	serverLogPath := dstUtils.GetLevelServerLogPath(clusterName, levelName)
+	log.Println("serverLogPath", serverLogPath)
 	lines, err := fileUtils.ReverseRead(serverLogPath, length)
 	if err != nil {
-		log.Panicln("读取日志server_log失败")
+		log.Panicln("读取日志server_log失败", err)
 	}
 	return lines
 }

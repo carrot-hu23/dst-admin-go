@@ -10,3 +10,5 @@ func isWindows() bool {
 
 var WindowService WindowsGameService
 var WindowGameConsoleService WindowsGameConsoleService
+
+var clusterContainer = NewClusterContainer()

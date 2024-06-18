@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/utils/systemUtils"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -336,7 +337,12 @@ func (g *GameService) StartGame(clusterName string) {
 
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	if isWindows() {
-		return vo.NewDstPsVo()
+		cpuUsage := clusterContainer.CpuUsage(clusterName, level)
+		memUsage := clusterContainer.MemUsage(clusterName, level)
+		psVo := vo.NewDstPsVo()
+		psVo.RSS = fmt.Sprintf("%f", memUsage*1024)
+		psVo.CpuUage = fmt.Sprintf("%f", cpuUsage)
+		return psVo
 	}
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"

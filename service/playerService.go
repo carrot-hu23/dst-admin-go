@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant/screenKey"
-	dst_cli_window "dst-admin-go/dst-cli-window"
 	"dst-admin-go/utils/collectionUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
@@ -90,11 +89,7 @@ func init() {
 			}
 			command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s \", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 
-			_, err := dst_cli_window.DstCliClient.Command(clusterName, levelName, command)
-			if err != nil {
-				return make([]vo.PlayerVO, 0), nil
-			}
-
+			clusterContainer.Send(clusterName, levelName, command)
 			// 读取日志
 			dstLogs := dstUtils.ReadLevelLog(clusterName, levelName, 100)
 			playerVOList := make([]vo.PlayerVO, 0)

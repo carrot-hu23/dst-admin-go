@@ -1,7 +1,6 @@
 package service
 
 import (
-	dst_cli_window "dst-admin-go/dst-cli-window"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -86,26 +85,14 @@ func (g *WindowsGameService) UpdateGame(clusterName string) error {
 }
 
 func (g *WindowsGameService) GetLevelStatus(clusterName, level string) bool {
-
-	status, err := dst_cli_window.DstCliClient.DstStatus(clusterName, level)
-	if err != nil {
-		return false
-	}
-	return status.Status
+	return clusterContainer.Status(clusterName, level)
 }
 
 func (g *WindowsGameService) shutdownLevel(clusterName, level string) {
 	if !g.GetLevelStatus(clusterName, level) {
 		return
 	}
-
-	shell := "c_shutdown(true)"
-	log.Println("正在shutdown世界", "cluster: ", clusterName, "level: ", level, "command: ", shell)
-	_, err := dst_cli_window.DstCliClient.Command(clusterName, level, shell)
-	if err != nil {
-		log.Println("shut down " + clusterName + " " + level + " error: " + err.Error())
-		log.Println("shutdown 失败，将强制杀掉世界")
-	}
+	clusterContainer.StopLevel(clusterName, level)
 }
 
 // TODO 强制kill 掉进程
@@ -121,47 +108,9 @@ func (g *WindowsGameService) LaunchLevel(clusterName, level string, bin, beta in
 		ugcDirectory := cluster.Ugc_directory
 		persistent_storage_root := cluster.Persistent_storage_root
 		conf_dir := cluster.Conf_dir
-
-		command := ""
-		title := cluster.ClusterName + "_" + level
-		if bin == 64 {
-			dstInstallDir = filepath.Join(dstInstallDir, "bin64")
-			command = "cd /d " + dstInstallDir + " && Start \"" + title + "\" dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
-		} else {
-			dstInstallDir = filepath.Join(dstInstallDir, "bin")
-			command = "cd /d " + dstInstallDir + " && Start \"" + title + "\" dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
-		}
-
-		if ugcDirectory != "" {
-			command += " -ugc_directory " + ugcDirectory
-		}
-		if persistent_storage_root != "" {
-			command += " -persistent_storage_root " + persistent_storage_root
-		}
-		if conf_dir != "" {
-			command += " -conf_dir " + conf_dir
-		}
-
-		//// 创建一个命令对象
-		//cmd := exec.Command("cmd.exe", "/C", command)
-		//log.Println(command)
-		//
-		//// 设置新窗口属性
-		//
-		//cmd.SysProcAttr = &syscall.SysProcAttr{}
-		//cmd.SysProcAttr.CmdLine = "cmd.exe /K " + command
-		//
-		//// 启动命令
-		//err := cmd.Start()
-		//if err != nil {
-		//	log.Panicln(err)
-		//}
-
-		err := dst_cli_window.DstCliClient.DstRun(command)
-		if err != nil {
-			log.Panicln(err)
-		}
-
+		go func() {
+			clusterContainer.StartLevel(clusterName, level, bin, cluster.SteamCmd, dstInstallDir, ugcDirectory, persistent_storage_root, conf_dir)
+		}()
 		g.logRecord.RecordLog(clusterName, level, model.RUN)
 	}
 
