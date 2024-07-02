@@ -6,11 +6,10 @@ import (
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"path/filepath"
-
-	"github.com/gin-gonic/gin"
 )
 
 type PreinstallApi struct{}
@@ -42,14 +41,20 @@ func (p *PreinstallApi) UsePreinstall(ctx *gin.Context) {
 	}
 
 	//先重命名但是不删除
-	fileUtils.Rename(path, bakpath)
+	err = fileUtils.Rename(path, bakpath)
+	if err != nil {
+		log.Panicln(err)
+	}
 
 	err = fileUtils.Copy("./static/preinstall/"+name, filepath.Join(dstUtils.GetKleiDstPath()))
 	if err != nil {
 		log.Panicln(err)
 	}
 	newpath := dstUtils.GetClusterBasePath(cluster.ClusterName)
-	fileUtils.Rename(filepath.Join(dstUtils.GetKleiDstPath(), name), newpath)
+	err = fileUtils.Rename(filepath.Join(dstUtils.GetKleiDstPath(), name), newpath)
+	if err != nil {
+		log.Panicln(err)
+	}
 	//还原cluster_token 等
 	tocopy := []string{"adminlist.txt", "blocklist.txt", "cluster_token.txt", "whitelist.txt"}
 	for _, s := range tocopy {
