@@ -90,6 +90,7 @@ func init() {
 			command := "for i, v in ipairs(TheNet:GetClientTable()) do  print(string.format(\"%s %d %s %s %s %s \", " + "'" + id + "'" + ",i-1, string.format('%03d', v.playerage), v.userid, v.name, v.prefab)) end"
 
 			clusterContainer.Send(clusterName, levelName, command)
+			time.Sleep(time.Duration(1) * time.Second)
 			// 读取日志
 			dstLogs := dstUtils.ReadLevelLog(clusterName, levelName, 100)
 			playerVOList := make([]vo.PlayerVO, 0)
