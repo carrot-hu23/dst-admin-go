@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -251,6 +252,8 @@ func (receiver *LevelInstance) Stop() {
 func (receiver *LevelInstance) Send(cmd string) error {
 	// 向子进程写入命令
 	writer := bufio.NewWriter(receiver.stdin)
+	log.Println("cmd: ", cmd)
+	cmd = strings.Replace(cmd, "\\", "", -1)
 	input := cmd + "\n"
 	_, err := writer.WriteString(input)
 	if err != nil {
