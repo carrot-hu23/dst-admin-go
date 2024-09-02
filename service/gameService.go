@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/utils/systemUtils"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -110,7 +111,7 @@ func (g *GameService) UpdateGame(clusterName string) error {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	// TODO 关闭相应的世界
-	g.StopGame(clusterName)
+	g.StopGameWithoutLog(clusterName)
 
 	updateGameCMd := dstUtils.GetDstUpdateCmd(clusterName)
 	log.Println("正在更新游戏", "cluster: ", clusterName, "command: ", updateGameCMd)
@@ -239,6 +240,38 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 }
 
+func (g *GameService) StopLevelWithoutLog(clusterName, level string) {
+	if isWindows() {
+		WindowService.StopLevel(clusterName, level)
+		return
+	}
+	launchLock.Lock()
+	defer func() {
+		launchLock.Unlock()
+		if r := recover(); r != nil {
+		}
+	}()
+
+	g.shutdownLevel(clusterName, level)
+	time.Sleep(3 * time.Second)
+
+	if g.GetLevelStatus(clusterName, level) {
+		var i uint8 = 1
+		for {
+			if g.GetLevelStatus(clusterName, level) {
+				break
+			}
+			g.shutdownLevel(clusterName, level)
+			time.Sleep(1 * time.Second)
+			i++
+			if i > 3 {
+				break
+			}
+		}
+	}
+	g.killLevel(clusterName, level)
+}
+
 func (g *GameService) StopLevel(clusterName, level string) {
 	if isWindows() {
 		WindowService.StopLevel(clusterName, level)
@@ -300,6 +333,33 @@ func (g *GameService) StopGame(clusterName string) {
 	wg.Wait()
 }
 
+func (g *GameService) StopGameWithoutLog(clusterName string) {
+
+	if isWindows() {
+		WindowService.StopGame(clusterName)
+		return
+	}
+	config, err := levelConfigUtils.GetLevelConfig(clusterName)
+	if err != nil {
+		log.Panicln(err)
+	}
+	var wg sync.WaitGroup
+	wg.Add(len(config.LevelList))
+	for i := range config.LevelList {
+		go func(i int) {
+			defer func() {
+				wg.Done()
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			levelName := config.LevelList[i].File
+			g.StopLevelWithoutLog(clusterName, levelName)
+		}(i)
+	}
+	wg.Wait()
+}
+
 func (g *GameService) StartGame(clusterName string) {
 	if isWindows() {
 		WindowService.StartGame(clusterName)
@@ -336,7 +396,12 @@ func (g *GameService) StartGame(clusterName string) {
 
 func (g *GameService) PsAuxSpecified(clusterName, level string) *vo.DstPsVo {
 	if isWindows() {
-		return vo.NewDstPsVo()
+		cpuUsage := clusterContainer.CpuUsage(clusterName, level)
+		memUsage := clusterContainer.MemUsage(clusterName, level)
+		psVo := vo.NewDstPsVo()
+		psVo.RSS = fmt.Sprintf("%f", memUsage*1024)
+		psVo.CpuUage = fmt.Sprintf("%f", cpuUsage)
+		return psVo
 	}
 	dstPsVo := vo.NewDstPsVo()
 	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + level + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"

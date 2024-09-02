@@ -2,7 +2,6 @@ package service
 
 import (
 	"dst-admin-go/constant/screenKey"
-	dst_cli_window "dst-admin-go/dst-cli-window"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
@@ -23,7 +22,7 @@ func (c *WindowsGameConsoleService) SentBroadcast2(clusterName string, levelName
 		broadcast += message
 		broadcast += "\\\")"
 		log.Println(broadcast)
-		dst_cli_window.DstCliClient.Command(clusterName, levelName, broadcast)
+		clusterContainer.Send(clusterName, levelName, broadcast)
 	}
 
 }
@@ -37,34 +36,32 @@ func (c *WindowsGameConsoleService) SentBroadcast(clusterName string, message st
 		log.Println(broadcast)
 		shellUtils.Shell(broadcast)
 
-		dst_cli_window.DstCliClient.Command(clusterName, "Master", broadcast)
+		clusterContainer.Send(clusterName, "Master", broadcast)
 	}
 
 }
 
 func (c *WindowsGameConsoleService) KickPlayer(clusterName, KuId string) {
-
 	masterCMD := "TheNet:Kick(\\\"" + KuId + "\\\")"
-	dst_cli_window.DstCliClient.Command(clusterName, "Master", masterCMD)
-
+	clusterContainer.Send(clusterName, "Master", masterCMD)
 }
 
 func (c *WindowsGameConsoleService) KillPlayer(clusterName, KuId string) {
 	masterCMD := "UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('death')"
-	dst_cli_window.DstCliClient.Command(clusterName, "Master", masterCMD)
+	clusterContainer.Send(clusterName, "Master", masterCMD)
 }
 
 func (c *WindowsGameConsoleService) RespawnPlayer(clusterName string, KuId string) {
 
 	masterCMD := "UserToPlayer(\\\"" + KuId + "\\\"):PushEvent('respawnfromghost')"
-	dst_cli_window.DstCliClient.Command(clusterName, "Master", masterCMD)
+	clusterContainer.Send(clusterName, "Master", masterCMD)
 }
 
 func (c *WindowsGameConsoleService) RollBack(clusterName string, dayNum int) {
 	days := fmt.Sprint(dayNum)
 
 	masterCMD := "c_rollback(" + days + ")"
-	dst_cli_window.DstCliClient.Command(clusterName, "Master", masterCMD)
+	clusterContainer.Send(clusterName, "Master", masterCMD)
 }
 
 func (c *WindowsGameConsoleService) CleanWorld(clusterName string) {
@@ -82,7 +79,7 @@ func (c *WindowsGameConsoleService) Regenerateworld(clusterName string) {
 
 	c.SentBroadcast(clusterName, ":pig 即将重置世界！！！")
 	masterCMD := "c_regenerateworld()"
-	dst_cli_window.DstCliClient.Command(clusterName, "Master", masterCMD)
+	clusterContainer.Send(clusterName, "Master", masterCMD)
 }
 
 func (c *WindowsGameConsoleService) MasterConsole(clusterName string, command string) {
@@ -136,7 +133,7 @@ func (c *WindowsGameConsoleService) ReadLevelServerChatLog(clusterName, levelNam
 }
 
 func (c *WindowsGameConsoleService) SendCommand(clusterName string, levelName string, command string) {
-	dst_cli_window.DstCliClient.Command(clusterName, levelName, command)
+	clusterContainer.Send(clusterName, levelName, command)
 }
 
 func (c *WindowsGameConsoleService) CSave(clusterName string, levelName string) {

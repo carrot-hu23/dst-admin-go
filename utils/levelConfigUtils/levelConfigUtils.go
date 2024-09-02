@@ -38,7 +38,6 @@ func initLevel(levelFolderPath string, level *level.World) {
 func GetLevelConfig(clusterName string) (*LevelConfig, error) {
 	clusterBasePath := dstUtils.GetClusterBasePath(clusterName)
 	jsonPath := filepath.Join(clusterBasePath, "level.json")
-	log.Println(jsonPath)
 	fileUtils.CreateDirIfNotExists(clusterBasePath)
 	// fileUtils.CreateFileIfNotExists(jsonPath)
 	if !fileUtils.Exists(jsonPath) {

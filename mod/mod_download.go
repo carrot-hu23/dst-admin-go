@@ -247,7 +247,9 @@ func toInterface(lv lua.LValue) interface{} {
 			arr := make([]interface{}, t.Len())
 			t.ForEach(func(i lua.LValue, v lua.LValue) {
 				index := int(float64(i.(lua.LNumber)) - 1)
-				arr[index] = toInterface(v)
+				if index != -1 && index <= len(arr) {
+					arr[index] = toInterface(v)
+				}
 			})
 			return arr
 		} else {

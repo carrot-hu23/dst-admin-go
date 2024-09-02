@@ -3,15 +3,15 @@ FROM debian:buster-slim
 LABEL maintainer="hujinbo23 jinbohu23@outlook.com"
 LABEL description="DoNotStarveTogehter server panel written in golang.  github: https://github.com/hujinbo23/dst-admin-go"
 
+# 切换到清华大学的 apt 镜像源
+RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list \
+    && sed -i 's|security.debian.org/debian-security|mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list
+
+# 更新软件包索引
+RUN apt-get update
+
 # Install packages
-RUN echo "deb http://mirrors.aliyun.com/debian/ buster main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian/ buster-updates main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian/ buster-backports main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security buster/updates main contrib non-free" >> /etc/apt/sources.list && \
-   # dpkg --add-architecture i386 && \
-   # apt-get update && \
-   # apt-get install -y lib32stdc++6 libgcc1 libcurl4-gnutls-dev:i386 wget screen procps
-    dpkg --add-architecture i386 \
+RUN  dpkg --add-architecture i386 \
     && apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests  \
         libcurl4-gnutls-dev:i386 \

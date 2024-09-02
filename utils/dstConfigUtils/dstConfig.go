@@ -162,15 +162,15 @@ func SaveDstConfig(dstConfig *DstConfig) {
 	if dstConfig.Force_install_dir == "" {
 		dstConfig.Force_install_dir = oldDstConfig.Force_install_dir
 	}
-	if dstConfig.Ugc_directory == "" {
-		dstConfig.Ugc_directory = oldDstConfig.Ugc_directory
-	}
-	if dstConfig.Conf_dir == "" {
-		dstConfig.Conf_dir = oldDstConfig.Conf_dir
-	}
-	if dstConfig.Persistent_storage_root == "" {
-		dstConfig.Persistent_storage_root = oldDstConfig.Persistent_storage_root
-	}
+	//if dstConfig.Ugc_directory == "" {
+	//	dstConfig.Ugc_directory = oldDstConfig.Ugc_directory
+	//}
+	//if dstConfig.Conf_dir == "" {
+	//	dstConfig.Conf_dir = oldDstConfig.Conf_dir
+	//}
+	//if dstConfig.Persistent_storage_root == "" {
+	//	dstConfig.Persistent_storage_root = oldDstConfig.Persistent_storage_root
+	//}
 	if dstConfig.Cluster == "" {
 		dstConfig.Cluster = oldDstConfig.Cluster
 	}

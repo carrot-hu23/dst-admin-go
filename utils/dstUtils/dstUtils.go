@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -24,9 +23,9 @@ func GetUgcWorkshopModPath(clusterName, levelName, workshopId string) string {
 	dstConfig := dstConfigUtils.GetDstConfig()
 	workshopModPath := ""
 	if dstConfig.Ugc_directory != "" {
-		workshopModPath = path.Join(GetUgcModPath(), "content", "322330", workshopId)
+		workshopModPath = filepath.Join(GetUgcModPath(), "content", "322330", workshopId)
 	} else {
-		workshopModPath = path.Join(dstConfig.Force_install_dir, "ugc_mods", clusterName, levelName, "content", "322330", workshopId)
+		workshopModPath = filepath.Join(dstConfig.Force_install_dir, "ugc_mods", clusterName, levelName, "content", "322330", workshopId)
 	}
 	return workshopModPath
 }
@@ -71,79 +70,79 @@ func GetKleiDstPath() string {
 }
 
 func GetBlacklistPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "blocklist.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, "blocklist.txt")
 }
 
 func GetWhitelistPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "whitelist.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, "whitelist.txt")
 }
 
 func GetLevelLeveldataoverridePath(clusterName string, levelName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, levelName, "leveldataoverride.lua")
+	return filepath.Join(GetKleiDstPath(), clusterName, levelName, "leveldataoverride.lua")
 }
 
 func GetLevelModoverridesPath(clusterName string, levelName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, levelName, "modoverrides.lua")
+	return filepath.Join(GetKleiDstPath(), clusterName, levelName, "modoverrides.lua")
 }
 
 func GetLevelServerIniPath(clusterName string, levelName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, levelName, "server.ini")
+	return filepath.Join(GetKleiDstPath(), clusterName, levelName, "server.ini")
 }
 
 func GetLevelServerLogPath(clusterName string, levelName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, levelName, "server_log.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, levelName, "server_log.txt")
 }
 
 func GetLevelServerChatLogPath(clusterName string, levelName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, levelName, "server_chat_log.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, levelName, "server_chat_log.txt")
 }
 
 func GetClusterBasePath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName)
+	return filepath.Join(GetKleiDstPath(), clusterName)
 }
 
 func GetClusterIniPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "cluster.ini")
+	return filepath.Join(GetKleiDstPath(), clusterName, "cluster.ini")
 }
 
 func GetClusterTokenPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "cluster_token.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, "cluster_token.txt")
 }
 
 func GetMasterModoverridesPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "Master", "modoverrides.lua")
+	return filepath.Join(GetKleiDstPath(), clusterName, "Master", "modoverrides.lua")
 }
 
 func GetCavesModoverridesPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "Caves", "modoverrides.lua")
+	return filepath.Join(GetKleiDstPath(), clusterName, "Caves", "modoverrides.lua")
 }
 
 func GetMasterLeveldataoverridePath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "Master", "leveldataoverride.lua")
+	return filepath.Join(GetKleiDstPath(), clusterName, "Master", "leveldataoverride.lua")
 }
 func GetCavesLeveldataoverridePath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "Caves", "leveldataoverride.lua")
+	return filepath.Join(GetKleiDstPath(), clusterName, "Caves", "leveldataoverride.lua")
 }
 
 func GetMasterServerIniPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "Master", "server.ini")
+	return filepath.Join(GetKleiDstPath(), clusterName, "Master", "server.ini")
 }
 
 func GetCavesServerIniPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "Master", "server.ini")
+	return filepath.Join(GetKleiDstPath(), clusterName, "Master", "server.ini")
 }
 
 func GetAdminlistPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "adminlist.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, "adminlist.txt")
 }
 
 func GetBlocklistPath(clusterName string) string {
-	return path.Join(GetKleiDstPath(), clusterName, "blocklist.txt")
+	return filepath.Join(GetKleiDstPath(), clusterName, "blocklist.txt")
 }
 
 func GetModSetup(clusterName string) string {
 	cluster := dstConfigUtils.GetDstConfig()
-	return path.Join(cluster.Force_install_dir, "mods", "dedicated_server_mods_setup.lua")
+	return filepath.Join(cluster.Force_install_dir, "mods", "dedicated_server_mods_setup.lua")
 }
 
 func GetDstUpdateCmd(clusterName string) string {
@@ -179,7 +178,7 @@ func Status(clusterName, level string) bool {
 }
 
 func ReadMasterLog(clusterName string, lineNum uint) []string {
-	logPath := path.Join(GetClusterBasePath(clusterName), "Master", "server_log.txt")
+	logPath := filepath.Join(GetClusterBasePath(clusterName), "Master", "server_log.txt")
 	logs, err := fileUtils.ReverseRead(logPath, lineNum)
 	if err != nil {
 		log.Panicln("read dstUtils2 master log error:", err)
@@ -188,7 +187,7 @@ func ReadMasterLog(clusterName string, lineNum uint) []string {
 }
 
 func ReadLevelLog(clusterName string, levelName string, lineNum uint) []string {
-	logPath := path.Join(GetClusterBasePath(clusterName), levelName, "server_log.txt")
+	logPath := filepath.Join(GetClusterBasePath(clusterName), levelName, "server_log.txt")
 	logs, err := fileUtils.ReverseRead(logPath, lineNum)
 	if err != nil {
 		log.Panicln("read dstUtils2 master log error:", err)
@@ -198,7 +197,7 @@ func ReadLevelLog(clusterName string, levelName string, lineNum uint) []string {
 
 func ReadCavesLog(clusterName string, lineNum uint) []string {
 
-	logPath := path.Join(GetClusterBasePath(clusterName), "Caves", "server_log.txt")
+	logPath := filepath.Join(GetClusterBasePath(clusterName), "Caves", "server_log.txt")
 	logs, err := fileUtils.ReverseRead(logPath, lineNum)
 	if err != nil {
 		log.Panicln("read dstUtils2 caves log error:", err)
@@ -405,7 +404,7 @@ func ParseACFFile(filePath string) map[string]WorkshopItem {
 
 func GetModSetup2(clusterName string) string {
 	cluster := clusterUtils.GetCluster(clusterName)
-	return path.Join(cluster.ForceInstallDir, "mods", "dedicated_server_mods_setup.lua")
+	return filepath.Join(cluster.ForceInstallDir, "mods", "dedicated_server_mods_setup.lua")
 }
 
 func EscapePath(path string) string {

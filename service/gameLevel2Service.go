@@ -164,6 +164,7 @@ func (g *GameLevel2Service) DeleteLevel(clusterName string, levelName string) er
 	if err != nil {
 		return err
 	}
+	clusterContainer.Remove(clusterName, levelName)
 	// 删除 json 文件
 	config, err := levelConfigUtils.GetLevelConfig(clusterName)
 	if err != nil {

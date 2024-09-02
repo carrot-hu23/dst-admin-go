@@ -1,11 +1,11 @@
 package service
 
 import (
+	"dst-admin-go/config/global"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/luaUtils"
 	"dst-admin-go/vo"
-	"dst-admin-go/config/global"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -79,18 +79,18 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
 		wanip := global.Config.WanIP
 		if wanip != "" {
-			
-		}else{
+
+		} else {
 			ipv4, err := d.GetPublicIP()
 			if err != nil {
 				wanip = ""
-			}else{
+			} else {
 				wanip = ipv4
 			}
 		}
-		if wanip == ""{
+		if wanip == "" {
 			gameArchie.IpConnect = ""
-		}else{
+		} else {
 			// c_connect("IP address", port, "password")
 			if password != "" {
 				gameArchie.IpConnect = "c_connect(\"" + wanip + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ",\"" + password + "\"" + ")"
