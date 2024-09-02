@@ -61,6 +61,7 @@ func NewClusterIni() *ClusterIni {
 		VoteEnabled:     true,
 		VoteKickEnabled: true,
 		LanOnlyCluster:  false,
+		OfflineCluster:  false,
 		ClusterLanguage: "zh",
 		WhitelistSlots:  0,
 		TickRate:        15,
