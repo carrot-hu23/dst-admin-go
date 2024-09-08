@@ -20,7 +20,7 @@
 
 ```
 docker pull hujinbo23/dst-admin-go:1.2.7
-docker run -d -p8082:8082 hujinbo23/dst-admin-go:1.2.7
+docker run -d --init -p 8082:8082 hujinbo23/dst-admin-go:1.2.7
 ```
 
 **路径参考**
