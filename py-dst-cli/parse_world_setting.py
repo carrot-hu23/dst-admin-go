@@ -264,8 +264,8 @@ def parse_world_setting(path_base="data"):
 
 
 if __name__ == "__main__":
-    datadata = parse_world_setting("/root/mine/dst/test/dst/data")
+    datadata = parse_world_setting("C:\\Program Files (x86)\\Steam\steamapps\\common\\Don't Starve Together\\data")
     print(datadata)
     import json
-    with open('/root/mine/dst/test/misc/dst_world_setting.json', 'w', encoding='utf-8') as f:
+    with open('C:\\Users\\paratera\\Desktop\\我的\\饥荒面板\\dst-admin-go\\py-dst-cli\\dst_world_setting.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(datadata, ensure_ascii=False))
