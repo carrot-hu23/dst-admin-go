@@ -172,12 +172,18 @@ func (g *GameLevel2Api) SaveClusterIni(ctx *gin.Context) {
 
 // SendCommand 发送世界指令
 func (g *GameLevel2Api) SendCommand(ctx *gin.Context) {
-	levelName := ctx.Query("levelName")
-	command := ctx.Query("command")
+	var payload struct {
+		LevelName string `json:"levelName"`
+		Command   string `json:"command"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln(err)
+	}
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
-	consoleService.SendCommand(clusterName, levelName, command)
+	consoleService.SendCommand(clusterName, payload.LevelName, payload.Command)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
