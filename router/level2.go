@@ -39,7 +39,7 @@ func initLevel2(router *gin.RouterGroup) {
 		group2.POST("/blacklist", gameLevelApi.SaveBlacklist)
 
 		group2.GET("/command", gameLevelApi.SendCommand)
-
+		group2.GET("/udp/port", gameLevelApi.GetScanUDPPorts)
 	}
 
 	preinstallApi := api.PreinstallApi{}

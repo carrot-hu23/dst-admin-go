@@ -22,5 +22,8 @@ func initUserRouter(router *gin.RouterGroup) {
 		userCluster.GET("", userApi.GetUserClusterList)
 		userCluster.POST("", userApi.AddUserCluster)
 		userCluster.DELETE("", userApi.RemoveUserCluster)
+		userCluster.PUT("", userApi.UpdateUserAllow)
+
+		userCluster.GET("/permission", userApi.GetUserCluster)
 	}
 }

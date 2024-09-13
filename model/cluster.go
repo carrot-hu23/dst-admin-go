@@ -15,5 +15,12 @@ type Cluster struct {
 	Beta            int    `json:"beta"`
 	Bin             int    `json:"bin"`
 
+	LevelType   string `json:"levelType"`
+	ClusterType string `json:"clusterType"`
+	Ip          string `json:"ip"`
+	Port        int    `json:"port"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+
 	Ugc_directory string `json:"ugc_directory"`
 }

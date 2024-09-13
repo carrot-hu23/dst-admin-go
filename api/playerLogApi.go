@@ -4,11 +4,14 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -77,6 +80,27 @@ func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 	if total%int64(size) != 0 {
 		totalPages++
 	}
+
+	var wg sync.WaitGroup
+	wg.Add(len(playerLogs))
+	for i := range playerLogs {
+		go func(index int) {
+			defer func() {
+				wg.Done()
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			ipStr := playerLogs[index].Ip
+			split := strings.Split(ipStr, "|")
+			if len(split) == 2 {
+				ip := split[0]
+				region := systemUtils.FindIpRegion(ip)
+				playerLogs[index].Region = region
+			}
+		}(i)
+	}
+	wg.Wait()
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

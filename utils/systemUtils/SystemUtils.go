@@ -2,6 +2,7 @@ package systemUtils
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
@@ -9,6 +10,8 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -198,4 +201,49 @@ func GetPublicIP() (string, error) {
 	}
 
 	return string(ip), nil
+}
+
+func FindFreeUDPPorts(startPort, endPort int) ([]int, error) {
+	var freePorts []int
+
+	for port := startPort; port <= endPort; port++ {
+		conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: port})
+		if err == nil {
+			conn.Close()
+			freePorts = append(freePorts, port)
+		}
+	}
+
+	return freePorts, nil
+}
+
+type IpResp struct {
+	Rs       int    `json:"rs"`
+	Code     int    `json:"code"`
+	Address  string `json:"address"`
+	Ip       string `json:"ip"`
+	IsDomain int    `json:"isDomain"`
+}
+
+func FindIpRegion(ip string) string {
+
+	url := "https://www.ip.cn/api/index?ip=" + ip + "&type=1"
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatalf("Error making GET request: %v", err)
+	}
+	defer resp.Body.Close() // 确保在函数结束时关闭响应体
+
+	// 读取响应体
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return ""
+	}
+	ipResp := IpResp{}
+	err = json.Unmarshal(body, &ipResp)
+	if err != nil {
+		return ""
+	}
+	log.Println(url, ipResp)
+	return ipResp.Address
 }

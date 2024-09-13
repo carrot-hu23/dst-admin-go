@@ -3,6 +3,7 @@ package service
 import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
+	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/session"
 	"dst-admin-go/utils/dstUtils"
@@ -21,6 +22,7 @@ type ClusterManager struct {
 	HomeService
 	s GameService
 	GameArchive
+	RemoteService
 }
 
 func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
@@ -65,38 +67,21 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 				CreatedAt:       cluster.CreatedAt,
 				UpdatedAt:       cluster.UpdatedAt,
 				Ugc_directory:   cluster.Ugc_directory,
+				LevelType:       cluster.LevelType,
+				ClusterType:     cluster.ClusterType,
+				Ip:              cluster.Ip,
+				Port:            cluster.Port,
+				Username:        cluster.Username,
+				ClusterPassword: cluster.Password,
 			}
-			//clusterIni := c.GetClusterIni(cluster.ClusterName)
-			//name := clusterIni.ClusterName
-			//maxPlayers := clusterIni.MaxPlayers
-			//// mode := clusterIni.GameMode
-			//password := clusterIni.ClusterPassword
-			//var hasPassword int
-			//if password == "" {
-			//	hasPassword = 0
-			//} else {
-			//	hasPassword = 1
-			//}
-			//// http 请求服务信息
-			//homeInfos := clusterUtils.GetDstServerInfo(name)
-			//if len(homeInfos) > 0 {
-			//	for _, info := range homeInfos {
-			//		if info.Name == name &&
-			//			uint(info.MaxConnect) == maxPlayers &&
-			//			int(info.Password) == hasPassword {
-			//			clusterVO.RowId = info.Row
-			//			clusterVO.Connected = int(info.Connected)
-			//			clusterVO.MaxConnections = int(info.MaxConnect)
-			//			clusterVO.Mode = info.Mode
-			//			clusterVO.Mods = int(info.Mods)
-			//			clusterVO.Season = info.Season
-			//			clusterVO.Region = info.Region
-			//		}
-			//
-			//	}
-			//}
-			clusterVO.GameArchive = c.GetGameArchive(clusterVO.ClusterName)
-			clusterVO.Status = c.GetLevelStatus(clusterVO.ClusterName, "Master")
+			if cluster.ClusterType == "远程" {
+				// TODO 增加xinxi
+				clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
+				clusterVO.Status = c.GetRemoteLevelStatus(cluster)
+			} else {
+				clusterVO.GameArchive = c.GetGameArchive(clusterVO.ClusterName)
+				clusterVO.Status = c.GetLevelStatus(clusterVO.ClusterName, "Master")
+			}
 			clusterVOList[i] = clusterVO
 			wg.Done()
 		}(cluster, i)
@@ -111,23 +96,24 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 }
 
 func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
-
-	if cluster.Name == "" {
-		log.Panicln("create cluster is error, name is null")
-	}
-	if cluster.ClusterName == "" {
-		log.Panicln("create cluster is error, cluster name is null")
-	}
-	if cluster.SteamCmd == "" {
-		log.Panicln("create cluster is error, steamCmd is null")
-	}
-	if cluster.ForceInstallDir == "" {
-		log.Panicln("create cluster is error, forceInstallDir is null")
-	}
-	if cluster.ModDownloadPath == "" {
-		p := filepath.Join(dstUtils.GetDoNotStarveTogetherPath(), "mod_download")
-		fileUtils.CreateDirIfNotExists(p)
-		cluster.ModDownloadPath = p
+	if cluster.ClusterType == "本地" {
+		if cluster.Name == "" {
+			log.Panicln("create cluster is error, name is null")
+		}
+		if cluster.ClusterName == "" {
+			log.Panicln("create cluster is error, cluster name is null")
+		}
+		if cluster.SteamCmd == "" {
+			log.Panicln("create cluster is error, steamCmd is null")
+		}
+		if cluster.ForceInstallDir == "" {
+			log.Panicln("create cluster is error, forceInstallDir is null")
+		}
+		if cluster.ModDownloadPath == "" {
+			p := filepath.Join(dstUtils.GetDoNotStarveTogetherPath(), "mod_download")
+			fileUtils.CreateDirIfNotExists(p)
+			cluster.ModDownloadPath = p
+		}
 	}
 
 	db := database.DB
@@ -146,9 +132,10 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 		}
 		log.Panicln("创建房间失败！", err)
 	}
-
-	// 创建世界
-	c.InitCluster(cluster, "")
+	if cluster.ClusterType != "远程" {
+		// 创建世界
+		c.InitCluster2(cluster, global.Config.Token)
+	}
 	tx.Commit()
 
 }
@@ -201,10 +188,11 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	}
 
 	// TODO 删除房间 和 饥荒、备份、mod 下载
-
-	// 删除房间
-	fileUtils.DeleteDir(dstUtils.GetClusterBasePath(clusterName))
-	// 删除饥荒
+	if cluster.ClusterType != "远程" {
+		// 删除房间
+		fileUtils.DeleteDir(dstUtils.GetClusterBasePath(clusterName))
+		// 删除饥荒
+	}
 
 	return &cluster, nil
 }

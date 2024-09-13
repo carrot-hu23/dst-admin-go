@@ -80,6 +80,9 @@ func initConfig() {
 	if _config.AutoUpdateModinfo.UpdateCheckInterval == 0 {
 		_config.AutoUpdateModinfo.UpdateCheckInterval = 10
 	}
+	if _config.Token == "" {
+		_config.Token = "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw="
+	}
 	log.Println("config: ", _config)
 	global.Config = _config
 }

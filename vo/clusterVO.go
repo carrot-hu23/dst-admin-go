@@ -31,4 +31,11 @@ type ClusterVO struct {
 	Region         string `json:"region"`
 
 	GameArchive *GameArchive `json:"gameArchive"`
+
+	LevelType       string `json:"levelType"`
+	ClusterType     string `json:"clusterType"`
+	Ip              string `json:"ip"`
+	Port            int    `json:"port"`
+	Username        string `json:"username"`
+	ClusterPassword string `json:"clusterPassword"`
 }

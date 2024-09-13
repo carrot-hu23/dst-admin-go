@@ -13,4 +13,5 @@ type PlayerLog struct {
 	ActionDesc  string `json:"actionDesc"`
 	Ip          string `json:"ip"`
 	ClusterName string `json:"clusterName"`
+	Region      string `json:"region"`
 }

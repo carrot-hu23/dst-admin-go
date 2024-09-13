@@ -181,9 +181,11 @@ func (u *UserApi) UpdateUser(ctx *gin.Context) {
 }
 
 type UserClusterVO struct {
-	ID          int
-	Name        string `json:"name"`
-	ClusterName string `json:"clusterName"`
+	ID                    int
+	Name                  string `json:"name"`
+	ClusterName           string `json:"clusterName"`
+	AllowAddLevel         bool   `json:"allowAddLevel"`
+	AllowEditingServerIni bool   `json:"allowEditingServerIni"`
 }
 
 func (u *UserApi) GetUserClusterList(ctx *gin.Context) {
@@ -191,7 +193,7 @@ func (u *UserApi) GetUserClusterList(ctx *gin.Context) {
 	userId := ctx.Query("userId")
 	db := database.DB
 	var userClusterVOList []UserClusterVO
-	db.Raw("select uc.id as ID, c.name as name, c.cluster_name from user_clusters uc join clusters as c on c.id = uc.cluster_id where uc.deleted_at is null and uc.user_id=?", userId).Scan(&userClusterVOList)
+	db.Raw("select uc.id as ID, c.name as name, c.cluster_name, uc.allow_add_level, uc.allow_editing_server_ini from user_clusters uc join clusters as c on c.id = uc.cluster_id where uc.deleted_at is null and uc.user_id=?", userId).Scan(&userClusterVOList)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -199,9 +201,32 @@ func (u *UserApi) GetUserClusterList(ctx *gin.Context) {
 	})
 }
 
+func (u *UserApi) GetUserCluster(ctx *gin.Context) {
+	session := sessions.Start(ctx.Writer, ctx.Request)
+	role := session.Get("role")
+	userId := session.Get("userId")
+	clusterName := ctx.Query("clusterName")
+	log.Println("role", role, "userId", userId, "clusterName", clusterName)
+	userClusterVO := UserClusterVO{}
+	if role == "admin" {
+		userClusterVO.AllowAddLevel = true
+		userClusterVO.AllowEditingServerIni = true
+	} else {
+		db := database.DB
+		db.Raw("select uc.id as ID, c.name as name, c.cluster_name, uc.allow_add_level, uc.allow_editing_server_ini from user_clusters uc join clusters as c on c.id = uc.cluster_id where uc.deleted_at is null and uc.user_id= ? and c.cluster_name = ?", userId, clusterName).Scan(&userClusterVO)
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: userClusterVO,
+	})
+}
+
 type AddUserCluster struct {
-	UserId    int `json:"userId"`
-	ClusterId int `json:"clusterId"`
+	UserId                int  `json:"userId"`
+	ClusterId             int  `json:"clusterId"`
+	AllowAddLevel         bool `json:"allowAddLevel"`
+	AllowEditingServerIni bool `json:"allowEditingServerIni"`
 }
 
 func (u *UserApi) AddUserCluster(ctx *gin.Context) {
@@ -215,8 +240,10 @@ func (u *UserApi) AddUserCluster(ctx *gin.Context) {
 	if addUserCluster.UserId != 0 && addUserCluster.ClusterId != 0 {
 		db := database.DB
 		userCluster := model.UserCluster{
-			UserId:    addUserCluster.UserId,
-			ClusterId: addUserCluster.ClusterId,
+			UserId:                addUserCluster.UserId,
+			ClusterId:             addUserCluster.ClusterId,
+			AllowAddLevel:         addUserCluster.AllowAddLevel,
+			AllowEditingServerIni: addUserCluster.AllowEditingServerIni,
 		}
 		db.Create(&userCluster)
 	}
@@ -239,4 +266,35 @@ func (u *UserApi) RemoveUserCluster(ctx *gin.Context) {
 		Msg:  "success",
 		Data: nil,
 	})
+}
+
+func (u *UserApi) UpdateUserAllow(ctx *gin.Context) {
+
+	var payload struct {
+		ID                    int  `json:"ID"`
+		AllowAddLevel         bool `json:"allowAddLevel"`
+		AllowEditingServerIni bool `json:"allowEditingServerIni"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln("参数解析失败", err)
+	}
+
+	db := database.DB
+	userCluster := model.UserCluster{}
+	db.Where("id = ?", payload.ID).First(&userCluster)
+	log.Println("userCluster", userCluster)
+
+	userCluster.AllowAddLevel = payload.AllowAddLevel
+	userCluster.AllowEditingServerIni = payload.AllowEditingServerIni
+
+	db2 := database.DB
+	db2.Save(&userCluster)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: userCluster,
+	})
+
 }

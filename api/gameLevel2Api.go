@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/systemUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/level"
 	"github.com/gin-gonic/gin"
@@ -389,5 +390,17 @@ func (g *GameLevel2Api) CreateNewLevel(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: newLevel,
+	})
+}
+
+func (g *GameLevel2Api) GetScanUDPPorts(ctx *gin.Context) {
+	ports, err := systemUtils.FindFreeUDPPorts(10998, 11038)
+	if err != nil {
+		log.Panicln(err)
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: ports,
 	})
 }

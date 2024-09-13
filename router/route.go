@@ -12,7 +12,7 @@ func NewRoute() *gin.Engine {
 	app.Use(middleware.Recover)
 	// app.Use(middleware.ShellInjectionInterceptor())
 	app.Use(middleware.Authentication())
-
+	app.Use(middleware.Proxy)
 	// app.Use(middleware.CheckDstHandler())
 
 	app.GET("/hello", func(ctx *gin.Context) {

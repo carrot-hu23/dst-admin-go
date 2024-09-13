@@ -79,6 +79,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
 		ipv4, err := d.GetPublicIP()
 		if err != nil {
+			log.Println(err)
 			gameArchie.IpConnect = ""
 		} else {
 			// c_connect("IP address", port, "password")
@@ -124,7 +125,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 }
 
 func (d *GameArchive) GetPublicIP() (string, error) {
-	resp, err := http.Get("https://api.ipify.org/")
+	resp, err := http.Get("https://cdid.c-ctrip.com/model-poc2/h")
 	if err != nil {
 		return "", err
 	}
