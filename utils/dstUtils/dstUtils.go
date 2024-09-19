@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -324,4 +325,18 @@ func ParseACFFile(filePath string) map[string]WorkshopItem {
 func GetModSetup2(clusterName string) string {
 	cluster := clusterUtils.GetCluster(clusterName)
 	return path.Join(cluster.ForceInstallDir, "mods", "dedicated_server_mods_setup.lua")
+}
+
+func EscapePath(path string) string {
+	if runtime.GOOS == "windows" {
+		return path
+	}
+	// 在这里添加需要转义的特殊字符
+	escapedChars := []string{" ", "'", "(", ")"}
+
+	for _, char := range escapedChars {
+		path = strings.ReplaceAll(path, char, "\\"+char)
+	}
+
+	return path
 }

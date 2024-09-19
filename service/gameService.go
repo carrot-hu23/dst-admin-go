@@ -175,17 +175,28 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
 	ugcDirectory := cluster.Ugc_directory
-
+	persistent_storage_root := cluster.Persistent_storage_root
+	conf_dir := cluster.Conf_dir
 	var startCmd = ""
+
+	dstInstallDir = dstUtils.EscapePath(dstInstallDir)
 
 	if bin == 64 {
 		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
+	} else if bin == 100 {
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64_luajit -console -cluster " + clusterName + " -shard " + level
 	} else {
 		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
 	}
 
 	if ugcDirectory != "" {
 		startCmd += " -ugc_directory " + ugcDirectory
+	}
+	if persistent_storage_root != "" {
+		startCmd += " -persistent_storage_root " + persistent_storage_root
+	}
+	if conf_dir != "" {
+		startCmd += " -conf_dir " + conf_dir
 	}
 
 	startCmd += "  ;"

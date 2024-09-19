@@ -374,8 +374,9 @@ func (g *GameConsoleApi) ReadServerLog(ctx *gin.Context) {
 
 func (g *GameConsoleApi) DownloadDstLogFile(ctx *gin.Context) {
 
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	clusterName := cluster.ClusterName
+	clusterName := ctx.Query("clusterName")
+	cluster := clusterUtils.GetCluster(clusterName)
+	clusterName = cluster.ClusterName
 
 	fileName := ctx.Query("fileName")
 	if fileName == "" {

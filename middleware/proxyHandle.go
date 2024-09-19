@@ -28,6 +28,8 @@ var whiteList = map[string]bool{
 	"/api/game/system/info":       true,
 	"/api/dst/home/server":        true,
 	"/api/dst/home/server/detail": true,
+
+	"/api/game/level/server/download": true,
 }
 
 func Proxy(c *gin.Context) {
