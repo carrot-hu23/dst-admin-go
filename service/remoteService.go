@@ -38,6 +38,12 @@ type RemoteGameArchive struct {
 }
 
 func (r *RemoteService) GetRemoteLevelStatus(cluster model.Cluster) bool {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
+
 	// 创建一个 HTTP 客户端
 	client := &http.Client{}
 
@@ -79,6 +85,12 @@ func (r *RemoteService) GetRemoteLevelStatus(cluster model.Cluster) bool {
 }
 
 func (r *RemoteService) GetRemoteGameArchive(cluster model.Cluster) *vo.GameArchive {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
 
 	// 创建一个 HTTP 客户端
 	client := &http.Client{}
