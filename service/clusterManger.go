@@ -87,6 +87,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	containerId, err := c.CreateContainer(*cluster)
 	cluster.ContainerId = containerId
 	cluster.Uuid = containerId
+	cluster.ClusterName = containerId
 	err = db.Create(&cluster).Error
 
 	if err != nil {
