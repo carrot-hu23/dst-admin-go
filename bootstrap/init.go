@@ -1,14 +1,13 @@
 package bootstrap
 
 import (
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
+	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/config/global"
-	"dst-admin-go/mod"
 	"dst-admin-go/model"
-	"dst-admin-go/schedule"
 	"fmt"
+	"github.com/docker/docker/client"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"gopkg.in/yaml.v2"
@@ -18,7 +17,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -30,10 +28,15 @@ func Init() {
 	initConfig()
 	initLog()
 	initDB()
-	initCollect()
-	initSchedule()
+	initDockerClient()
+}
 
-	// initUpdateModinfos()
+func initDockerClient() {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Panicln(err)
+	}
+	dockerClient.Client = cli
 }
 
 func initDB() {
@@ -45,17 +48,7 @@ func initDB() {
 	}
 	database.DB = db
 	err = database.DB.AutoMigrate(
-		&model.Spawn{},
-		&model.PlayerLog{},
-		&model.Connect{},
-		&model.Regenerate{},
-		&model.Proxy{},
-		&model.ModInfo{},
 		&model.Cluster{},
-		&model.JobTask{},
-		&model.AutoCheck{},
-		&model.Announce{},
-		&model.WebLink{},
 		&model.User{},
 		&model.UserCluster{},
 	)
@@ -102,63 +95,4 @@ func initLog() {
 	gin.SetMode(gin.DebugMode)
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-}
-
-func initCollect() {
-
-	var clusters []model.Cluster
-	database.DB.Find(&clusters)
-	for _, cluster := range clusters {
-		global.CollectMap.AddNewCollect(cluster.ClusterName)
-	}
-
-	autoCheckManager := autoCheck.AutoCheckManager{}
-	autoCheckManager.Start()
-	autoCheck.Manager = &autoCheckManager
-}
-
-func initSchedule() {
-	schedule.ScheduleSingleton = schedule.NewSchedule()
-	// service.InitAnnounce()
-
-}
-
-func initUpdateModinfos() {
-	if global.Config.AutoUpdateModinfo.Enable {
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println(r)
-				}
-			}()
-			t := global.Config.AutoUpdateModinfo.UpdateCheckInterval
-			ticker := time.NewTicker(time.Duration(t) * time.Minute)
-			for {
-				select {
-				case <-ticker.C:
-					log.Println("正在定时更新模组配置 间隔: ", 30, "分钟")
-					// 每隔10分钟执行的任务
-					mod.UpdateModinfoList("Cluster1")
-				}
-			}
-		}()
-
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println(r)
-				}
-			}()
-			t := global.Config.AutoUpdateModinfo.CheckInterval
-			ticker := time.NewTicker(time.Duration(t) * time.Minute)
-			for {
-				select {
-				case <-ticker.C:
-					log.Println("正在定时检查模组配置是否更新 间隔: ", 5, "分钟")
-					// 每隔10分钟执行的任务
-					mod.CheckModInfoUpdate()
-				}
-			}
-		}()
-	}
 }

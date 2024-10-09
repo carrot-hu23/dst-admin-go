@@ -1,7 +1,6 @@
 package api
 
 import (
-	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
@@ -26,9 +25,6 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 	fmt.Printf("%v", clusterModel)
 
 	clusterManager.CreateCluster(&clusterModel)
-	if clusterModel.ClusterType != "远程" {
-		global.CollectMap.AddNewCollect(clusterModel.ClusterName)
-	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -65,9 +61,6 @@ func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 	if err != nil {
 		log.Panicln("delete cluster error", err)
 	}
-
-	global.CollectMap.RemoveCollect(clusterModel.ClusterName)
-
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",

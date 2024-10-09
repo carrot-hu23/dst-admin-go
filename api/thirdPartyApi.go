@@ -2,8 +2,6 @@ package api
 
 import (
 	"bytes"
-	"dst-admin-go/service"
-	"dst-admin-go/vo"
 	"dst-admin-go/vo/third"
 	"encoding/json"
 	"fmt"
@@ -155,22 +153,6 @@ func (t *ThirdPartyApi) GetDstHomeDetailList(c *gin.Context) {
 	}
 
 	c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
-}
-
-var lobbyServer = service.LobbyServer{}
-
-func (t *ThirdPartyApi) QueryLobbyServerDetail(ctx *gin.Context) {
-
-	//获取查询参数
-	region := ctx.Query("region")
-	rowId := ctx.Query("rowId")
-
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: lobbyServer.QueryLobbyHomeInfo(region, rowId),
-	})
-
 }
 
 func (t *ThirdPartyApi) GetDstHomeServerList2(ctx *gin.Context) {

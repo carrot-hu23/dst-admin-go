@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"dst-admin-go/cache"
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"fmt"
@@ -55,10 +54,6 @@ func Proxy(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
-	if cluster.ClusterType != "远程" {
-		c.Next()
-		return
-	}
 
 	// 构建代理请求
 	proxy := &httputil.ReverseProxy{
@@ -66,12 +61,12 @@ func Proxy(c *gin.Context) {
 			req.URL.Scheme = "http" // 可根据需要修改为https
 			req.URL.Host = fmt.Sprintf("%s:%d", cluster.Ip, cluster.Port)
 			req.Host = req.URL.Host
-			req.Header.Set("Cookie", cache.GetToken(cluster))
+			//req.Header.Set("Cookie", cache.GetToken(cluster))
 		},
 		ModifyResponse: func(resp *http.Response) error {
 			if resp.StatusCode == http.StatusUnauthorized {
-				cache.TokenMemo.DeleteKey(cache.GenTokenKey(cluster))
-				resp.StatusCode = http.StatusGatewayTimeout
+				//cache.TokenMemo.DeleteKey(cache.GenTokenKey(cluster))
+				//resp.StatusCode = http.StatusGatewayTimeout
 			}
 			return nil
 		},

@@ -2,7 +2,6 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/constant"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
@@ -87,7 +86,7 @@ func (u *UserApi) CreateUser(ctx *gin.Context) {
 	}
 
 	// 找到管理员
-	admin, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
+	admin, err := fileUtils.ReadLnFile("./password.txt")
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}

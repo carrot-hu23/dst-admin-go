@@ -19,30 +19,9 @@ func NewRoute() *gin.Engine {
 		ctx.String(200, "Hello! Dont starve together 1.1.9.2 20230816")
 	})
 	router := app.Group("")
-	initBackupRouter(router)
 	initClusterRouter(router)
-	initDstConfigRouter(router)
-	initFirstRouter(router)
-	InitGameRouter(router)
 	initLoginRouter(router)
-	initModRouter(router)
-	initPlayerRouter(router)
-	initProxyRouter(router)
-	initStatisticsRouter(router)
 	initThirdPartyRouter(router)
-	initWsRouter(router)
-	initSteamRouter(router)
-	initTimedTaskRouter(router)
-
-	initAutoCheck(router)
-
-	initWebLinkRouter(router)
-	initWebhookRouter(router)
-
-	initLevel2(router)
-
-	initBotRouter(router)
-
 	initUserRouter(router)
 
 	initStaticFile(app)

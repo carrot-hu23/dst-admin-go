@@ -3,26 +3,19 @@ package service
 import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/session"
-	"dst-admin-go/utils/dstUtils"
-	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"path/filepath"
 	"sync"
 )
 
 type ClusterManager struct {
-	InitService
-	HomeService
-	s GameService
-	GameArchive
 	RemoteService
+	ContainerService
 }
 
 func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
@@ -57,31 +50,16 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 				Name:            cluster.Name,
 				ClusterName:     cluster.ClusterName,
 				Description:     cluster.Description,
-				SteamCmd:        cluster.SteamCmd,
-				ForceInstallDir: cluster.ForceInstallDir,
-				Backup:          cluster.Backup,
-				ModDownloadPath: cluster.ModDownloadPath,
-				Beta:            cluster.Beta,
-				Bin:             cluster.Bin,
 				ID:              cluster.ID,
 				CreatedAt:       cluster.CreatedAt,
 				UpdatedAt:       cluster.UpdatedAt,
-				Ugc_directory:   cluster.Ugc_directory,
-				LevelType:       cluster.LevelType,
-				ClusterType:     cluster.ClusterType,
 				Ip:              cluster.Ip,
 				Port:            cluster.Port,
 				Username:        cluster.Username,
 				ClusterPassword: cluster.Password,
 			}
-			if cluster.ClusterType == "远程" {
-				// TODO 增加xinxi
-				clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
-				clusterVO.Status = c.GetRemoteLevelStatus(cluster)
-			} else {
-				clusterVO.GameArchive = c.GetGameArchive(clusterVO.ClusterName)
-				clusterVO.Status = c.GetLevelStatus(clusterVO.ClusterName, "Master")
-			}
+			clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
+			clusterVO.Status = c.GetRemoteLevelStatus(cluster)
 			clusterVOList[i] = clusterVO
 			wg.Done()
 		}(cluster, i)
@@ -96,25 +74,6 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 }
 
 func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
-	if cluster.ClusterType == "本地" {
-		if cluster.Name == "" {
-			log.Panicln("create cluster is error, name is null")
-		}
-		if cluster.ClusterName == "" {
-			log.Panicln("create cluster is error, cluster name is null")
-		}
-		if cluster.SteamCmd == "" {
-			log.Panicln("create cluster is error, steamCmd is null")
-		}
-		if cluster.ForceInstallDir == "" {
-			log.Panicln("create cluster is error, forceInstallDir is null")
-		}
-		if cluster.ModDownloadPath == "" {
-			p := filepath.Join(dstUtils.GetDoNotStarveTogetherPath(), "mod_download")
-			fileUtils.CreateDirIfNotExists(p)
-			cluster.ModDownloadPath = p
-		}
-	}
 
 	db := database.DB
 	tx := db.Begin()
@@ -125,16 +84,16 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 		}
 	}()
 
-	err := db.Create(&cluster).Error
+	containerId, err := c.CreateContainer(*cluster)
+	cluster.ContainerId = containerId
+	cluster.Uuid = containerId
+	err = db.Create(&cluster).Error
+
 	if err != nil {
 		if err.Error() == "Error 1062: Duplicate entry" {
 			log.Panicln("唯一索引冲突！", err)
 		}
 		log.Panicln("创建房间失败！", err)
-	}
-	if cluster.ClusterType != "远程" {
-		// 创建世界
-		c.InitCluster2(cluster, global.Config.Token)
 	}
 	tx.Commit()
 
@@ -147,27 +106,8 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 	if oldCluster.ClusterName == "" {
 		log.Panicln("未找到当前存档 clusterName: ", cluster.ClusterName, cluster.ID)
 	}
-
-	if cluster.SteamCmd != "" {
-		oldCluster.SteamCmd = cluster.SteamCmd
-	}
-	if cluster.ForceInstallDir != "" {
-		oldCluster.ForceInstallDir = cluster.ForceInstallDir
-	}
-	if cluster.Backup != "" {
-		oldCluster.Backup = cluster.Backup
-	}
-	if cluster.ModDownloadPath != "" {
-		oldCluster.ModDownloadPath = cluster.ModDownloadPath
-	}
 	oldCluster.Name = cluster.Name
-	oldCluster.Bin = cluster.Bin
-	oldCluster.Ugc_directory = cluster.Ugc_directory
 	db.Updates(oldCluster)
-
-	if cluster.Ugc_directory == "" {
-		db.Model(&model.Cluster{}).Where("ID = ?", cluster.ID).UpdateColumn("ugc_directory", "")
-	}
 
 }
 
@@ -177,21 +117,17 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 		log.Panicln("cluster is not allow null")
 	}
 
-	// 停止服务
-	c.s.StopGame(clusterName)
 	db := database.DB
 	cluster := model.Cluster{}
 	result := db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&cluster)
 
-	if result.Error != nil {
-		return nil, result.Error
+	err := c.DeleteContainer(cluster.ContainerId)
+	if err != nil {
+		return nil, err
 	}
 
-	// TODO 删除房间 和 饥荒、备份、mod 下载
-	if cluster.ClusterType != "远程" {
-		// 删除房间
-		fileUtils.DeleteDir(dstUtils.GetClusterBasePath(clusterName))
-		// 删除饥荒
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return &cluster, nil
