@@ -182,6 +182,74 @@ func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
 
 }
 
+func (c *ClusterApi) BindCluster(ctx *gin.Context) {
+	var payload struct {
+		ClusterName string `json:"ClusterName"`
+		Username    string `json:"username"`
+		DisplayName string `json:"displayName"`
+		Password    string `json:"password"`
+		Description string `json:"description"`
+		PhotoURL    string `json:"photoURL"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln(err)
+	}
+	log.Println("激活卡密", payload)
+
+	db1 := database.DB
+	oldUser := model.User{}
+	db1.Where("username=?", payload.Username).First(&oldUser)
+	if oldUser.ID != 0 {
+		ctx.JSON(http.StatusOK, vo.Response{
+			Code: 531,
+			Msg:  "用户名重复了,请换一个",
+			Data: nil,
+		})
+		return
+	}
+
+	db := database.DB
+	tx := db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 创建用户
+	user := model.User{
+		Username:    payload.Username,
+		Password:    payload.Password,
+		DisplayName: payload.DisplayName,
+		PhotoURL:    payload.PhotoURL,
+	}
+	db2 := database.DB
+	db2.Create(&user)
+	log.Println("创建用户成功", user)
+	// 绑定
+	cluster := model.Cluster{}
+	db2.Where("cluster_name = ?", payload.ClusterName).Find(&cluster)
+
+	userCluster := model.UserCluster{}
+	userCluster.ClusterId = int(cluster.ID)
+	userCluster.UserId = int(user.ID)
+
+	log.Println("正在绑定", userCluster)
+	db3 := database.DB
+	db3.Create(&userCluster)
+
+	tx.Commit()
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+
+}
+
 func getStartPort() int64 {
 	version, err := fileUtils.ReadFile("./startPort")
 	if err != nil {

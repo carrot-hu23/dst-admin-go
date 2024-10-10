@@ -21,4 +21,9 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.PUT("/container", clusterApi.UpdateClusterContainer)
 	}
 
+	activate := router.Group("/activate")
+	{
+		activate.GET("", clusterApi.GetCluster)
+		activate.POST("/bind", clusterApi.BindCluster)
+	}
 }
