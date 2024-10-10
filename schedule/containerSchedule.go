@@ -6,6 +6,8 @@ import (
 	"dst-admin-go/service"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 )
 
 var containerService service.ContainerService
@@ -32,7 +34,7 @@ func CollectContainerStatus() {
 			cluster.Status = statusInfo.State.Status
 		}
 		if statusInfo.State.Status == "running" {
-			status := containerService.ContainerDstInstallStatus(cluster.ContainerId)
+			status := checkContainerStatus(cluster)
 			if !status {
 				cluster.Status = "installing"
 			}
@@ -40,4 +42,27 @@ func CollectContainerStatus() {
 		db2 := database.DB
 		db2.Save(&cluster)
 	}
+}
+
+func checkContainerStatus(cluster model.Cluster) bool {
+	// 要检查的URL
+	url := fmt.Sprintf("%s%d", "http://127.0.0.1:", cluster.Port)
+	// 设置一个1秒的超时
+	timeout := 1 * time.Second
+	return isServiceAvailable(url, timeout)
+}
+func isServiceAvailable(url string, timeout time.Duration) bool {
+	client := http.Client{
+		Timeout: timeout,
+	}
+
+	// 发送GET请求
+	resp, err := client.Get(url)
+	if err != nil {
+		return false // 请求失败，服务未响应
+	}
+	defer resp.Body.Close()
+
+	// 检查HTTP状态码
+	return resp.StatusCode == http.StatusOK
 }
