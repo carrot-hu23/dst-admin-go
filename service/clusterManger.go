@@ -175,7 +175,8 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	if result.Error != nil {
 		log.Panicln(result.Error)
 	}
-	err := c.DeleteContainer(cluster.ContainerId)
+	log.Println(cluster)
+	err := c.DeleteContainer(clusterName)
 
 	if err != nil {
 		log.Panicln(err)
@@ -190,6 +191,11 @@ func (c *ClusterManager) FindClusterByUuid(uuid string) *model.Cluster {
 	cluster := &model.Cluster{}
 	db.Where("uuid=?", uuid).First(cluster)
 	return cluster
+}
+
+func (c *ClusterManager) Restart(containerId string) error {
+	err := c.RestartContainer(containerId)
+	return err
 }
 
 // 生成随机UUID

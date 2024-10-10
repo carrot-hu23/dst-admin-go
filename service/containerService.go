@@ -138,6 +138,15 @@ func (t *ContainerService) DeleteContainer(containerID string) error {
 	return nil
 }
 
+func (t *ContainerService) RestartContainer(containerID string) error {
+	// 创建 Docker 客户端
+	cli := dockerClient.Client
+	log.Println("正在停止容器", containerID)
+	// 重启容器
+	err := cli.ContainerRestart(context.Background(), containerID, container.StopOptions{})
+	return err
+}
+
 func (t *ContainerService) ContainerDstInstallStatus(containerID string) bool {
 
 	cli := dockerClient.Client

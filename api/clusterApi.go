@@ -88,3 +88,20 @@ func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 	})
 
 }
+
+func (c *ClusterApi) RestartCluster(ctx *gin.Context) {
+
+	clusterName := ctx.Query("clusterName")
+
+	err := clusterManager.RestartContainer(clusterName)
+	log.Println("重启", clusterName)
+	if err != nil {
+		log.Panicln("restart cluster error", err)
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+
+}

@@ -12,6 +12,7 @@ func initClusterRouter(router *gin.RouterGroup) {
 	cluster := router.Group("/api/cluster")
 	{
 		cluster.GET("", clusterApi.GetClusterList)
+		cluster.GET("/restart", clusterApi.RestartCluster)
 		cluster.POST("", clusterApi.CreateCluster)
 		cluster.PUT("", clusterApi.UpdateCluster)
 		cluster.DELETE("", clusterApi.DeleteCluster)
