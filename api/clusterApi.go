@@ -198,5 +198,5 @@ func getStartPort() int64 {
 }
 
 func saveEndPort(portEnd int64) {
-	fileUtils.WriterTXT(strconv.Itoa(int(portEnd)), "./startPort")
+	fileUtils.WriterTXT("./startPort", strconv.Itoa(int(portEnd)))
 }
