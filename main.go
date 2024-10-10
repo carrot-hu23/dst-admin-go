@@ -18,8 +18,7 @@ func main() {
 	go func() {
 		for {
 			select {
-			case t := <-ticker.C:
-				fmt.Println("定时任务执行时间:", t)
+			case <-ticker.C:
 				schedule.CollectContainerStatus()
 			}
 		}
