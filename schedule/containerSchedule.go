@@ -13,7 +13,6 @@ func CollectContainerStatus() {
 	db := database.DB
 	var clusterList []model.Cluster
 	db.Find(&clusterList)
-	log.Println("正在采集容器信息", clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
 		statusInfo, err := containerService.ContainerStatusInfo(cluster.ContainerId)
@@ -25,6 +24,7 @@ func CollectContainerStatus() {
 			cluster.Status = statusInfo.State.Status
 		}
 		// TODO 如果容器是运行中，并且 没有安装好，
-
+		db2 := database.DB
+		db2.Save(&cluster)
 	}
 }
