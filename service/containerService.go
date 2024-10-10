@@ -186,3 +186,13 @@ func (t *ContainerService) ContainerDstInstallStatus(containerID string) bool {
 		return true
 	}
 }
+
+func (t *ContainerService) ContainerStatusInfo(containerID string) (types.ContainerJSON, error) {
+
+	cli := dockerClient.Client
+	containerInfo, err := cli.ContainerInspect(context.Background(), containerID)
+	if err != nil {
+		fmt.Printf("Error inspecting container: %v\n", err)
+	}
+	return containerInfo, err
+}
