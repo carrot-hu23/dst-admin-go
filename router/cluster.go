@@ -23,7 +23,7 @@ func initClusterRouter(router *gin.RouterGroup) {
 
 	activate := router.Group("/activate")
 	{
-		activate.GET("", clusterApi.GetCluster)
+		activate.GET("/:id", clusterApi.GetCluster)
 		activate.POST("/bind", clusterApi.BindCluster)
 	}
 }
