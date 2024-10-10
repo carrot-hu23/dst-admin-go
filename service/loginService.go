@@ -7,6 +7,7 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -94,6 +95,7 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 
 	session.Set("username", username)
 	session.Set("role", "admin")
+	session.Set("userId", math.MaxUint32)
 
 	userVO.SessionID = session.SessionID()
 	response.Code = 200
