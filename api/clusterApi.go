@@ -240,6 +240,10 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	db3 := database.DB
 	db3.Create(&userCluster)
 
+	db4 := database.DB
+	cluster.Activate = true
+	db4.Save(&cluster)
+
 	tx.Commit()
 
 	ctx.JSON(http.StatusOK, vo.Response{
