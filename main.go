@@ -13,7 +13,7 @@ func main() {
 	bootstrap.Init()
 
 	// 创建一个 time.Ticker
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(time.Duration(global.Config.Collect) * time.Second)
 	defer ticker.Stop()
 	go func() {
 		for {

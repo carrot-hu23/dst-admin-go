@@ -63,7 +63,7 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 
 	// 设置容器卷挂载
 	mounts := []string{
-		"/root/dst-dedicated-server:/app/dst-dedicated-server",
+		//"/root/dst-dedicated-server:/app/dst-dedicated-server",
 		"/root/steamcmd:/app/steamcmd",
 	}
 
