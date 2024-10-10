@@ -64,7 +64,11 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 	}
 
 	var total int64
-	db2.Where("id in ?", ids).Model(&model.Cluster{}).Count(&total)
+	if role != "admin" {
+		db2.Where("id in ?", ids).Model(&model.Cluster{}).Count(&total)
+	} else {
+		db2.Model(&model.Cluster{}).Count(&total)
+	}
 	totalPages := total / int64(size)
 	if total%int64(size) != 0 {
 		totalPages++
