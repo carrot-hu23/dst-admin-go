@@ -24,4 +24,6 @@ type Cluster struct {
 	LevelNum   int `json:"levelNum"`
 	MaxPlayers int `json:"maxPlayers"`
 	MasterPort int `json:"masterPort"`
+
+	Status string `json:"status"`
 }

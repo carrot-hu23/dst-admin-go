@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"dst-admin-go/config/database"
 	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/model"
 	"fmt"
@@ -127,17 +126,8 @@ func (t *ContainerService) DeleteContainer(containerID string) error {
 	cli := dockerClient.Client
 
 	// 删除容器
-	err := cli.ContainerRemove(context.Background(), containerID, container.RemoveOptions{})
-	if err != nil {
-		fmt.Printf("无法删除容器：%v\n", err)
-	} else {
-		fmt.Println("容器删除成功")
-		// 将容器存储到数据库
-		db := database.DB
-		var c Container
-		db.Where("id = ?", containerID).Delete(&c)
-		fmt.Println("container", c)
-	}
+	err := cli.ContainerStop(context.Background(), containerID, container.StopOptions{})
+	err = cli.ContainerRemove(context.Background(), containerID, container.RemoveOptions{})
 	return err
 }
 

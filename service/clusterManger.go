@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"sync"
+	"strconv"
 )
 
 type ClusterManager struct {
@@ -18,57 +18,89 @@ type ClusterManager struct {
 	ContainerService
 }
 
-func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
-	//获取查询参数
-	db := database.DB
-	clusters := make([]model.Cluster, 0)
-	session := sessions.Start(ctx.Writer, ctx.Request)
-	role := session.Get("role")
-	userId := session.Get("userId")
-	log.Println("role", role, "userId", userId)
-	if role == "admin" {
-		if err := db.Find(&clusters).Error; err != nil {
-			fmt.Println(err.Error())
-		}
-	} else {
-		db2 := database.DB
-		userClusterList := []model.UserCluster{}
-		db2.Where("user_id = ?", userId).Find(&userClusterList)
-		ids := []int{}
+func (c *ClusterManager) getClusterIdByRole(userId string, role string) []int {
+	var ids []int
+	if role != "admin" {
+		db3 := database.DB
+		var userClusterList []model.UserCluster
+		db3.Where("user_id = ?", userId).Find(&userClusterList)
 		for i := range userClusterList {
 			ids = append(ids, userClusterList[i].ClusterId)
 		}
-		db.Where("id in ?", ids).Find(&clusters)
+	}
+	return ids
+}
+
+func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
+
+	s := sessions.Start(ctx.Writer, ctx.Request)
+	role := s.Get("role")
+	userId := s.Get("userId")
+	log.Println("role", role, "userId", userId)
+
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
+
+	if page <= 0 {
+		page = 1
+	}
+	if size < 0 {
+		size = 10
 	}
 
-	var clusterVOList = make([]vo.ClusterVO, len(clusters))
-	var wg sync.WaitGroup
-	wg.Add(len(clusters))
-	for i, cluster := range clusters {
-		go func(cluster model.Cluster, i int) {
-			clusterVO := vo.ClusterVO{
-				Name:            cluster.Name,
-				ClusterName:     cluster.ClusterName,
-				Description:     cluster.Description,
-				ID:              cluster.ID,
-				CreatedAt:       cluster.CreatedAt,
-				UpdatedAt:       cluster.UpdatedAt,
-				Ip:              cluster.Ip,
-				Port:            cluster.Port,
-				Username:        cluster.Username,
-				ClusterPassword: cluster.Password,
-			}
-			clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
-			clusterVO.Status = c.GetRemoteLevelStatus(cluster)
-			clusterVOList[i] = clusterVO
-			wg.Done()
-		}(cluster, i)
+	db := database.DB
+	db2 := database.DB
+	if containerId, isExist := ctx.GetQuery("containerId"); isExist {
+		db = db.Where("container_id = ?", containerId)
+		db2 = db2.Where("container_id = ?", containerId)
 	}
-	wg.Wait()
+	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
+	clusters := make([]model.Cluster, 0)
+	ids := c.getClusterIdByRole(userId.(string), role.(string))
+	db.Where("id in ?", ids).Find(&clusters)
+
+	var total int64
+	db2.Where("id in ?", ids).Model(&model.Cluster{}).Count(&total)
+	totalPages := total / int64(size)
+	if total%int64(size) != 0 {
+		totalPages++
+	}
+
+	//var clusterVOList = make([]vo.ClusterVO, len(clusters))
+	//var wg sync.WaitGroup
+	//wg.Add(len(clusters))
+	//for i, cluster := range clusters {
+	//	go func(cluster model.Cluster, i int) {
+	//		clusterVO := vo.ClusterVO{
+	//			Name:            cluster.Name,
+	//			ClusterName:     cluster.ClusterName,
+	//			Description:     cluster.Description,
+	//			ID:              cluster.ID,
+	//			CreatedAt:       cluster.CreatedAt,
+	//			UpdatedAt:       cluster.UpdatedAt,
+	//			Ip:              cluster.Ip,
+	//			Port:            cluster.Port,
+	//			Username:        cluster.Username,
+	//			ClusterPassword: cluster.Password,
+	//		}
+	//		clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
+	//		clusterVO.Status = c.GetRemoteLevelStatus(cluster)
+	//		clusterVOList[i] = clusterVO
+	//		wg.Done()
+	//	}(cluster, i)
+	//}
+	//wg.Wait()
+
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: clusterVOList,
+		Data: vo.Page{
+			Data:       clusters,
+			Page:       page,
+			Size:       size,
+			Total:      total,
+			TotalPages: totalPages,
+		},
 	})
 
 }
@@ -114,15 +146,24 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 
 func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, error) {
 
+	db := database.DB
+	tx := db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	if clusterName == "" {
 		log.Panicln("cluster is not allow null")
 	}
 
-	db := database.DB
 	cluster := model.Cluster{}
 	result := db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&cluster)
 
 	err := c.DeleteContainer(cluster.ContainerId)
+
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +171,7 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	if result.Error != nil {
 		return nil, result.Error
 	}
-
+	tx.Commit()
 	return &cluster, nil
 }
 
