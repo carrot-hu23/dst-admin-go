@@ -18,6 +18,10 @@ func NewRoute() *gin.Engine {
 	app.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(200, "Hello! Dont starve together 1.1.9.2 20230816")
 	})
+
+	// 映射静态文件目录
+	app.Static("/static", "./static")
+
 	router := app.Group("")
 	initClusterRouter(router)
 	initLoginRouter(router)

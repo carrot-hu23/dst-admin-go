@@ -1,0 +1,1170 @@
+{
+    "WORLDGEN_GROUP": {
+        "animals": {
+            "order": 4,
+            "text": "生物以及刷新点",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "hanging_vine_patch": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "image": {
+                        "x": 0.0625,
+                        "y": 0.25
+                    },
+                    "text": "垂下的藤蔓",
+                    "value": "default"
+                },
+                "pog": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "image": {
+                        "x": 0.0,
+                        "y": 0.5
+                    },
+                    "text": "哈巴狸",
+                    "value": "default"
+                },
+                "thunderbirdnest": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.625
+                    },
+                    "text": "雷鸟巢",
+                    "value": "default"
+                },
+                "dungpile": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "粪堆",
+                    "value": "default",
+                    "image": {
+                        "x": 0.0625,
+                        "y": 0.125
+                    }
+                },
+                "hippopotamoose": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "河鹿",
+                    "value": "default",
+                    "image": {
+                        "x": 0.1875,
+                        "y": 0.25
+                    }
+                },
+                "peagawk": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "呆望雀",
+                    "value": "default",
+                    "image": {
+                        "x": 0.625,
+                        "y": 0.375
+                    }
+                },
+                "pangolden": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "淘金兽",
+                    "value": "default",
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.375
+                    }
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "uncommon": "较少",
+                "default": "默认",
+                "often": "较多",
+                "mostly": "很多",
+                "always": "大量",
+                "insane": "疯狂"
+            }
+        },
+        "monsters": {
+            "order": 5,
+            "text": "敌对生物以及刷新点",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {},
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "uncommon": "较少",
+                "default": "默认",
+                "often": "较多",
+                "mostly": "很多",
+                "always": "大量",
+                "insane": "疯狂"
+            }
+        },
+        "resources": {
+            "order": 3,
+            "text": "资源",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "ruined_sculptures": {
+                    "image": {
+                        "x": 0.75,
+                        "y": 0.25
+                    },
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "text": "毁坏的雕塑",
+                    "value": "default"
+                },
+                "lost_relics": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "text": "失落的文物",
+                    "value": "default",
+                    "image": {
+                        "x": 0.6875,
+                        "y": 0.25
+                    }
+                },
+                "asparagus": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "芦笋",
+                    "value": "default",
+                    "image": {
+                        "x": 0.1875,
+                        "y": 0.0
+                    }
+                },
+                "grass_tall": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "高草",
+                    "value": "default",
+                    "image": {
+                        "x": 0.8125,
+                        "y": 0.125
+                    }
+                },
+                "grass_tall_bunches": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "高草丛田",
+                    "value": "default",
+                    "image": {
+                        "x": 0.75,
+                        "y": 0.125
+                    }
+                },
+                "lotus": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "text": "睡莲",
+                    "value": "default",
+                    "image": {
+                        "x": 0.8125,
+                        "y": 0.25
+                    }
+                },
+                "rock": {
+                    "image": {
+                        "x": 0.4375,
+                        "y": 0.375
+                    },
+                    "text": "巨石",
+                    "value": "default"
+                },
+                "sapling": {
+                    "image": {
+                        "x": 0.75,
+                        "y": 0.5
+                    },
+                    "text": "树苗",
+                    "value": "default"
+                },
+                "grass": {
+                    "image": {
+                        "x": 0.6875,
+                        "y": 0.125
+                    },
+                    "text": "草",
+                    "value": "default"
+                },
+                "flowers": {
+                    "image": {
+                        "x": 0.1875,
+                        "y": 0.125
+                    },
+                    "text": "花，邪恶花",
+                    "value": "default"
+                },
+                "reeds": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.5
+                    },
+                    "text": "芦苇",
+                    "value": "default"
+                },
+                "mushroom": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.25
+                    },
+                    "text": "蘑菇",
+                    "value": "default"
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "uncommon": "较少",
+                "default": "默认",
+                "often": "较多",
+                "mostly": "很多",
+                "always": "大量",
+                "insane": "疯狂"
+            }
+        },
+        "global": {
+            "order": 1,
+            "text": "全局",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "porkland_season_start": {
+                    "image": {
+                        "x": 0.875,
+                        "y": 0.5
+                    },
+                    "order": 2,
+                    "options_remap": {
+                        "atlas": "images/customisation.xml",
+                        "img": "blank_season_red.tex"
+                    },
+                    "master_controlled": true,
+                    "desc": {
+                        "default": "平和季",
+                        "humid": "潮湿季",
+                        "lush": "繁茂季"
+                    },
+                    "text": "猪镇起始季节",
+                    "value": "default"
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "uncommon": "较少",
+                "default": "默认",
+                "often": "较多",
+                "mostly": "很多",
+                "always": "大量",
+                "insane": "疯狂"
+            }
+        },
+        "misc": {
+            "order": 2,
+            "text": "世界",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "jungle_border_vine": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "text": "雨林树冠的藤蔓",
+                    "value": "default",
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.25
+                    }
+                },
+                "deep_jungle_fern_noise": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "text": "雨林地皮上的蕨类植物",
+                    "value": "default",
+                    "image": {
+                        "x": 0.9375,
+                        "y": 0.0
+                    }
+                },
+                "task_set": {
+                    "image": {
+                        "x": 0.625,
+                        "y": 0.5
+                    },
+                    "text": "生物群落",
+                    "desc": {
+                        "default": "联机版",
+                        "classic": "经典",
+                        "porkland": "村庄"
+                    },
+                    "order": 1,
+                    "value": "default"
+                },
+                "world_size": {
+                    "image": {
+                        "x": 0.75,
+                        "y": 0.625
+                    },
+                    "text": "世界大小",
+                    "desc": {
+                        "small": "小",
+                        "medium": "中",
+                        "default": "大",
+                        "huge": "巨大"
+                    },
+                    "order": 3,
+                    "value": "default"
+                },
+                "boons": {
+                    "image": {
+                        "x": 0.6875,
+                        "y": 0.375
+                    },
+                    "text": "失败的冒险家",
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "uncommon": "较少",
+                        "default": "默认",
+                        "often": "较多",
+                        "mostly": "很多",
+                        "always": "大量",
+                        "insane": "疯狂"
+                    },
+                    "order": 18,
+                    "value": "default"
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "uncommon": "较少",
+                "default": "默认",
+                "often": "较多",
+                "mostly": "很多",
+                "always": "大量",
+                "insane": "疯狂"
+            }
+        }
+    },
+    "WORLDSETTINGS_GROUP": {
+        "porkland_settings_global": {
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "order": 0,
+            "text": "猪镇全局",
+            "items": {
+                "temperate": {
+                    "image": {
+                        "x": 0.3125,
+                        "y": 0.625
+                    },
+                    "master_controlled": true,
+                    "order": 2,
+                    "options_remap": {
+                        "atlas": "images/customisation.xml",
+                        "img": "blank_season_yellow.tex"
+                    },
+                    "value": "default",
+                    "desc": {
+                        "noseason": "无",
+                        "veryshortseason": "极短",
+                        "shortseason": "短",
+                        "default": "默认",
+                        "longseason": "长",
+                        "verylongseason": "极长",
+                        "random": "随机"
+                    },
+                    "text": "平和季"
+                },
+                "lush": {
+                    "image": {
+                        "x": 0.875,
+                        "y": 0.25
+                    },
+                    "master_controlled": true,
+                    "order": 4,
+                    "options_remap": {
+                        "atlas": "images/customisation.xml",
+                        "img": "blank_season_yellow.tex"
+                    },
+                    "value": "default",
+                    "desc": {
+                        "noseason": "无",
+                        "veryshortseason": "极短",
+                        "shortseason": "短",
+                        "default": "默认",
+                        "longseason": "长",
+                        "verylongseason": "极长",
+                        "random": "随机"
+                    },
+                    "text": "繁茂季"
+                },
+                "humid": {
+                    "image": {
+                        "x": 0.3125,
+                        "y": 0.25
+                    },
+                    "master_controlled": true,
+                    "order": 3,
+                    "options_remap": {
+                        "atlas": "images/customisation.xml",
+                        "img": "blank_season_yellow.tex"
+                    },
+                    "value": "default",
+                    "desc": {
+                        "noseason": "无",
+                        "veryshortseason": "极短",
+                        "shortseason": "短",
+                        "default": "默认",
+                        "longseason": "长",
+                        "verylongseason": "极长",
+                        "random": "随机"
+                    },
+                    "text": "潮湿季"
+                }
+            }
+        },
+        "animals": {
+            "order": 6,
+            "text": "生物",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "dungbeetle_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.0,
+                        "y": 0.125
+                    },
+                    "text": "屎壳郎",
+                    "value": "default"
+                },
+                "glowfly_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.125
+                    },
+                    "text": "发光飞虫",
+                    "value": "default"
+                },
+                "piko_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.5,
+                        "y": 0.375
+                    },
+                    "text": "异食松鼠",
+                    "value": "default"
+                },
+                "hanging_vine_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.625,
+                        "y": 0.125
+                    },
+                    "text": "垂下的藤蔓",
+                    "value": "default"
+                },
+                "mandrakeman_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.9375,
+                        "y": 0.25
+                    },
+                    "text": "曼德拉长者",
+                    "value": "default"
+                },
+                "thunderbird_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.625
+                    },
+                    "text": "雷鸟",
+                    "value": "default"
+                },
+                "hippopotamoose_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.1875,
+                        "y": 0.25
+                    },
+                    "text": "河鹿",
+                    "value": "default"
+                },
+                "butterfly": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.0
+                    },
+                    "text": "蝴蝶",
+                    "value": "default"
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "default": "默认",
+                "often": "较多",
+                "always": "大量"
+            }
+        },
+        "monsters": {
+            "order": 7,
+            "text": "敌对生物",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "weevole_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.6875,
+                        "y": 0.625
+                    },
+                    "text": "象鼻鼠虫",
+                    "value": "default"
+                },
+                "frog_poison_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.125,
+                        "y": 0.5
+                    },
+                    "text": "箭毒蛙",
+                    "value": "default"
+                },
+                "bill_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.9375,
+                        "y": 0.375
+                    },
+                    "text": "鸭嘴豪猪",
+                    "value": "default"
+                },
+                "mosquito_setting": {
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "image": {
+                        "x": 0.3125,
+                        "y": 0.375
+                    },
+                    "text": "蚊子",
+                    "value": "default"
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "default": "默认",
+                "often": "较多",
+                "always": "大量"
+            }
+        },
+        "misc": {
+            "order": 3,
+            "text": "世界",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {
+                "fog": {
+                    "desc": {
+                        "never": "无",
+                        "default": "默认"
+                    },
+                    "text": "雾",
+                    "value": "default",
+                    "image": {
+                        "x": 0.25,
+                        "y": 0.125
+                    }
+                },
+                "vampirebat": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.625
+                    },
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "text": "吸血蝙蝠袭击",
+                    "value": "default"
+                },
+                "poison": {
+                    "desc": {
+                        "never": "无",
+                        "default": "默认"
+                    },
+                    "text": "毒",
+                    "value": "default",
+                    "image": {
+                        "x": 0.0625,
+                        "y": 0.5
+                    }
+                },
+                "pigbandit": {
+                    "image": {
+                        "x": 0.6875,
+                        "y": 0.375
+                    },
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "text": "蒙面猪人",
+                    "value": "default"
+                },
+                "pugalisk_fountain": {
+                    "image": {
+                        "x": 0.25,
+                        "y": 0.5
+                    },
+                    "desc": {
+                        "never": "无",
+                        "default": "默认"
+                    },
+                    "text": "不老泉",
+                    "value": "default"
+                },
+                "brambles": {
+                    "desc": {
+                        "never": "无",
+                        "default": "默认"
+                    },
+                    "text": "荆棘",
+                    "value": "default",
+                    "image": {
+                        "x": 0.5,
+                        "y": 0.0
+                    }
+                },
+                "hayfever": {
+                    "desc": {
+                        "never": "无",
+                        "default": "默认"
+                    },
+                    "text": "花粉症",
+                    "value": "default",
+                    "image": {
+                        "x": 0.125,
+                        "y": 0.25
+                    }
+                },
+                "glowflycycle": {
+                    "image": {
+                        "x": 0.4375,
+                        "y": 0.125
+                    },
+                    "desc": {
+                        "never": "无",
+                        "default": "默认"
+                    },
+                    "text": "发光飞虫周期",
+                    "value": "default"
+                },
+                "lightning": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.25
+                    },
+                    "text": "闪电",
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "value": "default"
+                },
+                "weather": {
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.375
+                    },
+                    "text": "雨",
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "value": "default"
+                }
+            },
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "default": "默认",
+                "often": "较多",
+                "always": "大量"
+            }
+        },
+        "resources": {
+            "order": 4,
+            "text": "资源再生",
+            "atlas": {
+                "width": 2048,
+                "height": 1024,
+                "item_size": 128
+            },
+            "items": {},
+            "desc": {
+                "never": "无",
+                "rare": "很少",
+                "default": "默认",
+                "often": "较多",
+                "always": "大量"
+            }
+        },
+        "survivors": {
+            "order": 2,
+            "text": "冒险家",
+            "atlas": {
+                "name": "worldsettings_customization",
+                "width": 2048,
+                "height": 2048,
+                "item_size": 128
+            },
+            "desc": null,
+            "items": {
+                "dropeverythingondespawn": {
+                    "image": {
+                        "x": 0.0625,
+                        "y": 0.125
+                    },
+                    "text": "离开游戏后物品掉落",
+                    "desc": {
+                        "default": "默认",
+                        "always": "所有"
+                    },
+                    "order": 4,
+                    "value": "default"
+                },
+                "hunger": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.1875
+                    },
+                    "text": "饥饿伤害",
+                    "desc": {
+                        "nonlethal": "非致命",
+                        "default": "默认"
+                    },
+                    "order": 8,
+                    "value": "default"
+                },
+                "spawnprotection": {
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.4375
+                    },
+                    "text": "防骚扰出生保护",
+                    "desc": {
+                        "never": "无",
+                        "default": "自动检测",
+                        "always": "总是"
+                    },
+                    "order": 3,
+                    "value": "default"
+                },
+                "lessdamagetaken": {
+                    "image": {
+                        "x": 0.875,
+                        "y": 0.1875
+                    },
+                    "text": "受到的伤害",
+                    "desc": {
+                        "always": "较少",
+                        "none": "默认",
+                        "more": "较多"
+                    },
+                    "order": 6,
+                    "value": "none"
+                },
+                "healthpenalty": {
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.1875
+                    },
+                    "text": "血量上限惩罚",
+                    "desc": {
+                        "none": "禁用",
+                        "always": "启用"
+                    },
+                    "order": 5,
+                    "value": "always"
+                },
+                "shadowcreatures": {
+                    "image": {
+                        "x": 0.875,
+                        "y": 0.375
+                    },
+                    "text": "理智怪兽",
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "order": 10,
+                    "value": "default"
+                },
+                "extrastartingitems": {
+                    "image": {
+                        "x": 0.375,
+                        "y": 0.125
+                    },
+                    "text": "额外起始资源",
+                    "desc": {
+                        "0": "总是",
+                        "5": "第5天后",
+                        "default": "第10天后",
+                        "15": "第15天后",
+                        "20": "第20天后",
+                        "none": "从不"
+                    },
+                    "order": 1,
+                    "value": "default"
+                },
+                "darkness": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.0625
+                    },
+                    "text": "黑暗伤害",
+                    "desc": {
+                        "nonlethal": "非致命",
+                        "default": "默认"
+                    },
+                    "order": 9,
+                    "value": "default"
+                }
+            }
+        },
+        "global": {
+            "order": 0,
+            "text": "全局",
+            "atlas": {
+                "name": "worldsettings_customization",
+                "width": 2048,
+                "height": 2048,
+                "item_size": 128
+            },
+            "desc": null,
+            "items": {
+                "ghostenabled": {
+                    "image": {
+                        "x": 0.9375,
+                        "y": 0.125
+                    },
+                    "text": "冒险家死亡",
+                    "desc": {
+                        "none": "更改冒险家",
+                        "always": "变鬼魂"
+                    },
+                    "order": 8,
+                    "value": "always"
+                },
+                "krampus": {
+                    "image": {
+                        "x": 0.8125,
+                        "y": 0.1875
+                    },
+                    "text": "坎普斯",
+                    "desc": {
+                        "never": "无",
+                        "rare": "很少",
+                        "default": "默认",
+                        "often": "较多",
+                        "always": "大量"
+                    },
+                    "order": 13,
+                    "value": "default"
+                },
+                "resettime": {
+                    "image": {
+                        "x": 0.5625,
+                        "y": 0.375
+                    },
+                    "text": "死亡重置倒计时",
+                    "desc": {
+                        "none": "禁用",
+                        "slow": "慢",
+                        "default": "默认",
+                        "fast": "快",
+                        "always": "立刻"
+                    },
+                    "order": 11,
+                    "value": "default"
+                },
+                "ghostsanitydrain": {
+                    "image": {
+                        "x": 0.0,
+                        "y": 0.1875
+                    },
+                    "text": "鬼魂理智值惩罚",
+                    "desc": {
+                        "none": "禁用",
+                        "always": "启用"
+                    },
+                    "order": 10,
+                    "value": "always"
+                },
+                "day": {
+                    "image": {
+                        "x": 0.625,
+                        "y": 0.0625
+                    },
+                    "text": "昼夜选项",
+                    "desc": {
+                        "default": "默认",
+                        "longday": "长 白天",
+                        "longdusk": "长 黄昏",
+                        "longnight": "长 夜晚",
+                        "noday": "无 白天",
+                        "nodusk": "无 黄昏",
+                        "nonight": "无 夜晚",
+                        "onlyday": "仅 白天",
+                        "onlydusk": "仅 黄昏",
+                        "onlynight": "仅 夜晚"
+                    },
+                    "order": 6,
+                    "value": "default"
+                },
+                "portalresurection": {
+                    "image": {
+                        "x": 0.1875,
+                        "y": 0.375
+                    },
+                    "text": "在绚丽之门复活",
+                    "desc": {
+                        "none": "禁用",
+                        "always": "启用"
+                    },
+                    "order": 9,
+                    "value": "none"
+                }
+            }
+        }
+    }
+}
