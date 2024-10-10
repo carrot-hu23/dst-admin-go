@@ -57,7 +57,11 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	clusters := make([]model.Cluster, 0)
 	ids := c.getClusterIdByRole(userId.(int), role.(string))
-	db.Where("id in ?", ids).Find(&clusters)
+	if role != "admin" {
+		db.Where("id in ?", ids).Find(&clusters)
+	} else {
+		db.Find(&clusters)
+	}
 
 	var total int64
 	db2.Where("id in ?", ids).Model(&model.Cluster{}).Count(&total)
