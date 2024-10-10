@@ -1,6 +1,7 @@
 package api
 
 import (
+	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
@@ -102,6 +103,47 @@ func (c *ClusterApi) RestartCluster(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: nil,
+	})
+
+}
+
+func (c *ClusterApi) GetCluster(ctx *gin.Context) {
+
+	clusterName := ctx.Param("id")
+	fmt.Printf("%s", clusterName)
+
+	db := database.DB
+	var cluster model.Cluster
+	db.Where("cluster_name = ?", clusterName).Find(&cluster)
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: cluster,
+	})
+}
+
+func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
+	var payload struct {
+		ClusterName string `json:"ClusterName"`
+		Day         int64  `json:"day"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	db := database.DB
+	var cluster model.Cluster
+	db.Where("cluster_name = ?", payload.ClusterName).Find(&cluster)
+
+	cluster.Day = cluster.Day + payload.Day
+	cluster.ExpireTime = cluster.ExpireTime + payload.Day*24*60*60
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: cluster,
 	})
 
 }
