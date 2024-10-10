@@ -18,7 +18,7 @@ type ClusterManager struct {
 	ContainerService
 }
 
-func (c *ClusterManager) getClusterIdByRole(userId uint, role string) []int {
+func (c *ClusterManager) getClusterIdByRole(userId int, role string) []int {
 	var ids []int
 	if role != "admin" {
 		db3 := database.DB
@@ -56,7 +56,7 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 	}
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	clusters := make([]model.Cluster, 0)
-	ids := c.getClusterIdByRole(userId.(uint), role.(string))
+	ids := c.getClusterIdByRole(userId.(int), role.(string))
 	db.Where("id in ?", ids).Find(&clusters)
 
 	var total int64
