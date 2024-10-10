@@ -4,11 +4,14 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
+	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type ClusterApi struct{}
@@ -45,12 +48,41 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		log.Panicln("磁盘不能为0")
 	}
 	fmt.Printf("%v", clusterModel)
-	clusterManager.CreateCluster(&clusterModel)
+
+	var clusterList []model.Cluster
+
+	// 批量创建
+	quantity := clusterModel.Quantity
+	for i := 0; i < quantity; i++ {
+
+		cluster := model.Cluster{
+			LevelNum:   clusterModel.LevelNum,
+			MaxPlayers: clusterModel.MaxPlayers,
+			Core:       clusterModel.Core,
+			Disk:       clusterModel.Disk,
+			Day:        clusterModel.Day,
+			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
+			Image:      clusterModel.Image,
+		}
+		// 计算端口
+		portStart := getStartPort()
+		portEnd := portStart
+		cluster.Port = int(portStart)
+		cluster.MasterPort = int(portStart + 1)
+		portEnd = portEnd + 2
+		// 冗余 5 个端口
+		portEnd = portEnd + int64(cluster.LevelNum) + 5
+		// 保存
+		saveEndPort(portEnd)
+		log.Println("正在创建cluster", cluster)
+		clusterManager.CreateCluster(&cluster)
+		clusterList = append(clusterList, cluster)
+	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: nil,
+		Data: clusterList,
 	})
 
 }
@@ -148,4 +180,23 @@ func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
 		Data: cluster,
 	})
 
+}
+
+func getStartPort() int64 {
+	version, err := fileUtils.ReadFile("./startPort")
+	if err != nil {
+		log.Println(err)
+		return 20000
+	}
+	version = strings.Replace(version, "\n", "", -1)
+	l, err := strconv.ParseInt(version, 10, 64)
+	if err != nil {
+		log.Println(err)
+		return 20000
+	}
+	return l
+}
+
+func saveEndPort(portEnd int64) {
+	fileUtils.WriterTXT(strconv.Itoa(int(portEnd)), "./startPort")
 }

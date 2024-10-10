@@ -30,4 +30,6 @@ type Cluster struct {
 	Day        int64  `json:"day"`
 
 	Activate bool `json:"activate"`
+
+	Quantity int `json:"quantity"`
 }
