@@ -25,5 +25,7 @@ type Cluster struct {
 	MaxPlayers int `json:"maxPlayers"`
 	MasterPort int `json:"masterPort"`
 
-	Status string `json:"status"`
+	Status     string `json:"status"`
+	ExpireTime int64  `json:"expireTime"`
+	Day        int64  `json:"day"`
 }

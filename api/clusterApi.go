@@ -21,9 +21,29 @@ func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
 	clusterModel := model.Cluster{}
-	ctx.ShouldBind(&clusterModel)
+	err := ctx.ShouldBind(&clusterModel)
+	if err != nil {
+		log.Panicln(err)
+	}
+	if clusterModel.Day == 0 {
+		log.Panicln("过期时间不能为0")
+	}
+	if clusterModel.LevelNum == 0 {
+		log.Panicln("世界层数不能为0")
+	}
+	if clusterModel.MaxPlayers == 0 {
+		log.Panicln("玩家人数不能为0")
+	}
+	if clusterModel.Core == 0 {
+		log.Panicln("cpu核数不能为0")
+	}
+	if clusterModel.Memory == 0 {
+		log.Panicln("内存不能为0")
+	}
+	if clusterModel.Disk == 0 {
+		log.Panicln("磁盘不能为0")
+	}
 	fmt.Printf("%v", clusterModel)
-
 	clusterManager.CreateCluster(&clusterModel)
 
 	ctx.JSON(http.StatusOK, vo.Response{

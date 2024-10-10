@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type ClusterManager struct {
@@ -128,6 +129,8 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	cluster.ContainerId = containerId
 	cluster.Uuid = containerId
 	cluster.ClusterName = containerId
+	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
+
 	err = db.Create(&cluster).Error
 
 	if err != nil {
@@ -169,16 +172,15 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 
 	cluster := model.Cluster{}
 	result := db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&cluster)
-
+	if result.Error != nil {
+		log.Panicln(result.Error)
+	}
 	err := c.DeleteContainer(cluster.ContainerId)
 
 	if err != nil {
-		return nil, err
+		log.Panicln(err)
 	}
 
-	if result.Error != nil {
-		return nil, result.Error
-	}
 	tx.Commit()
 	return &cluster, nil
 }

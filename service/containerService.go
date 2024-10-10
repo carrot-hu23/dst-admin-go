@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"io"
+	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -124,11 +125,17 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 func (t *ContainerService) DeleteContainer(containerID string) error {
 	// 创建 Docker 客户端
 	cli := dockerClient.Client
-
+	log.Println("正在停止容器", containerID)
 	// 删除容器
 	err := cli.ContainerStop(context.Background(), containerID, container.StopOptions{})
+	if err != nil {
+		return err
+	}
 	err = cli.ContainerRemove(context.Background(), containerID, container.RemoveOptions{})
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t *ContainerService) ContainerDstInstallStatus(containerID string) bool {
