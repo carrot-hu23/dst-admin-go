@@ -140,6 +140,8 @@ func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
 	cluster.Day = cluster.Day + payload.Day
 	cluster.ExpireTime = cluster.ExpireTime + payload.Day*24*60*60
 
+	db.Save(&cluster)
+
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
