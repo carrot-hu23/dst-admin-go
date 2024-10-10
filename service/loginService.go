@@ -95,7 +95,7 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 
 	session.Set("username", username)
 	session.Set("role", "admin")
-	session.Set("userId", math.MaxUint32)
+	session.Set("userId", uint(math.MaxUint32))
 
 	userVO.SessionID = session.SessionID()
 	response.Code = 200
