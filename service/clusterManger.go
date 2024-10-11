@@ -126,6 +126,10 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	}()
 
 	containerId, err := c.CreateContainer(*cluster)
+	if err != nil {
+		log.Panicln(err)
+	}
+
 	cluster.ContainerId = containerId
 	cluster.Uuid = containerId
 	cluster.ClusterName = containerId
