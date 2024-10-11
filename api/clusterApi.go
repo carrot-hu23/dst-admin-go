@@ -87,7 +87,10 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		// 保存
 		saveEndPort(portEnd)
 		log.Println("正在创建cluster", cluster)
-		clusterManager.CreateCluster(&cluster)
+		e := clusterManager.CreateCluster(&cluster)
+		if e != nil {
+			log.Panicln(e)
+		}
 		clusterList = append(clusterList, cluster)
 	}
 

@@ -114,20 +114,21 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 
 }
 
-func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
+func (c *ClusterManager) CreateCluster(cluster *model.Cluster) error {
 
 	db := database.DB
 	tx := db.Begin()
 
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+	//defer func() {
+	//	if r := recover(); r != nil {
+	//		tx.Rollback()
+	//	}
+	//}()
 
 	containerId, err := c.CreateContainer(*cluster)
 	if err != nil {
-		log.Panicln(err)
+		tx.Rollback()
+		return err
 	}
 
 	cluster.ContainerId = containerId
@@ -139,13 +140,11 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 	err = db.Create(&cluster).Error
 
 	if err != nil {
-		if err.Error() == "Error 1062: Duplicate entry" {
-			log.Panicln("唯一索引冲突！", err)
-		}
-		log.Panicln("创建房间失败！", err)
+		tx.Rollback()
+		return err
 	}
 	tx.Commit()
-
+	return nil
 }
 
 func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
