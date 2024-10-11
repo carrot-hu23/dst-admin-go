@@ -55,6 +55,35 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 		db = db.Where("container_id = ?", containerId)
 		db2 = db2.Where("container_id = ?", containerId)
 	}
+	if activate, isExist := ctx.GetQuery("activate"); isExist {
+		boolValue := false
+		if activate == "true" {
+			boolValue = true
+		}
+		db = db.Where("activate = ?", boolValue)
+		db2 = db2.Where("activate = ?", boolValue)
+	}
+	if levelNum, isExist := ctx.GetQuery("levelNum"); isExist {
+		intValue, _ := strconv.Atoi(levelNum)
+		db = db.Where("level_num = ?", intValue)
+		db2 = db2.Where("level_num = ?", intValue)
+	}
+	if maxPlayers, isExist := ctx.GetQuery("maxPlayers"); isExist {
+		intValue, _ := strconv.Atoi(maxPlayers)
+		db = db.Where("max_players = ?", intValue)
+		db2 = db2.Where("max_players = ?", intValue)
+	}
+	if core, isExist := ctx.GetQuery("core"); isExist {
+		intValue, _ := strconv.Atoi(core)
+		db = db.Where("core = ?", intValue)
+		db2 = db2.Where("core = ?", intValue)
+	}
+	if memory, isExist := ctx.GetQuery("memory"); isExist {
+		intValue, _ := strconv.Atoi(memory)
+		db = db.Where("memory = ?", intValue)
+		db2 = db2.Where("memory = ?", intValue)
+	}
+
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	clusters := make([]model.Cluster, 0)
 	ids := c.getClusterIdByRole(userId.(uint), role.(string))
@@ -185,6 +214,9 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	if err != nil {
 		log.Panicln(err)
 	}
+
+	// 删除绑定的关系
+	db.Where("cluster_id = ?", cluster.ID).Delete(&[]model.UserCluster{})
 
 	tx.Commit()
 	return &cluster, nil
