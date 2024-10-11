@@ -19,7 +19,7 @@ var whiteList = map[string]bool{
 	"/api/init":                            true,
 	"/api/install/steamcmd":                true,
 	"/api/cluster":                         true,
-	"/api/cluster/:id":                     true,
+	"/api/cluster/detail":                  true,
 	"/api/cluster/container":               true,
 	"/api/user/account":                    true,
 	"/api/user/account/cluster":            true,
@@ -38,7 +38,7 @@ func Proxy(c *gin.Context) {
 	baseURL := urlParts[0]
 
 	// 检查路径是否在白名单中
-	if !strings.Contains(baseURL, "/api") || whiteList[baseURL] || strings.Contains(baseURL, "/api/cluster/") {
+	if !strings.Contains(baseURL, "/api") || whiteList[baseURL] {
 		// 如果在白名单中，直接处理请求
 		c.Next()
 		return
