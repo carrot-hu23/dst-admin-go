@@ -20,6 +20,7 @@ var whiteList = map[string]bool{
 	"/api/install/steamcmd":                true,
 	"/api/cluster":                         true,
 	"/api/cluster/detail":                  true,
+	"/api/cluster/restart":                 true,
 	"/api/cluster/container":               true,
 	"/api/user/account":                    true,
 	"/api/user/account/cluster":            true,
