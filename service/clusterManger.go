@@ -164,6 +164,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) error {
 	cluster.Uuid = containerId
 	cluster.ClusterName = containerId
 	cluster.Status = "init"
+	cluster.Expired = false
 	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
 
 	err = db.Create(&cluster).Error
