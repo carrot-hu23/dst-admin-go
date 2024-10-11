@@ -38,7 +38,7 @@ func Proxy(c *gin.Context) {
 	baseURL := urlParts[0]
 
 	// 检查路径是否在白名单中
-	if !strings.Contains(baseURL, "/api") || whiteList[baseURL] {
+	if !strings.Contains(baseURL, "/api") || whiteList[baseURL] || strings.Contains(baseURL, "/api/cluster/detail") {
 		// 如果在白名单中，直接处理请求
 		c.Next()
 		return
