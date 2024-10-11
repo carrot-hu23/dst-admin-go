@@ -80,15 +80,34 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 		},
 	}
 
-	// 定义端口映射，将主机的8084端口映射到容器的8082端口
-	portBindings := nat.PortMap{
-		"8082/tcp": []nat.PortBinding{
-			{
-				// 将容器的 8082 端口映射到主机的 8084 端口
-				HostPort: fmt.Sprintf("%d", c.Port),
-			},
+	portBindings := nat.PortMap{}
+
+	portBindings["8082/tcp"] = []nat.PortBinding{
+		{
+			// 将容器的 8082 端口映射到主机的 8084 端口
+			HostPort: fmt.Sprintf("%d", c.Port),
 		},
 	}
+
+	// 暴露 udp 端口
+	for i := 0; i < c.LevelNum; i++ {
+		key := fmt.Sprintf("%d/%s", c.MasterPort+1, "udp")
+		portBindings[nat.Port(key)] = []nat.PortBinding{
+			{
+				HostPort: fmt.Sprintf("%d", c.MasterPort+1),
+			},
+		}
+	}
+
+	//// 定义端口映射，将主机的8084端口映射到容器的8082端口
+	//portBindings := nat.PortMap{
+	//	"8082/tcp": []nat.PortBinding{
+	//		{
+	//			// 将容器的 8082 端口映射到主机的 8084 端口
+	//			HostPort: fmt.Sprintf("%d", c.Port),
+	//		},
+	//	},
+	//}
 
 	// 设置容器资源限制
 	hostConfig := &container.HostConfig{
