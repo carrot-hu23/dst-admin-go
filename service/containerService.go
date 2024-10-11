@@ -93,11 +93,14 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 	// 设置容器资源限制
 	hostConfig := &container.HostConfig{
 		Resources: container.Resources{
-			CPUShares: int64(c.Core * 1024),                 // 核心数，按比例分配 CPU
-			Memory:    int64(c.Memory) * 1024 * 1024 * 1024, // 内存，转为字节数
+			NanoCPUs: int64(c.Core * 1000000000),           // 核心数，按比例分配 CPU
+			Memory:   int64(c.Memory) * 1024 * 1024 * 1024, // 内存，转为字节数
 		},
 		PortBindings: portBindings,
 		Binds:        mounts,
+		StorageOpt: map[string]string{
+			"size": fmt.Sprintf("%d%s", c.Disk, "g"),
+		},
 	}
 
 	// 配置容器网络

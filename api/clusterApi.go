@@ -4,6 +4,7 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
+	"dst-admin-go/session"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
@@ -22,7 +23,17 @@ func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx, sessions)
 }
 
+func checkAdmin(ctx *gin.Context, sessions *session.Manager) {
+	s := sessions.Start(ctx.Writer, ctx.Request)
+	role := s.Get("role")
+	if role != "admin" {
+		log.Panicln("你无权限操作")
+	}
+}
+
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
+
+	checkAdmin(ctx, sessions)
 
 	clusterModel := model.Cluster{}
 	err := ctx.ShouldBind(&clusterModel)
@@ -58,6 +69,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		cluster := model.Cluster{
 			LevelNum:   clusterModel.LevelNum,
 			MaxPlayers: clusterModel.MaxPlayers,
+			Memory:     clusterModel.Memory,
 			Core:       clusterModel.Core,
 			Disk:       clusterModel.Disk,
 			Day:        clusterModel.Day,
@@ -106,6 +118,8 @@ func (c *ClusterApi) UpdateCluster(ctx *gin.Context) {
 }
 
 func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
+
+	checkAdmin(ctx, sessions)
 
 	clusterName := ctx.Query("clusterName")
 
@@ -156,6 +170,9 @@ func (c *ClusterApi) GetCluster(ctx *gin.Context) {
 }
 
 func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
+
+	checkAdmin(ctx, sessions)
+
 	var payload struct {
 		ClusterName string `json:"ClusterName"`
 		Day         int64  `json:"day"`
@@ -218,6 +235,15 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		}
 	}()
 
+	db2 := database.DB
+	// 绑定
+	cluster := model.Cluster{}
+	db2.Where("cluster_name = ?", payload.ClusterName).Find(&cluster)
+
+	if cluster.Activate {
+		log.Panicln("当前卡密已激活，无法绑定")
+	}
+
 	// 创建用户
 	user := model.User{
 		Username:    payload.Username,
@@ -225,12 +251,9 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		DisplayName: payload.DisplayName,
 		PhotoURL:    payload.PhotoURL,
 	}
-	db2 := database.DB
+
 	db2.Create(&user)
 	log.Println("创建用户成功", user)
-	// 绑定
-	cluster := model.Cluster{}
-	db2.Where("cluster_name = ?", payload.ClusterName).Find(&cluster)
 
 	userCluster := model.UserCluster{}
 	userCluster.ClusterId = int(cluster.ID)
