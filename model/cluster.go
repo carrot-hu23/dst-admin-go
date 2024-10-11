@@ -27,7 +27,10 @@ type Cluster struct {
 
 	Status     string `json:"status"`
 	ExpireTime int64  `json:"expireTime"`
-	Day        int64  `json:"day"`
+
+	Expired bool `json:"expired"`
+
+	Day int64 `json:"day"`
 
 	Activate bool `json:"activate"`
 

@@ -24,6 +24,18 @@ func main() {
 		}
 	}()
 
+	// 创建一个 time.Ticker
+	ticker2 := time.NewTicker(time.Duration(global.Config.CheckExpired) * time.Second)
+	defer ticker2.Stop()
+	go func() {
+		for {
+			select {
+			case <-ticker2.C:
+				schedule.CheckClusterExpired()
+			}
+		}
+	}()
+
 	app := router.NewRoute()
 	err := app.Run(":" + global.Config.Port)
 	if err != nil {

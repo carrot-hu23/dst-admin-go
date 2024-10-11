@@ -70,6 +70,9 @@ func initConfig() {
 	if _config.Collect == 0 {
 		_config.Collect = 30
 	}
+	if _config.CheckExpired == 0 {
+		_config.CheckExpired = 60 * 10
+	}
 	if _config.Token == "" {
 		_config.Token = "pds-g^KU_qE7e8rv1^VVrVXd/01kBDicd7UO5LeL+uYZH1+geZlrutzItvOaw="
 	}

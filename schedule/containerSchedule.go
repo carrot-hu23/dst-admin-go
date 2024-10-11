@@ -12,6 +12,8 @@ import (
 
 var containerService service.ContainerService
 
+var clusterManger service.ClusterManager
+
 func CollectContainerStatus() {
 
 	defer func() {
@@ -41,6 +43,35 @@ func CollectContainerStatus() {
 		}
 		db2 := database.DB
 		db2.Save(&cluster)
+	}
+}
+
+func CheckClusterExpired() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("捕获到错误:", r)
+		}
+	}()
+
+	db := database.DB
+	var clusterList []model.Cluster
+	db.Find(&clusterList)
+	for i := range clusterList {
+		cluster := clusterList[i]
+		if time.Now().Unix() > cluster.ExpireTime {
+			cluster.Expired = true
+		} else {
+			cluster.Expired = false
+		}
+		db.Save(&cluster)
+
+		if time.Now().Unix() > cluster.ExpireTime+3*24*60*60 {
+			_, err := clusterManger.DeleteCluster(cluster.ClusterName)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+
 	}
 }
 
