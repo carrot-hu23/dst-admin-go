@@ -384,6 +384,9 @@ func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
 	ctx.Header("Content-Type", "text/csv; charset=UTF-8")
 	ctx.Header("Content-Transfer-Encoding", "binary")
 
+	// 在响应体中写入 UTF-8 BOM 头
+	ctx.Writer.Write([]byte{0xEF, 0xBB, 0xBF})
+
 	// 创建 CSV Writer，将数据写入 Response
 	writer := csv.NewWriter(ctx.Writer)
 	defer writer.Flush()
