@@ -1,9 +1,17 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Cluster struct {
 	gorm.Model
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"` // 逻辑删除
+
 	ClusterName string `gorm:"uniqueIndex" json:"clusterName"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
