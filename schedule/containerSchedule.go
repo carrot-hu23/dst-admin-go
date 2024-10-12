@@ -24,7 +24,7 @@ func CollectContainerStatus() {
 
 	db := database.DB
 	var clusterList []model.Cluster
-	db.Find(&clusterList)
+	db.Where("container_id is not null").Find(&clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
 		statusInfo, err := containerService.ContainerStatusInfo(cluster.ClusterName)
@@ -55,7 +55,7 @@ func CheckClusterExpired() {
 
 	db := database.DB
 	var clusterList []model.Cluster
-	db.Find(&clusterList)
+	db.Where("container_id is not null").Find(&clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
 		if time.Now().Unix() > cluster.ExpireTime {
