@@ -24,7 +24,7 @@ func CollectContainerStatus() {
 
 	db := database.DB
 	var clusterList []model.Cluster
-	db.Where("container_id is not null").Find(&clusterList)
+	db.Where("activate = ?", true).Find(&clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
 		statusInfo, err := containerService.ContainerStatusInfo(cluster.ClusterName)
@@ -55,7 +55,7 @@ func CheckClusterExpired() {
 
 	db := database.DB
 	var clusterList []model.Cluster
-	db.Where("container_id is not null").Find(&clusterList)
+	db.Where("activate = ?", true).Find(&clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
 		if time.Now().Unix() > cluster.ExpireTime {
@@ -66,6 +66,7 @@ func CheckClusterExpired() {
 		db.Save(&cluster)
 
 		if time.Now().Unix() > cluster.ExpireTime+3*24*60*60 {
+			log.Println("正在删除卡密", cluster.Uuid)
 			_, err := clusterManger.DeleteCluster(cluster.ClusterName)
 			if err != nil {
 				log.Println(err)
