@@ -35,4 +35,6 @@ type Cluster struct {
 	Activate bool `json:"activate"`
 
 	Quantity int `json:"quantity"`
+
+	Zone string `json:"zone"`
 }

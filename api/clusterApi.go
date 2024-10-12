@@ -2,6 +2,7 @@ package api
 
 import (
 	"dst-admin-go/config/database"
+	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/session"
@@ -75,6 +76,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 			Day:        clusterModel.Day,
 			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
 			Image:      clusterModel.Image,
+			Zone:       clusterModel.Zone,
 		}
 		// 计算端口
 		portStart := getStartPort()
@@ -278,6 +280,14 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		Data: nil,
 	})
 
+}
+
+func (c *ClusterApi) GetClusterZone(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: global.Config.Zones,
+	})
 }
 
 func getStartPort() int64 {

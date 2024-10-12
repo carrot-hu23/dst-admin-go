@@ -17,6 +17,7 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.POST("", clusterApi.CreateCluster)
 		cluster.PUT("", clusterApi.UpdateCluster)
 		cluster.DELETE("", clusterApi.DeleteCluster)
+		cluster.GET("/zone", clusterApi.GetClusterZone)
 
 		cluster.PUT("/container", clusterApi.UpdateClusterContainer)
 	}
