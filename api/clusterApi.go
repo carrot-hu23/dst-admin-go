@@ -350,8 +350,8 @@ func (c *ClusterApi) GetKamiList(ctx *gin.Context) {
 		db2 = db2.Where("memory = ?", intValue)
 	}
 
-	db = db.Where("activate = ? and container_id is null ", false)
-	db2 = db2.Where("activate = ? and container_id is null ", false)
+	db = db.Where("container_id is null ")
+	db2 = db2.Where("container_id is null ")
 
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	clusters := make([]model.Cluster, 0)
@@ -412,7 +412,7 @@ func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
 		intValue, _ := strconv.Atoi(memory)
 		db = db.Where("memory = ?", intValue)
 	}
-	db = db.Where("activate = ? and container_id is null ", false)
+	db = db.Where("container_id is null ")
 	db = db.Order("created_at desc")
 	clusters := make([]model.Cluster, 0)
 	db.Find(&clusters)
