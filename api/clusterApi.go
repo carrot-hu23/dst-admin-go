@@ -420,8 +420,6 @@ func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
 	// 写入 CSV 数据
 	data := [][]string{
 		{"卡密", "区域", "内存(GB)", "核数", "世界层数", "最大玩家", "天数"},
-		{"1", "John", "john@example.com"},
-		{"2", "Jane", "jane@example.com"},
 	}
 
 	for i := range clusters {
