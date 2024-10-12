@@ -132,12 +132,6 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) error {
 	db := database.DB
 	tx := db.Begin()
 
-	//containerId, err := c.CreateContainer(*cluster)
-	//if err != nil {
-	//	tx.Rollback()
-	//	return err
-	//}
-
 	// 生成uuid
 	uuid := generateUUID()
 	cluster.Uuid = uuid
@@ -182,15 +176,15 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	}()
 
 	if clusterName == "" {
-		tx.Rollback()
 		log.Panicln("cluster is not allow null")
 	}
 
 	cluster := model.Cluster{}
 	db.Where("cluster_name= ?", clusterName).Find(&cluster)
-	db.Where("cluster_name = ?", clusterName).Delete(&model.Cluster{})
 	log.Println("正在删除cluster", cluster.ClusterName)
 	err := c.DeleteContainer(cluster.ClusterName)
+
+	db.Where("cluster_name = ?", clusterName).Delete(&model.Cluster{})
 
 	if err != nil {
 		tx.Rollback()
