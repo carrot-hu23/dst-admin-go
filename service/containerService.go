@@ -139,6 +139,7 @@ func (t *ContainerService) DeleteContainer(clusterName string) error {
 	// 创建 Docker 客户端
 	cluster := GetCluster(clusterName)
 	zoneCode := cluster.ZoneCode
+	log.Println(cluster, zoneCode)
 	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
 	if !exist {
 		return errors.New("当前zone不存在")

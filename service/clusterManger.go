@@ -190,7 +190,7 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	db.Where("cluster_name= ?", clusterName).Find(&cluster)
 	db.Where("cluster_name = ?", clusterName).Delete(&model.Cluster{})
 	log.Println("正在删除cluster", cluster.ClusterName)
-	err := c.DeleteContainer(clusterName)
+	err := c.DeleteContainer(cluster.ClusterName)
 
 	if err != nil {
 		tx.Rollback()
