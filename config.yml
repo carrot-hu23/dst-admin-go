@@ -2,17 +2,9 @@
 port: 8082
 #数据库
 database: dst-db
-#自动检测 单位都是 分钟
-autoCheck:
-  # 森林状态检测间隔时间
-  masterInterval: 5
-  # 洞穴状态检测间隔时间
-  cavesInterval: 5
-  # 森林模组更新检测间隔时间
-  masterModInterval: 10
-  # 洞穴模组更新检测间隔时间
-  cavesIModInterval: 10
-  # 游戏更新检测间隔时间
-  gameUpdateInterval: 20
-  modUpdatePrompt: "xxx"
-  gameUpdatePrompt: "xxx"
+# 分区，不同机器的docker
+zones:
+  - name: LOCAL-轻量机型
+    zoneCode: LOCAL
+    ip: 139.159.184.218
+    port: 2375

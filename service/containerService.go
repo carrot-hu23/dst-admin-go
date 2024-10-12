@@ -2,39 +2,20 @@ package service
 
 import (
 	"context"
+	"dst-admin-go/config/database"
 	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/model"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"io"
 	"log"
 	"math/rand"
-	"strings"
 	"time"
 )
 
 type ContainerService struct {
-}
-
-type Container struct {
-	ID          uint   `gorm:"primary_key" json:"id"`
-	ContainerId string `json:"containerId"`
-	Core        int    `json:"core"`
-	Memory      int    `json:"memory"`
-	Disk        int    `json:"disk"`
-	Image       string `json:"image"`
-
-	Username string `json:"username"`
-	Password string `json:"password"`
-
-	Port       int `json:"port"`
-	LevelNum   int `json:"levelNum"`
-	MaxPlayers int `json:"maxPlayers"`
-	MasterPort int `json:"masterPort"`
 }
 
 func generateContainerName(prefix string) string {
@@ -47,13 +28,20 @@ func generateContainerName(prefix string) string {
 	return fmt.Sprintf("%s-%s", prefix, string(b))
 }
 
-func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
-	// 创建 Docker 客户端
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return "", fmt.Errorf("无法创建 Docker 客户端: %v", err)
-	}
+func GetCluster(clusterName string) *model.Cluster {
+	db := database.DB
+	var cluster model.Cluster
+	db.Where("cluster_name = ?", clusterName).Find(&cluster)
+	return &cluster
+}
 
+func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
+
+	zoneCode := c.ZoneCode
+	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	if !exist {
+		log.Panicln("当前zone不存在")
+	}
 	// 设置容器的环境变量
 	env := []string{
 		fmt.Sprintf("%s%d", "levelNum=", c.LevelNum),
@@ -145,9 +133,16 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 	return resp.ID, nil
 }
 
-func (t *ContainerService) DeleteContainer(containerID string) error {
+func (t *ContainerService) DeleteContainer(clusterName string) error {
+
 	// 创建 Docker 客户端
-	cli := dockerClient.Client
+	cluster := GetCluster(clusterName)
+	zoneCode := cluster.ZoneCode
+	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	if !exist {
+		log.Panicln("当前zone不存在")
+	}
+	containerID := cluster.ContainerId
 	log.Println("正在停止容器", containerID)
 	// 删除容器
 	err := cli.ContainerStop(context.Background(), containerID, container.StopOptions{})
@@ -161,58 +156,33 @@ func (t *ContainerService) DeleteContainer(containerID string) error {
 	return nil
 }
 
-func (t *ContainerService) RestartContainer(containerID string) error {
+func (t *ContainerService) RestartContainer(clusterName string) error {
 	// 创建 Docker 客户端
-	cli := dockerClient.Client
+	cluster := GetCluster(clusterName)
+	zoneCode := cluster.ZoneCode
+	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	if !exist {
+		log.Panicln("当前zone不存在")
+	}
+	containerID := cluster.ContainerId
+
 	log.Println("正在停止容器", containerID)
 	// 重启容器
 	err := cli.ContainerRestart(context.Background(), containerID, container.StopOptions{})
 	return err
 }
 
-func (t *ContainerService) ContainerDstInstallStatus(containerID string) bool {
+func (t *ContainerService) ContainerStatusInfo(clusterName string) (types.ContainerJSON, error) {
 
-	cli := dockerClient.Client
-
-	// 要检查的文件路径
-	filePath := "/app/dst-dedicated-server/bin/dontstarve_dedicated_server_nullrenderer"
-
-	// 执行命令来检查文件是否存在
-	execConfig := types.ExecConfig{
-		Cmd:          []string{"sh", "-c", "test -f " + filePath},
-		AttachStdout: true,
-		AttachStderr: true,
+	// 创建 Docker 客户端
+	cluster := GetCluster(clusterName)
+	zoneCode := cluster.ZoneCode
+	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	if !exist {
+		log.Panicln("当前zone不存在")
 	}
+	containerID := cluster.ContainerId
 
-	resp, err := cli.ContainerExecCreate(context.Background(), containerID, execConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	execResp, err := cli.ContainerExecAttach(context.Background(), resp.ID, types.ExecStartCheck{})
-	if err != nil {
-		panic(err)
-	}
-	defer execResp.Close()
-
-	var output strings.Builder
-	_, err = io.Copy(&output, execResp.Reader)
-	if err != nil {
-		panic(err)
-	}
-
-	if strings.TrimSpace(output.String()) == "" {
-		fmt.Printf("文件 %s 不存在\n", filePath)
-		return false
-	} else {
-		fmt.Printf("文件 %s 存在，服务已安装好！\n", filePath)
-		return true
-	}
-}
-
-func (t *ContainerService) ContainerStatusInfo(containerID string) (types.ContainerJSON, error) {
-
-	cli := dockerClient.Client
 	containerInfo, err := cli.ContainerInspect(context.Background(), containerID)
 	if err != nil {
 		fmt.Printf("Error inspecting container: %v\n", err)

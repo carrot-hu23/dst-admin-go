@@ -7,7 +7,6 @@ import (
 	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"fmt"
-	"github.com/docker/docker/client"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"gopkg.in/yaml.v2"
@@ -32,11 +31,7 @@ func Init() {
 }
 
 func initDockerClient() {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Panicln(err)
-	}
-	dockerClient.Client = cli
+	dockerClient.InitZoneDockerClient(global.Config.Zones)
 }
 
 func initDB() {

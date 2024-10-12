@@ -11,12 +11,18 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type ClusterManager struct {
 	RemoteService
 	ContainerService
+}
+
+func (c *ClusterManager) GetCluster(clusterName string) *model.Cluster {
+	db := database.DB
+	var cluster model.Cluster
+	db.Where("cluster_name = ?", clusterName).Find(&cluster)
+	return &cluster
 }
 
 func (c *ClusterManager) getClusterIdByRole(userId uint, role string) []int {
@@ -84,6 +90,9 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 		db2 = db2.Where("memory = ?", intValue)
 	}
 
+	db = db.Where("activate", true)
+	db2 = db2.Where("activate", true)
+
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	clusters := make([]model.Cluster, 0)
 	ids := c.getClusterIdByRole(userId.(uint), role.(string))
@@ -104,31 +113,6 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 		totalPages++
 	}
 
-	//var clusterVOList = make([]vo.ClusterVO, len(clusters))
-	//var wg sync.WaitGroup
-	//wg.Add(len(clusters))
-	//for i, cluster := range clusters {
-	//	go func(cluster model.Cluster, i int) {
-	//		clusterVO := vo.ClusterVO{
-	//			Name:            cluster.Name,
-	//			ClusterName:     cluster.ClusterName,
-	//			Description:     cluster.Description,
-	//			ID:              cluster.ID,
-	//			CreatedAt:       cluster.CreatedAt,
-	//			UpdatedAt:       cluster.UpdatedAt,
-	//			Ip:              cluster.Ip,
-	//			Port:            cluster.Port,
-	//			Username:        cluster.Username,
-	//			ClusterPassword: cluster.Password,
-	//		}
-	//		clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
-	//		clusterVO.Status = c.GetRemoteLevelStatus(cluster)
-	//		clusterVOList[i] = clusterVO
-	//		wg.Done()
-	//	}(cluster, i)
-	//}
-	//wg.Wait()
-
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -148,26 +132,22 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) error {
 	db := database.DB
 	tx := db.Begin()
 
-	//defer func() {
-	//	if r := recover(); r != nil {
-	//		tx.Rollback()
-	//	}
-	//}()
+	//containerId, err := c.CreateContainer(*cluster)
+	//if err != nil {
+	//	tx.Rollback()
+	//	return err
+	//}
 
-	containerId, err := c.CreateContainer(*cluster)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	cluster.ContainerId = containerId
-	cluster.Uuid = containerId
-	cluster.ClusterName = containerId
+	// 生成uuid
+	uuid := generateUUID()
+	cluster.Uuid = uuid
+	cluster.ClusterName = uuid
 	cluster.Status = "init"
 	cluster.Expired = false
-	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
 
-	err = db.Create(&cluster).Error
+	// cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
+
+	err := db.Create(&cluster).Error
 
 	if err != nil {
 		tx.Rollback()

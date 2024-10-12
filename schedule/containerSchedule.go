@@ -27,7 +27,7 @@ func CollectContainerStatus() {
 	db.Find(&clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
-		statusInfo, err := containerService.ContainerStatusInfo(cluster.ContainerId)
+		statusInfo, err := containerService.ContainerStatusInfo(cluster.ClusterName)
 		if err != nil {
 			cluster.Status = "error"
 			log.Println("容器id", cluster.ContainerId, "获取失败")

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ClusterApi struct{}
@@ -77,7 +78,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 			Day:        clusterModel.Day,
 			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
 			Image:      clusterModel.Image,
-			Zone:       clusterModel.Zone,
+			ZoneCode:   clusterModel.ZoneCode,
 		}
 		// 计算端口
 		portStart := getStartPort()
@@ -269,8 +270,17 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	db3 := database.DB
 	db3.Create(&userCluster)
 
+	// 激活卡密
+	containerId, err := clusterManager.CreateContainer(cluster)
+	if err != nil {
+		log.Panicln(err)
+	}
 	db4 := database.DB
 	cluster.Activate = true
+	cluster.ContainerId = containerId
+	cluster.Expired = false
+	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
+
 	db4.Save(&cluster)
 
 	tx.Commit()
