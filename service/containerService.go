@@ -135,7 +135,7 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 }
 
 func (t *ContainerService) DeleteContainer(clusterName string) error {
-
+	log.Println("正在删除容器 uuid", clusterName)
 	// 创建 Docker 客户端
 	cluster := GetCluster(clusterName)
 	zoneCode := cluster.ZoneCode
