@@ -56,8 +56,8 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 	if clusterModel.Memory == 0 {
 		log.Panicln("内存不能为0")
 	}
-	if clusterModel.Disk == 0 {
-		log.Panicln("磁盘不能为0")
+	if clusterModel.MaxBackup == 0 {
+		log.Panicln("最大备份数量不能为0")
 	}
 	fmt.Printf("%v", clusterModel)
 
@@ -70,6 +70,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 		cluster := model.Cluster{
 			LevelNum:   clusterModel.LevelNum,
 			MaxPlayers: clusterModel.MaxPlayers,
+			MaxBackup:  clusterModel.MaxBackup,
 			Memory:     clusterModel.Memory,
 			Core:       clusterModel.Core,
 			Disk:       clusterModel.Disk,

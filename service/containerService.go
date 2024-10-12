@@ -59,6 +59,7 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 		fmt.Sprintf("%s%d", "levelNum=", c.LevelNum),
 		fmt.Sprintf("%s%d", "maxPlayers=", c.MaxPlayers),
 		fmt.Sprintf("%s%d", "masterPort=", c.MasterPort),
+		fmt.Sprintf("%s%d", "maxBackup=", c.MaxBackup),
 	}
 
 	// 设置容器卷挂载
