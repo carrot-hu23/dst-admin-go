@@ -250,10 +250,9 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		}
 	}()
 
-	db2 := database.DB
 	// 绑定
 	cluster := model.Cluster{}
-	db2.Where("cluster_name = ?", payload.ClusterName).Find(&cluster)
+	tx.Where("cluster_name = ?", payload.ClusterName).Find(&cluster)
 
 	if cluster.Activate {
 		log.Panicln("当前卡密已激活，无法绑定")
@@ -267,7 +266,7 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		PhotoURL:    payload.PhotoURL,
 	}
 
-	db2.Create(&user)
+	tx.Create(&user)
 	log.Println("创建用户成功", user)
 
 	userCluster := model.UserCluster{}
@@ -275,21 +274,19 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	userCluster.UserId = int(user.ID)
 
 	log.Println("正在绑定", userCluster)
-	db3 := database.DB
-	db3.Create(&userCluster)
+	tx.Create(&userCluster)
 
 	// 激活卡密
 	containerId, err := clusterManager.CreateContainer(cluster)
 	if err != nil {
 		log.Panicln(err)
 	}
-	db4 := database.DB
 	cluster.Activate = true
 	cluster.ContainerId = containerId
 	cluster.Expired = false
 	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
 
-	db4.Save(&cluster)
+	tx.Save(&cluster)
 
 	tx.Commit()
 

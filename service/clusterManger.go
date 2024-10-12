@@ -141,7 +141,7 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) error {
 	cluster.Activate = false
 	// cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
 
-	err := db.Create(&cluster).Error
+	err := tx.Create(&cluster).Error
 
 	if err != nil {
 		tx.Rollback()
@@ -180,21 +180,38 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	}
 
 	cluster := model.Cluster{}
-	db.Where("cluster_name= ?", clusterName).Find(&cluster)
-	log.Println("正在删除cluster", cluster.ClusterName)
-	err := c.DeleteContainer(cluster.ClusterName)
+	// 使用事务对象 tx
+	err := tx.Where("cluster_name = ?", clusterName).Find(&cluster).Error
+	if err != nil {
+		tx.Rollback()
+		log.Panicln(err)
+	}
 
-	db.Where("cluster_name = ?", clusterName).Delete(&model.Cluster{})
+	err = c.DeleteContainer(cluster.ClusterName) // 确保这个函数也支持事务
+	if err != nil {
+		tx.Rollback()
+		log.Panicln(err)
+	}
 
+	err = tx.Where("cluster_name = ?", clusterName).Delete(&model.Cluster{}).Error
 	if err != nil {
 		tx.Rollback()
 		log.Panicln(err)
 	}
 
 	// 删除绑定的关系
-	db.Where("cluster_id = ?", cluster.ID).Delete(&[]model.UserCluster{})
+	err = tx.Where("cluster_id = ?", cluster.ID).Delete(&[]model.UserCluster{}).Error
+	if err != nil {
+		tx.Rollback()
+		log.Panicln(err)
+	}
 
-	tx.Commit()
+	// 提交事务
+	err = tx.Commit().Error
+	if err != nil {
+		log.Panicln(err)
+	}
+
 	return &cluster, nil
 }
 
