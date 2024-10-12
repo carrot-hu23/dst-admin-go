@@ -1,10 +1,10 @@
 package config
 
 type Zone struct {
-	Name     string `yaml:"name"`
-	ZoneCode string `yaml:"zoneCode"`
-	Ip       string `yaml:"ip"`
-	Port     int    `yaml:"port"`
+	Name     string `yaml:"name" json:"name"`
+	ZoneCode string `yaml:"zoneCode" json:"zoneCode"`
+	Ip       string `yaml:"ip" json:"ip"`
+	Port     int    `yaml:"port" json:"port"`
 }
 
 type Config struct {
