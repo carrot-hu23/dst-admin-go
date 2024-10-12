@@ -174,25 +174,22 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	db := database.DB
 	tx := db.Begin()
 
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
 	if clusterName == "" {
+		tx.Rollback()
 		log.Panicln("cluster is not allow null")
 	}
 
 	cluster := model.Cluster{}
 	result := db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&cluster)
 	if result.Error != nil {
+		tx.Rollback()
 		log.Panicln(result.Error)
 	}
 	log.Println(cluster)
 	err := c.DeleteContainer(clusterName)
 
 	if err != nil {
+		tx.Rollback()
 		log.Panicln(err)
 	}
 
