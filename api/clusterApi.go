@@ -8,6 +8,7 @@ import (
 	"dst-admin-go/session"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
+	"encoding/csv"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -66,6 +67,12 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
 	// 批量创建
 	quantity := clusterModel.Quantity
+	zoneName := ""
+	for i := range global.Config.Zones {
+		if clusterModel.ZoneCode == global.Config.Zones[i].ZoneCode {
+			zoneName = global.Config.Zones[i].Name
+		}
+	}
 	for i := 0; i < quantity; i++ {
 
 		cluster := model.Cluster{
@@ -79,6 +86,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
 			Image:      clusterModel.Image,
 			ZoneCode:   clusterModel.ZoneCode,
+			ZoneName:   zoneName,
 		}
 		// 计算端口
 		portStart := getStartPort()
@@ -299,6 +307,145 @@ func (c *ClusterApi) GetClusterZone(ctx *gin.Context) {
 		Msg:  "success",
 		Data: global.Config.Zones,
 	})
+}
+
+func (c *ClusterApi) GetKamiList(ctx *gin.Context) {
+
+	page, _ := strconv.Atoi(ctx.DefaultQuery("current", "1"))
+	size, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "10"))
+
+	if page <= 0 {
+		page = 1
+	}
+	if size < 0 {
+		size = 10
+	}
+
+	db := database.DB
+	db2 := database.DB
+
+	if zoneCode, isExist := ctx.GetQuery("zoneCode"); isExist {
+		db = db.Where("zone_code = ?", zoneCode)
+		db2 = db2.Where("zone_code = ?", zoneCode)
+	}
+
+	if levelNum, isExist := ctx.GetQuery("levelNum"); isExist {
+		intValue, _ := strconv.Atoi(levelNum)
+		db = db.Where("level_num = ?", intValue)
+		db2 = db2.Where("level_num = ?", intValue)
+	}
+	if maxPlayers, isExist := ctx.GetQuery("maxPlayers"); isExist {
+		intValue, _ := strconv.Atoi(maxPlayers)
+		db = db.Where("max_players = ?", intValue)
+		db2 = db2.Where("max_players = ?", intValue)
+	}
+	if core, isExist := ctx.GetQuery("core"); isExist {
+		intValue, _ := strconv.Atoi(core)
+		db = db.Where("core = ?", intValue)
+		db2 = db2.Where("core = ?", intValue)
+	}
+	if memory, isExist := ctx.GetQuery("memory"); isExist {
+		intValue, _ := strconv.Atoi(memory)
+		db = db.Where("memory = ?", intValue)
+		db2 = db2.Where("memory = ?", intValue)
+	}
+
+	db = db.Where("activate = false and container_id is null ")
+	db2 = db2.Where("activate = false and and container_id is null ")
+
+	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
+	clusters := make([]model.Cluster, 0)
+	db.Find(&clusters)
+
+	var total int64
+	db2.Model(&model.Cluster{}).Count(&total)
+	totalPages := total / int64(size)
+	if total%int64(size) != 0 {
+		totalPages++
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: vo.Page{
+			Data:       clusters,
+			Page:       page,
+			Size:       size,
+			Total:      total,
+			TotalPages: totalPages,
+		},
+	})
+}
+
+func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
+
+	// 获取当前时间并格式化为字符串
+	currentTime := time.Now().Format("20060102-150405")
+	filename := fmt.Sprintf("%s-dst-kami.csv", currentTime)
+	// 设置响应头信息，指定导出的文件名
+	ctx.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", filename))
+	ctx.Header("Content-Type", "text/csv; charset=UTF-8")
+	ctx.Header("Content-Transfer-Encoding", "binary")
+
+	// 创建 CSV Writer，将数据写入 Response
+	writer := csv.NewWriter(ctx.Writer)
+	defer writer.Flush()
+
+	db := database.DB
+	if zoneCode, isExist := ctx.GetQuery("zoneCode"); isExist {
+		db = db.Where("zone_code = ?", zoneCode)
+	}
+
+	if levelNum, isExist := ctx.GetQuery("levelNum"); isExist {
+		intValue, _ := strconv.Atoi(levelNum)
+		db = db.Where("level_num = ?", intValue)
+	}
+	if maxPlayers, isExist := ctx.GetQuery("maxPlayers"); isExist {
+		intValue, _ := strconv.Atoi(maxPlayers)
+		db = db.Where("max_players = ?", intValue)
+	}
+	if core, isExist := ctx.GetQuery("core"); isExist {
+		intValue, _ := strconv.Atoi(core)
+		db = db.Where("core = ?", intValue)
+	}
+	if memory, isExist := ctx.GetQuery("memory"); isExist {
+		intValue, _ := strconv.Atoi(memory)
+		db = db.Where("memory = ?", intValue)
+	}
+	db = db.Where("activate = false and container_id is null ")
+	db = db.Order("created_at desc")
+	clusters := make([]model.Cluster, 0)
+	db.Find(&clusters)
+
+	// 写入 CSV 数据
+	data := [][]string{
+		{"卡密", "区域", "内存(GB)", "核数", "世界层数", "最大玩家", "天数"},
+		{"1", "John", "john@example.com"},
+		{"2", "Jane", "jane@example.com"},
+	}
+
+	for i := range clusters {
+		data = append(data, []string{
+			clusters[i].Uuid,
+			clusters[i].ZoneName,
+			fmt.Sprintf("%d", clusters[i].Memory),
+			fmt.Sprintf("%d", clusters[i].Core),
+			fmt.Sprintf("%d", clusters[i].LevelNum),
+			fmt.Sprintf("%d", clusters[i].MaxPlayers),
+			fmt.Sprintf("%d", clusters[i].Day),
+		})
+	}
+
+	// 遍历数据并写入 CSV
+	for _, row := range data {
+		if err := writer.Write(row); err != nil {
+			ctx.String(http.StatusInternalServerError, "Error writing CSV: %v", err)
+			return
+		}
+	}
+
+	// 添加 Boom 头
+	ctx.Header("Content-Security-Policy", "default-src 'none'; style-src 'self'; font-src 'self';")
 }
 
 func getStartPort() int64 {

@@ -38,4 +38,5 @@ type Cluster struct {
 	Quantity int `json:"quantity"`
 
 	ZoneCode string `json:"zoneCode"`
+	ZoneName string `json:"zoneName"`
 }

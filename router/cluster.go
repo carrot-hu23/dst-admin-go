@@ -20,6 +20,10 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.GET("/zone", clusterApi.GetClusterZone)
 
 		cluster.PUT("/container", clusterApi.UpdateClusterContainer)
+
+		cluster.GET("/kami", clusterApi.GetKamiList)
+		cluster.GET("/kami/export", clusterApi.ExportKamiList)
+
 	}
 
 	activate := router.Group("/activate")

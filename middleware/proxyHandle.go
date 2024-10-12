@@ -27,6 +27,9 @@ var whiteList = map[string]bool{
 	"/api/user/account/cluster":            true,
 	"/api/user/account/cluster/permission": true,
 
+	"/api/cluster/kami":        true,
+	"/api/cluster/kami/export": true,
+
 	"/steam/dst/news":             true,
 	"/api/game/system/info":       true,
 	"/api/dst/home/server":        true,
