@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/model"
+	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -40,7 +41,7 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 	zoneCode := c.ZoneCode
 	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
 	if !exist {
-		log.Panicln("当前zone不存在")
+		return "", errors.New("zoneCode 不存在")
 	}
 	// 设置容器的环境变量
 	env := []string{
@@ -140,7 +141,7 @@ func (t *ContainerService) DeleteContainer(clusterName string) error {
 	zoneCode := cluster.ZoneCode
 	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
 	if !exist {
-		log.Panicln("当前zone不存在")
+		return errors.New("当前zone不存在")
 	}
 	containerID := cluster.ContainerId
 	log.Println("正在停止容器", containerID)
@@ -162,7 +163,7 @@ func (t *ContainerService) RestartContainer(clusterName string) error {
 	zoneCode := cluster.ZoneCode
 	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
 	if !exist {
-		log.Panicln("当前zone不存在")
+		return errors.New("当前zone不存在")
 	}
 	containerID := cluster.ContainerId
 
@@ -179,7 +180,7 @@ func (t *ContainerService) ContainerStatusInfo(clusterName string) (types.Contai
 	zoneCode := cluster.ZoneCode
 	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
 	if !exist {
-		log.Panicln("当前zone不存在")
+		return types.ContainerJSON{}, errors.New("当前zone不存在")
 	}
 	containerID := cluster.ContainerId
 
