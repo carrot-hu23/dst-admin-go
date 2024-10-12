@@ -20,7 +20,7 @@ func NewRoute() *gin.Engine {
 	})
 
 	// 映射静态文件目录
-	app.Static("/static", "./static")
+	app.Static("/dstfile", "./dstfile")
 
 	router := app.Group("")
 	initClusterRouter(router)
