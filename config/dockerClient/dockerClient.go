@@ -23,6 +23,8 @@ func InitZoneDockerClient() {
 	db.Find(&zones)
 
 	Clients = make(map[string]*client.Client)
+	ZoneMap = make(map[string]model.ZoneInfo)
+
 	for i := range zones {
 		zoneCode := zones[i].ZoneCode
 		host := fmt.Sprintf("tcp://%s:%d", zones[i].Ip, zones[i].Port)
