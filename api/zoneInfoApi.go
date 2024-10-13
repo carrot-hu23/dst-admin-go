@@ -56,6 +56,7 @@ func (c *ZoneApi) CreateZone(ctx *gin.Context) {
 		log.Panicln(err)
 	}
 	dockerClient.AddZone(zone)
+	tx.Commit()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
