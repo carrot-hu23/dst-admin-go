@@ -14,7 +14,7 @@ func (z *ZoneInfoService) Create(db *gorm.DB, zone model.ZoneInfo) error {
 }
 
 func (z *ZoneInfoService) Delete(db *gorm.DB, id uint) error {
-	result := db.Delete(&model.ZoneInfo{}, id)
+	result := db.Unscoped().Delete(&model.ZoneInfo{}, id)
 	return result.Error
 }
 
