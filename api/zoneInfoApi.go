@@ -51,12 +51,6 @@ func (c *ZoneApi) CreateZone(ctx *gin.Context) {
 	}
 	db := database.DB
 	tx := db.Begin()
-	err = zoneService.Create(tx, zone)
-	if err != nil {
-		log.Panicln(err)
-	}
-	dockerClient.AddZone(zone)
-	tx.Commit()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -67,6 +61,16 @@ func (c *ZoneApi) CreateZone(ctx *gin.Context) {
 			})
 		}
 	}()
+
+	err = zoneService.Create(tx, zone)
+	if err != nil {
+		log.Panicln(err)
+	}
+	err = dockerClient.AddZone(zone)
+	if err != nil {
+		log.Panicln(err)
+	}
+	tx.Commit()
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -84,10 +88,33 @@ func (c *ZoneApi) UpdateZone(ctx *gin.Context) {
 	}
 
 	db := database.DB
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			ctx.JSON(http.StatusOK, vo.Response{
+				Code: 500,
+				Msg:  "更新失败",
+				Data: nil,
+			})
+		}
+	}()
+	zoneInfo := model.ZoneInfo{}
+	if err = tx.First(&zoneInfo, zone.ID).Error; err != nil {
+		log.Panicln(err)
+	}
+
 	err = zoneService.UpdateZone(db, zone.ID, zone.Name, zone.Ip, zone.Port)
 	if err != nil {
 		log.Panicln(err)
 	}
+
+	err = dockerClient.UpdateZone(zoneInfo)
+	if err != nil {
+		log.Panicln(err)
+	}
+	tx.Commit()
+
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -99,10 +126,29 @@ func (c *ZoneApi) DeleteZone(ctx *gin.Context) {
 
 	id, err := strconv.Atoi(ctx.Query("id"))
 	db := database.DB
-	err = zoneService.Delete(db, uint(id))
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			ctx.JSON(http.StatusOK, vo.Response{
+				Code: 500,
+				Msg:  "删除失败",
+				Data: nil,
+			})
+		}
+	}()
+	zoneInfo := model.ZoneInfo{}
+	if err = tx.First(&zoneInfo, id).Error; err != nil {
+		log.Panicln(err)
+	}
+	err = zoneService.Delete(tx, uint(id))
 	if err != nil {
 		log.Panicln(err)
 	}
+	dockerClient.DeleteZone(zoneInfo.ZoneCode)
+
+	tx.Commit()
+
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
