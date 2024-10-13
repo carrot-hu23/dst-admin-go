@@ -19,10 +19,14 @@ type ZoneApi struct {
 
 func (c *ZoneApi) GetZone(ctx *gin.Context) {
 	db := database.DB
+	infos, err := zoneService.FindAll(db)
+	if err != nil {
+		log.Panicln(err)
+	}
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
-		Data: zoneService.FindAll(db),
+		Data: infos,
 	})
 }
 
