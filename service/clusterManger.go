@@ -90,6 +90,10 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manage
 		db = db.Where("memory = ?", intValue)
 		db2 = db2.Where("memory = ?", intValue)
 	}
+	if zoneCode, isExist := ctx.GetQuery("zoneCode"); isExist {
+		db = db.Where("zone_code = ?", zoneCode)
+		db2 = db2.Where("zone_code = ?", zoneCode)
+	}
 
 	db = db.Where("activate", true)
 	db2 = db2.Where("activate", true)

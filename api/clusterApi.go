@@ -6,7 +6,6 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/session"
-	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"encoding/csv"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -344,7 +342,10 @@ func (c *ClusterApi) GetKamiList(ctx *gin.Context) {
 		db = db.Where("memory = ?", intValue)
 		db2 = db2.Where("memory = ?", intValue)
 	}
-
+	if zoneCode, isExist := ctx.GetQuery("zoneCode"); isExist {
+		db = db.Where("zone_code = ?", zoneCode)
+		db2 = db2.Where("zone_code = ?", zoneCode)
+	}
 	db = db.Where("activate = ?", false)
 	db2 = db2.Where("activate = ?", false)
 
@@ -410,6 +411,10 @@ func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
 		intValue, _ := strconv.Atoi(memory)
 		db = db.Where("memory = ?", intValue)
 	}
+	if zoneCode, isExist := ctx.GetQuery("zoneCode"); isExist {
+		db = db.Where("zone_code = ?", zoneCode)
+	}
+
 	db = db.Where("activate = ?", false)
 	db = db.Order("created_at desc")
 	clusters := make([]model.Cluster, 0)
@@ -442,23 +447,4 @@ func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
 
 	// 添加 Boom 头
 	ctx.Header("Content-Security-Policy", "default-src 'none'; style-src 'self'; font-src 'self';")
-}
-
-func getStartPort() int64 {
-	version, err := fileUtils.ReadFile("./startPort")
-	if err != nil {
-		log.Println(err)
-		return 20000
-	}
-	version = strings.Replace(version, "\n", "", -1)
-	l, err := strconv.ParseInt(version, 10, 64)
-	if err != nil {
-		log.Println(err)
-		return 20000
-	}
-	return l
-}
-
-func saveEndPort(portEnd int64) {
-	fileUtils.WriterTXT("./startPort", strconv.Itoa(int(portEnd)))
 }
