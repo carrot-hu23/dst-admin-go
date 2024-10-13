@@ -16,6 +16,7 @@ import (
 type ClusterManager struct {
 	RemoteService
 	ContainerService
+	PortInfoService
 }
 
 func (c *ClusterManager) GetCluster(clusterName string) *model.Cluster {
@@ -201,6 +202,13 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 
 	// 删除绑定的关系
 	err = tx.Where("cluster_id = ?", cluster.ID).Delete(&[]model.UserCluster{}).Error
+	if err != nil {
+		tx.Rollback()
+		log.Panicln(err)
+	}
+
+	// 删除已经使用的端口
+	err = c.ReleasePort(tx, cluster.ZoneCode, cluster.ContainerId)
 	if err != nil {
 		tx.Rollback()
 		log.Panicln(err)

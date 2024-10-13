@@ -8,6 +8,7 @@ import (
 func initClusterRouter(router *gin.RouterGroup) {
 
 	clusterApi := api.ClusterApi{}
+	zoneApi := api.ZoneApi{}
 
 	cluster := router.Group("/api/cluster")
 	{
@@ -17,12 +18,16 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.POST("", clusterApi.CreateCluster)
 		cluster.PUT("", clusterApi.UpdateCluster)
 		cluster.DELETE("", clusterApi.DeleteCluster)
-		cluster.GET("/zone", clusterApi.GetClusterZone)
 
 		cluster.PUT("/container", clusterApi.UpdateClusterContainer)
 
 		cluster.GET("/kami", clusterApi.GetKamiList)
 		cluster.GET("/kami/export", clusterApi.ExportKamiList)
+
+		cluster.GET("/zone", zoneApi.GetZone)
+		cluster.POST("/zone", zoneApi.CreateZone)
+		cluster.PUT("/zone", zoneApi.UpdateZone)
+		cluster.DELETE("/zone", zoneApi.DeleteZone)
 
 	}
 
@@ -31,4 +36,5 @@ func initClusterRouter(router *gin.RouterGroup) {
 		activate.GET("/:id", clusterApi.GetCluster)
 		activate.POST("/bind", clusterApi.BindCluster)
 	}
+
 }

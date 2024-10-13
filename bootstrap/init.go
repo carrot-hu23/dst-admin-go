@@ -31,7 +31,7 @@ func Init() {
 }
 
 func initDockerClient() {
-	dockerClient.InitZoneDockerClient(global.Config.Zones)
+	dockerClient.InitZoneDockerClient()
 }
 
 func initDB() {

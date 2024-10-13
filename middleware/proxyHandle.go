@@ -57,7 +57,7 @@ func Proxy(c *gin.Context) {
 	result := database.DB.Where("cluster_name = ?", clusterUUID).First(&cluster)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
+		c.Abort()
 	}
 
 	// 构建代理请求

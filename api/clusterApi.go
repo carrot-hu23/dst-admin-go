@@ -2,7 +2,7 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/global"
+	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/session"
@@ -21,6 +21,7 @@ import (
 type ClusterApi struct{}
 
 var clusterManager = service.ClusterManager{}
+var portInfoService = service.PortInfoService{}
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx, sessions)
@@ -65,16 +66,14 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
 	var clusterList []model.Cluster
 
+	zone, ok := dockerClient.Zone(clusterModel.ZoneCode)
+	if !ok {
+		log.Panicln("未找到当前 ", clusterModel.ZoneCode)
+	}
+
 	// 批量创建
 	quantity := clusterModel.Quantity
-	zoneName := ""
-	for i := range global.Config.Zones {
-		if clusterModel.ZoneCode == global.Config.Zones[i].ZoneCode {
-			zoneName = global.Config.Zones[i].Name
-		}
-	}
 	for i := 0; i < quantity; i++ {
-
 		cluster := model.Cluster{
 			LevelNum:   clusterModel.LevelNum,
 			MaxPlayers: clusterModel.MaxPlayers,
@@ -85,19 +84,10 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 			Day:        clusterModel.Day,
 			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
 			Image:      clusterModel.Image,
-			ZoneCode:   clusterModel.ZoneCode,
-			ZoneName:   zoneName,
+			ZoneCode:   zone.ZoneCode,
+			ZoneName:   zone.Name,
+			Ip:         zone.Ip,
 		}
-		// 计算端口
-		portStart := getStartPort()
-		portEnd := portStart
-		cluster.Port = int(portStart)
-		cluster.MasterPort = int(portStart + 1)
-		portEnd = portEnd + 2
-		// 冗余 5 个端口
-		portEnd = portEnd + int64(cluster.LevelNum) + 5
-		// 保存
-		saveEndPort(portEnd)
 		log.Println("正在创建cluster", cluster)
 		e := clusterManager.CreateCluster(&cluster)
 		if e != nil {
@@ -247,6 +237,11 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
+			ctx.JSON(http.StatusOK, vo.Response{
+				Code: 500,
+				Msg:  "绑定失败",
+				Data: nil,
+			})
 		}
 	}()
 
@@ -276,6 +271,14 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	log.Println("正在绑定", userCluster)
 	tx.Create(&userCluster)
 
+	portCount := 1 + 1 + cluster.LevelNum + 5
+	ports, err := portInfoService.GetAvailablePorts(cluster.ZoneCode, portCount)
+	if err != nil {
+		log.Panicln("获取端口失败")
+	}
+	cluster.Port = ports[0]
+	cluster.MasterPort = ports[1]
+
 	// 激活卡密
 	containerId, err := clusterManager.CreateContainer(cluster)
 	if err != nil {
@@ -285,9 +288,12 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	cluster.ContainerId = containerId
 	cluster.Expired = false
 	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
-
 	tx.Save(&cluster)
 
+	err = portInfoService.SaveAvailablePort(tx, cluster.ZoneCode, containerId, ports)
+	if err != nil {
+		log.Panicln(err)
+	}
 	tx.Commit()
 
 	ctx.JSON(http.StatusOK, vo.Response{
@@ -296,14 +302,6 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		Data: nil,
 	})
 
-}
-
-func (c *ClusterApi) GetClusterZone(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, vo.Response{
-		Code: 200,
-		Msg:  "success",
-		Data: global.Config.Zones,
-	})
 }
 
 func (c *ClusterApi) GetKamiList(ctx *gin.Context) {
