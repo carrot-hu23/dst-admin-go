@@ -104,7 +104,7 @@ func (c *ZoneApi) UpdateZone(ctx *gin.Context) {
 		log.Panicln(err)
 	}
 
-	err = zoneService.UpdateZone(db, zone.ID, zone.Name, zone.Ip, zone.Port)
+	err = zoneService.UpdateZone(tx, zone.ID, zone.Name, zone.Ip, zone.Port)
 	if err != nil {
 		log.Panicln(err)
 	}
