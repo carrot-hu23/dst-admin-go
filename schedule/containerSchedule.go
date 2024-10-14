@@ -26,23 +26,31 @@ func CollectContainerStatus() {
 	var clusterList []model.Cluster
 	db.Where("activate = ?", true).Find(&clusterList)
 	for i := range clusterList {
-		cluster := clusterList[i]
-		statusInfo, err := containerService.ContainerStatusInfo(cluster.ClusterName)
-		if err != nil {
-			cluster.Status = "error"
-			log.Println("容器id", cluster.ContainerId, "获取失败")
-		} else {
-			log.Println("容器id", cluster.ContainerId, statusInfo.State.Status)
-			cluster.Status = statusInfo.State.Status
-		}
-		if statusInfo.State.Status == "running" {
-			status := checkContainerStatus(cluster)
-			if !status {
-				cluster.Status = "installing"
+		go func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println(r)
+				}
+			}()
+			cluster := clusterList[i]
+			statusInfo, err := containerService.ContainerStatusInfo(cluster.ClusterName)
+			if err != nil {
+				cluster.Status = "error"
+				log.Println("容器id", cluster.ContainerId, "获取失败")
+			} else {
+				log.Println("容器id", cluster.ContainerId, statusInfo.State.Status)
+				cluster.Status = statusInfo.State.Status
 			}
-		}
-		db2 := database.DB
-		db2.Save(&cluster)
+			if statusInfo.State.Status == "running" {
+				status := checkContainerStatus(cluster)
+				if !status {
+					cluster.Status = "installing"
+				}
+			}
+			db2 := database.DB
+			db2.Save(&cluster)
+		}(i)
+
 	}
 }
 
