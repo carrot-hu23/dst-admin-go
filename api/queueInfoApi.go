@@ -229,7 +229,7 @@ func (c *QueueApi) UnbindQueueFromZone(ctx *gin.Context) {
 }
 
 func (c *QueueApi) GetQueuesByZone(ctx *gin.Context) {
-	zoneCode := ctx.Param("zoneCode")
+	zoneCode := ctx.Query("zoneCode")
 	db := database.DB
 	// 查询绑定的 QueueCodes
 	var zoneQueues []model.ZoneQueue
