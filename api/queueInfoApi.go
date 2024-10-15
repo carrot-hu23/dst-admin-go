@@ -138,15 +138,15 @@ func (c *QueueApi) DeleteQueue(ctx *gin.Context) {
 			})
 		}
 	}()
-	zoneInfo := model.ZoneInfo{}
-	if err = tx.First(&zoneInfo, id).Error; err != nil {
+	queueInfo := model.QueueInfo{}
+	if err = tx.First(&queueInfo, id).Error; err != nil {
 		log.Panicln(err)
 	}
 	err = queueInfoService.Delete(tx, uint(id))
 	if err != nil {
 		log.Panicln(err)
 	}
-	dockerClient.DeleteQueue(zoneInfo.ZoneCode)
+	dockerClient.DeleteQueue(queueInfo.QueueCode)
 
 	tx.Commit()
 
