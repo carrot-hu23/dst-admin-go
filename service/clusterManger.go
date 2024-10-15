@@ -197,8 +197,8 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 		tx.Rollback()
 		log.Panicln(err)
 	}
-
-	err = tx.Where("cluster_name = ?", clusterName).Delete(&model.Cluster{}).Error
+	log.Println("正在删除 cluster", cluster)
+	tx.Delete(&cluster)
 	if err != nil {
 		tx.Rollback()
 		log.Panicln(err)
@@ -219,10 +219,7 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	}
 
 	// 提交事务
-	err = tx.Commit().Error
-	if err != nil {
-		log.Panicln(err)
-	}
+	tx.Commit()
 
 	return &cluster, nil
 }
