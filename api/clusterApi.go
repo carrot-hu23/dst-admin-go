@@ -83,7 +83,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
 			Image:      clusterModel.Image,
 			ZoneCode:   zone.ZoneCode,
-			ZoneName:   zone.ZoneCode,
+			ZoneName:   zone.Name,
 		}
 		log.Println("正在创建cluster", cluster)
 		e := clusterManager.CreateCluster(&cluster)
