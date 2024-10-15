@@ -9,6 +9,7 @@ func initThirdPartyRouter(router *gin.RouterGroup) {
 
 	thirdPartyApi := api.ThirdPartyApi{}
 	//第三方api转发
+	router.GET("/steam/dst/news", thirdPartyApi.DstNews)
 	router.GET("/api/dst/version", thirdPartyApi.GetDstVersion)
 	router.POST("/api/dst/home/server", thirdPartyApi.GetDstHomeServerList)
 	router.POST("/api/dst/home/server/detail", thirdPartyApi.GetDstHomeDetailList)
