@@ -48,6 +48,7 @@ func initDB() {
 		&model.UserCluster{},
 		&model.ZoneInfo{},
 		&model.QueueInfo{},
+		&model.ZoneQueue{},
 		&model.PortInfo{},
 	)
 	if err != nil {
