@@ -39,7 +39,7 @@ func (c *QueueApi) CreateQueue(ctx *gin.Context) {
 		log.Panicln(err)
 	}
 	if queue.QueueCode == "" {
-		log.Panicln("zoneCode 不能为空")
+		log.Panicln("queueCode 不能为空")
 	}
 	if queue.Name == "" {
 		log.Panicln("Name 不能为空")

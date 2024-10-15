@@ -11,7 +11,7 @@ type QueueInfo struct {
 	UpdatedAt time.Time
 
 	Name      string ` json:"name"`
-	QueueCode string `gorm:"uniqueIndex" json:"zoneCode"`
+	QueueCode string `gorm:"uniqueIndex" json:"queueCode"`
 	Ip        string `json:"ip"`
 	Port      int    `json:"port"`
 }
