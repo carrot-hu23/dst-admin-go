@@ -9,73 +9,73 @@ import (
 )
 
 var Clients map[string]*client.Client
-var ZoneMap map[string]model.ZoneInfo
+var queueMap map[string]model.QueueInfo
 
-func GetZoneDockerClient(zoneCode string) (*client.Client, bool) {
-	v, exist := Clients[zoneCode]
+func GetDockerClient(code string) (*client.Client, bool) {
+	v, exist := Clients[code]
 	return v, exist
 }
 
 func InitZoneDockerClient() {
 
 	db := database.DB
-	var zones []model.ZoneInfo
-	db.Find(&zones)
+	var queues []model.QueueInfo
+	db.Find(&queues)
 
 	Clients = make(map[string]*client.Client)
-	ZoneMap = make(map[string]model.ZoneInfo)
+	queueMap = make(map[string]model.QueueInfo)
 
-	for i := range zones {
-		zoneCode := zones[i].ZoneCode
-		host := fmt.Sprintf("tcp://%s:%d", zones[i].Ip, zones[i].Port)
+	for i := range queues {
+		code := queues[i].QueueCode
+		host := fmt.Sprintf("tcp://%s:%d", queues[i].Ip, queues[i].Port)
 		log.Println("正在初始 docker", i+1, host)
 		cli, err := client.NewClientWithOpts(client.WithHost(host), client.WithAPIVersionNegotiation())
 		if err != nil {
 			log.Panicln(err)
 		}
-		Clients[zoneCode] = cli
-		ZoneMap[zoneCode] = zones[i]
+		Clients[code] = cli
+		queueMap[code] = queues[i]
 	}
 }
 
-func AddZone(zone model.ZoneInfo) error {
-	zoneCode := zone.ZoneCode
-	host := fmt.Sprintf("tcp://%s:%d", zone.Ip, zone.Port)
+func AddQueue(queue model.QueueInfo) error {
+	code := queue.QueueCode
+	host := fmt.Sprintf("tcp://%s:%d", queue.Ip, queue.Port)
 	log.Println("正在添加 docker client", host)
 	cli, err := client.NewClientWithOpts(client.WithHost(host), client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
-	Clients[zoneCode] = cli
-	ZoneMap[zoneCode] = zone
+	Clients[code] = cli
+	queueMap[code] = queue
 	return err
 }
 
-func UpdateZone(zone model.ZoneInfo) error {
+func UpdateQueue(queue model.QueueInfo) error {
 
 	// 删除之前的
-	delete(Clients, zone.ZoneCode)
-	delete(ZoneMap, zone.ZoneCode)
+	delete(Clients, queue.QueueCode)
+	delete(queueMap, queue.QueueCode)
 
-	zoneCode := zone.ZoneCode
-	host := fmt.Sprintf("tcp://%s:%d", zone.Ip, zone.Port)
+	code := queue.QueueCode
+	host := fmt.Sprintf("tcp://%s:%d", queue.Ip, queue.Port)
 	log.Println("正在更新 docker client", host)
 	cli, err := client.NewClientWithOpts(client.WithHost(host), client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
-	Clients[zoneCode] = cli
-	ZoneMap[zoneCode] = zone
+	Clients[code] = cli
+	queueMap[code] = queue
 	return nil
 }
 
-func DeleteZone(zoneCode string) {
+func DeleteQueue(code string) {
 	// 删除之前的
-	delete(Clients, zoneCode)
-	delete(ZoneMap, zoneCode)
+	delete(Clients, code)
+	delete(queueMap, code)
 }
 
-func Zone(zone string) (model.ZoneInfo, bool) {
-	v, exist := ZoneMap[zone]
+func Queue(code string) (model.QueueInfo, bool) {
+	v, exist := queueMap[code]
 	return v, exist
 }

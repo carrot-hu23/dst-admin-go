@@ -43,12 +43,7 @@ func (c *ZoneApi) CreateZone(ctx *gin.Context) {
 	if zone.Name == "" {
 		log.Panicln("Name 不能为空")
 	}
-	if zone.Ip == "" {
-		log.Panicln("Ip 不能为空")
-	}
-	if zone.Port == 0 {
-		log.Panicln("Port 不能为空")
-	}
+
 	db := database.DB
 	tx := db.Begin()
 	defer func() {
@@ -63,10 +58,6 @@ func (c *ZoneApi) CreateZone(ctx *gin.Context) {
 	}()
 
 	err = zoneService.Create(tx, zone)
-	if err != nil {
-		log.Panicln(err)
-	}
-	err = dockerClient.AddZone(zone)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -104,12 +95,11 @@ func (c *ZoneApi) UpdateZone(ctx *gin.Context) {
 		log.Panicln(err)
 	}
 
-	err = zoneService.UpdateZone(tx, zone.ID, zone.Name, zone.Ip, zone.Port)
+	err = zoneService.UpdateZone(tx, zone.ID, zone.Name)
 	if err != nil {
 		log.Panicln(err)
 	}
 
-	err = dockerClient.UpdateZone(zoneInfo)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -145,7 +135,7 @@ func (c *ZoneApi) DeleteZone(ctx *gin.Context) {
 	if err != nil {
 		log.Panicln(err)
 	}
-	dockerClient.DeleteZone(zoneInfo.ZoneCode)
+	dockerClient.DeleteQueue(zoneInfo.ZoneCode)
 
 	tx.Commit()
 

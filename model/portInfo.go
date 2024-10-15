@@ -11,7 +11,6 @@ type PortInfo struct {
 	UpdatedAt time.Time
 
 	Zone        string `json:"zone"`
-	Ip          string `json:"ip"`
 	Port        int    `json:"port"`
 	ContainerId string `json:"containerId"`
 }

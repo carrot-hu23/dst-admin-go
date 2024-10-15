@@ -27,7 +27,7 @@ func (z *ZoneInfoService) FindAll(db *gorm.DB) ([]model.ZoneInfo, error) {
 	return zones, nil
 }
 
-func (z *ZoneInfoService) UpdateZone(db *gorm.DB, zoneId uint, newName string, newIp string, newPort int) error {
+func (z *ZoneInfoService) UpdateZone(db *gorm.DB, zoneId uint, newName string) error {
 	var zone model.ZoneInfo
 	result := db.First(&zone, zoneId)
 	if result.Error != nil {
@@ -35,12 +35,6 @@ func (z *ZoneInfoService) UpdateZone(db *gorm.DB, zoneId uint, newName string, n
 	}
 	if newName != "" {
 		zone.Name = newName
-	}
-	if newIp != "" {
-		zone.Ip = newIp
-	}
-	if newPort != 0 {
-		zone.Port = newPort
 	}
 	result = db.Save(&zone)
 	return result.Error

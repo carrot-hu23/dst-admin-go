@@ -47,4 +47,7 @@ type Cluster struct {
 
 	ZoneCode string `json:"zoneCode"`
 	ZoneName string `json:"zoneName"`
+
+	QueueCode string `json:"queueCode"`
+	QueueName string `json:"QueueName"`
 }

@@ -2,7 +2,6 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/session"
@@ -64,11 +63,12 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
 	var clusterList []model.Cluster
 
-	zone, ok := dockerClient.Zone(clusterModel.ZoneCode)
-	if !ok {
-		log.Panicln("未找到当前 ", clusterModel.ZoneCode)
+	db := database.DB
+	zone := model.ZoneInfo{}
+	db.Where("zone_code = ?", clusterModel.ZoneCode).First(&zone)
+	if zone.ZoneCode == "" {
+		log.Panicln("未找到 zoneCode")
 	}
-
 	// 批量创建
 	quantity := clusterModel.Quantity
 	for i := 0; i < quantity; i++ {
@@ -83,8 +83,7 @@ func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 			Name:       fmt.Sprintf("%s-%d", clusterModel.Name, i+1),
 			Image:      clusterModel.Image,
 			ZoneCode:   zone.ZoneCode,
-			ZoneName:   zone.Name,
-			Ip:         zone.Ip,
+			ZoneName:   zone.ZoneCode,
 		}
 		log.Println("正在创建cluster", cluster)
 		e := clusterManager.CreateCluster(&cluster)
@@ -205,6 +204,7 @@ func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
 func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	var payload struct {
 		ClusterName string `json:"ClusterName"`
+		QueueCode   string `json:"QueueCode"`
 		Username    string `json:"username"`
 		DisplayName string `json:"displayName"`
 		Password    string `json:"password"`
@@ -251,6 +251,12 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		log.Panicln("当前卡密已激活，无法绑定")
 	}
 
+	queueInfo := model.QueueInfo{}
+	tx.Where("queue_code = ?", payload.QueueCode).Find(&queueInfo)
+	if queueInfo.QueueCode == "" {
+		log.Panicln("未找到 queueCode:", payload.QueueCode)
+	}
+
 	// 创建用户
 	user := model.User{
 		Username:    payload.Username,
@@ -270,12 +276,15 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	tx.Create(&userCluster)
 
 	portCount := 1 + 1 + cluster.LevelNum + 5
-	ports, err := portInfoService.GetAvailablePorts(cluster.ZoneCode, portCount)
+	ports, err := portInfoService.GetAvailablePorts(queueInfo.Ip, portCount)
 	if err != nil {
 		log.Panicln("获取端口失败")
 	}
 	cluster.Port = ports[0]
 	cluster.MasterPort = ports[1]
+	cluster.QueueCode = queueInfo.QueueCode
+	cluster.QueueName = queueInfo.Name
+	cluster.Ip = queueInfo.Ip
 
 	// 激活卡密
 	containerId, err := clusterManager.CreateContainer(cluster)
@@ -288,7 +297,7 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 	cluster.ExpireTime = time.Now().Add(time.Duration(cluster.Day) * time.Hour * 24).Unix()
 	tx.Save(&cluster)
 
-	err = portInfoService.SaveAvailablePort(tx, cluster.ZoneCode, containerId, ports)
+	err = portInfoService.SaveAvailablePort(tx, queueInfo.Ip, containerId, ports)
 	if err != nil {
 		log.Panicln(err)
 	}

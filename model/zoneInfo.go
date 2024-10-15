@@ -10,8 +10,6 @@ type ZoneInfo struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	Name     string `gorm:"uniqueIndex" yaml:"name" json:"name"`
-	ZoneCode string `yaml:"zoneCode" json:"zoneCode"`
-	Ip       string `yaml:"ip" json:"ip"`
-	Port     int    `yaml:"port" json:"port"`
+	Name     string `json:"name"`
+	ZoneCode string `gorm:"uniqueIndex" json:"zoneCode"`
 }

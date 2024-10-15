@@ -9,6 +9,7 @@ func initClusterRouter(router *gin.RouterGroup) {
 
 	clusterApi := api.ClusterApi{}
 	zoneApi := api.ZoneApi{}
+	queueApi := api.QueueApi{}
 
 	cluster := router.Group("/api/cluster")
 	{
@@ -28,6 +29,15 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.POST("/zone", zoneApi.CreateZone)
 		cluster.PUT("/zone", zoneApi.UpdateZone)
 		cluster.DELETE("/zone", zoneApi.DeleteZone)
+
+		cluster.GET("/queue", queueApi.GetQueue)
+		cluster.POST("/queue", queueApi.CreateQueue)
+		cluster.PUT("/queue", queueApi.UpdateQueue)
+		cluster.DELETE("/queue", queueApi.DeleteQueue)
+
+		cluster.POST("/zone/queue/bind", queueApi.BindQueue2Zone)
+		cluster.POST("/zone/queue/unbind", queueApi.UnbindQueueFromZone)
+		cluster.GET("/zone/queue", queueApi.GetQueuesByZone)
 
 	}
 

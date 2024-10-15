@@ -38,10 +38,10 @@ func GetCluster(clusterName string) *model.Cluster {
 
 func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 
-	zoneCode := c.ZoneCode
-	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	code := c.QueueCode
+	cli, exist := dockerClient.GetDockerClient(code)
 	if !exist {
-		return "", errors.New("zoneCode 不存在")
+		return "", errors.New("queueCode 不存在")
 	}
 	// 设置容器的环境变量
 	env := []string{
@@ -53,8 +53,8 @@ func (t *ContainerService) CreateContainer(c model.Cluster) (string, error) {
 
 	// 设置容器卷挂载
 	mounts := []string{
-		//"/root/dst-dedicated-server:/app/dst-dedicated-server",
-		//"/root/steamcmd:/app/steamcmd",
+		"/root/dst-dedicated-server:/app/dst-dedicated-server",
+		"/root/steamcmd:/app/steamcmd",
 	}
 
 	// 配置容器资源限制
@@ -138,11 +138,10 @@ func (t *ContainerService) DeleteContainer(clusterName string) error {
 	log.Println("正在删除容器 uuid", clusterName)
 	// 创建 Docker 客户端
 	cluster := GetCluster(clusterName)
-	zoneCode := cluster.ZoneCode
-	log.Println(cluster, zoneCode)
-	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	code := cluster.QueueCode
+	cli, exist := dockerClient.GetDockerClient(code)
 	if !exist {
-		return errors.New("当前zone不存在")
+		return errors.New("当前queue不存在")
 	}
 	containerID := cluster.ContainerId
 	log.Println("正在停止容器", containerID)
@@ -161,10 +160,10 @@ func (t *ContainerService) DeleteContainer(clusterName string) error {
 func (t *ContainerService) RestartContainer(clusterName string) error {
 	// 创建 Docker 客户端
 	cluster := GetCluster(clusterName)
-	zoneCode := cluster.ZoneCode
-	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	code := cluster.QueueCode
+	cli, exist := dockerClient.GetDockerClient(code)
 	if !exist {
-		return errors.New("当前zone不存在")
+		return errors.New("当前queue不存在")
 	}
 	containerID := cluster.ContainerId
 
@@ -178,13 +177,13 @@ func (t *ContainerService) ContainerStatusInfo(clusterName string) (types.Contai
 
 	// 创建 Docker 客户端
 	cluster := GetCluster(clusterName)
-	zoneCode := cluster.ZoneCode
-	cli, exist := dockerClient.GetZoneDockerClient(zoneCode)
+	code := cluster.QueueCode
+	cli, exist := dockerClient.GetDockerClient(code)
 	if !exist {
-		return types.ContainerJSON{}, errors.New("当前zone不存在")
+		return types.ContainerJSON{}, errors.New("当前queue不存在")
 	}
-	containerID := cluster.ContainerId
 
+	containerID := cluster.ContainerId
 	containerInfo, err := cli.ContainerInspect(context.Background(), containerID)
 	if err != nil {
 		fmt.Printf("Error inspecting container: %v\n", err)

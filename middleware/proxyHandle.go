@@ -12,14 +12,21 @@ import (
 
 // 白名单路径
 var whiteList = map[string]bool{
-	"/api/login":                           true,
-	"/api/logout":                          true,
-	"/ws":                                  true,
-	"/api/bootstrap":                       true,
-	"/api/init":                            true,
-	"/api/install/steamcmd":                true,
-	"/api/cluster":                         true,
-	"/api/cluster/zone":                    true,
+	"/api/login":            true,
+	"/api/logout":           true,
+	"/ws":                   true,
+	"/api/bootstrap":        true,
+	"/api/init":             true,
+	"/api/install/steamcmd": true,
+	"/api/cluster":          true,
+
+	"/api/cluster/zone": true,
+
+	"/api/cluster/queue":             true,
+	"/api/cluster/zone/queue":        true,
+	"/api/cluster/zone/queue/bind":   true,
+	"/api/cluster/zone/queue/unbind": true,
+
 	"/api/cluster/detail":                  true,
 	"/api/cluster/restart":                 true,
 	"/api/cluster/container":               true,
