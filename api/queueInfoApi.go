@@ -217,7 +217,7 @@ func (c *QueueApi) UnbindQueueFromZone(ctx *gin.Context) {
 		log.Panicln(errors.New("未找到当前绑定关系"))
 	}
 	// 删除绑定关系
-	if err := db.Delete(&zoneQueue).Error; err != nil {
+	if err := db.Unscoped().Delete(&zoneQueue).Error; err != nil {
 		log.Panicln(err)
 	}
 
