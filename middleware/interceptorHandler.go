@@ -9,7 +9,10 @@ import (
 )
 
 var (
-	whitelist = []string{"/api/login", "/api/logout", "/ws", "/api/bootstrap", "/api/init", "/api/install/steamcmd"}
+	whitelist = []string{
+		"/api/login", "/api/logout", "/ws", "/api/bootstrap", "/api/init", "/api/install/steamcmd",
+		"/api/cluster/zone/queue",
+	}
 )
 
 func apiFilter(s []string, str string) bool {
