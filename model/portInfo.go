@@ -2,13 +2,10 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type PortInfo struct {
 	gorm.Model
-	CreatedAt time.Time
-	UpdatedAt time.Time
 
 	Zone        string `json:"zone"`
 	Port        int    `json:"port"`

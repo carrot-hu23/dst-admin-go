@@ -2,14 +2,10 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type LevelTemplate struct {
 	gorm.Model
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 
 	Name        string `json:"name"`
 	IconUrl     string `json:"iconUrl"`
@@ -25,4 +21,6 @@ type LevelTemplate struct {
 	Leveldataoverride5 string `json:"leveldataoverride5"`
 	Leveldataoverride6 string `json:"leveldataoverride6"`
 	Leveldataoverride7 string `json:"leveldataoverride7"`
+
+	Username string `json:"username"`
 }
