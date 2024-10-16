@@ -79,7 +79,7 @@ func (c *LevelTemplateApi) CreateLevelTemplate(ctx *gin.Context) {
 	if template.ID != 0 {
 		db.Create(&template)
 	} else {
-		db.Save(&template)
+		db.Updates(&template)
 	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
