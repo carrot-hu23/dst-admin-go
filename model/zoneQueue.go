@@ -7,6 +7,6 @@ import (
 type ZoneQueue struct {
 	gorm.Model
 
-	ZoneCode  string `json:"zoneCode" gorm:"uniqueIndex;size:255:idx_zone_queue"`  // part of composite unique index
-	QueueCode string `json:"queueCode" gorm:"uniqueIndex;size:255:idx_zone_queue"` // part of composite unique index
+	ZoneCode  string `gorm:"type:varchar(255);uniqueIndex:idx_zone_queue" json:"zoneCode"`  // 指定长度
+	QueueCode string `gorm:"type:varchar(255);uniqueIndex:idx_zone_queue" json:"queueCode"` // 指定长度
 }
