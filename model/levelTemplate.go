@@ -12,6 +12,7 @@ type LevelTemplate struct {
 	UpdatedAt time.Time
 
 	Name        string `json:"name"`
+	IconUrl     string `json:"IconUrl"`
 	Description string `json:"description"`
 	LevelNum    int    `json:"levelNum"`
 
