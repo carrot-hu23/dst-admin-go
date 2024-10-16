@@ -86,7 +86,7 @@ func CheckClusterExpired() {
 
 func checkContainerStatus(cluster model.Cluster) bool {
 	// 要检查的URL
-	url := fmt.Sprintf("http://%s:%d", cluster.Ip, cluster.Port)
+	url := fmt.Sprintf("http://%s:%d/hello", cluster.Ip, cluster.Port)
 	// 设置一个1秒的超时
 	timeout := 1 * time.Second
 	return isServiceAvailable(url, timeout)
