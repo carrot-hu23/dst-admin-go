@@ -8,5 +8,5 @@ type ZoneInfo struct {
 	gorm.Model
 
 	Name     string `json:"name"`
-	ZoneCode string `gorm:"uniqueIndex" json:"zoneCode"`
+	ZoneCode string `gorm:"uniqueIndex;size:255" json:"zoneCode"`
 }
