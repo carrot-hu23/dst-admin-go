@@ -66,7 +66,7 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context) *vo.Response {
 		"username":    dbUser.Username,
 		"displayName": dbUser.DisplayName,
 		"photoURL":    dbUser.PhotoURL,
-		"role":        "normal",
+		"role":        dbUser.Role,
 	}
 	return response
 }
