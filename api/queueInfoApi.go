@@ -33,6 +33,8 @@ func (c *QueueApi) GetQueue(ctx *gin.Context) {
 
 func (c *QueueApi) CreateQueue(ctx *gin.Context) {
 
+	checkAdmin(ctx)
+
 	queue := model.QueueInfo{}
 	err := ctx.ShouldBind(&queue)
 	if err != nil {
@@ -82,6 +84,8 @@ func (c *QueueApi) CreateQueue(ctx *gin.Context) {
 
 func (c *QueueApi) UpdateQueue(ctx *gin.Context) {
 
+	checkAdmin(ctx)
+
 	queue := model.QueueInfo{}
 	err := ctx.ShouldBind(&queue)
 	if err != nil {
@@ -125,6 +129,8 @@ func (c *QueueApi) UpdateQueue(ctx *gin.Context) {
 
 func (c *QueueApi) DeleteQueue(ctx *gin.Context) {
 
+	checkAdmin(ctx)
+
 	id, err := strconv.Atoi(ctx.Query("id"))
 	db := database.DB
 	tx := db.Begin()
@@ -158,6 +164,8 @@ func (c *QueueApi) DeleteQueue(ctx *gin.Context) {
 }
 
 func (c *QueueApi) BindQueue2Zone(ctx *gin.Context) {
+
+	checkAdmin(ctx)
 
 	var payload struct {
 		ZoneCode  string `json:"ZoneCode"`
@@ -200,7 +208,7 @@ func (c *QueueApi) BindQueue2Zone(ctx *gin.Context) {
 }
 
 func (c *QueueApi) UnbindQueueFromZone(ctx *gin.Context) {
-
+	checkAdmin(ctx)
 	var payload struct {
 		ZoneCode  string `json:"ZoneCode"`
 		QueueCode string `json:"queueCode"`

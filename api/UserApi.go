@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -201,7 +202,7 @@ func (u *UserApi) GetUserClusterList(ctx *gin.Context) {
 }
 
 func (u *UserApi) GetUserCluster(ctx *gin.Context) {
-	session := sessions.Start(ctx.Writer, ctx.Request)
+	session := sessions.Default(ctx)
 	role := session.Get("role")
 	userId := session.Get("userId")
 	clusterName := ctx.Query("clusterName")

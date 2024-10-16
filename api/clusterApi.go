@@ -7,7 +7,6 @@ import (
 	"dst-admin-go/vo"
 	"encoding/csv"
 	"fmt"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -24,18 +23,8 @@ func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
 	clusterManager.QueryCluster(ctx)
 }
 
-func checkAdmin(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	role := session.Get("role")
-	if role != "admin" {
-		log.Panicln("你无权限操作")
-	}
-}
-
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
-
 	checkAdmin(ctx)
-
 	clusterModel := model.Cluster{}
 	err := ctx.ShouldBind(&clusterModel)
 	if err != nil {
@@ -313,7 +302,7 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 }
 
 func (c *ClusterApi) GetKamiList(ctx *gin.Context) {
-
+	checkAdmin(ctx)
 	page, _ := strconv.Atoi(ctx.DefaultQuery("current", "1"))
 	size, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "10"))
 
@@ -384,7 +373,7 @@ func (c *ClusterApi) GetKamiList(ctx *gin.Context) {
 }
 
 func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
-
+	checkAdmin(ctx)
 	// 获取当前时间并格式化为字符串
 	currentTime := time.Now().Format("20060102-150405")
 	filename := fmt.Sprintf("%s-dst-kami.csv", currentTime)

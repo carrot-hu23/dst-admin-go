@@ -30,7 +30,7 @@ func (c *ZoneApi) GetZone(ctx *gin.Context) {
 }
 
 func (c *ZoneApi) CreateZone(ctx *gin.Context) {
-
+	checkAdmin(ctx)
 	zone := model.ZoneInfo{}
 	err := ctx.ShouldBind(&zone)
 	if err != nil {
@@ -70,7 +70,7 @@ func (c *ZoneApi) CreateZone(ctx *gin.Context) {
 }
 
 func (c *ZoneApi) UpdateZone(ctx *gin.Context) {
-
+	checkAdmin(ctx)
 	zone := model.ZoneInfo{}
 	err := ctx.ShouldBind(&zone)
 	if err != nil {
@@ -112,7 +112,7 @@ func (c *ZoneApi) UpdateZone(ctx *gin.Context) {
 }
 
 func (c *ZoneApi) DeleteZone(ctx *gin.Context) {
-
+	checkAdmin(ctx)
 	id, err := strconv.Atoi(ctx.Query("id"))
 	db := database.DB
 	tx := db.Begin()
