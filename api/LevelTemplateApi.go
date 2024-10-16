@@ -76,7 +76,7 @@ func (c *LevelTemplateApi) CreateLevelTemplate(ctx *gin.Context) {
 	}
 
 	db := database.DB
-	if template.ID != 0 {
+	if template.ID == 0 {
 		db.Create(&template)
 	} else {
 		db.Updates(&template)
