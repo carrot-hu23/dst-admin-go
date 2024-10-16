@@ -2,7 +2,6 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/config/dockerClient"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
@@ -135,7 +134,6 @@ func (c *ZoneApi) DeleteZone(ctx *gin.Context) {
 	if err != nil {
 		log.Panicln(err)
 	}
-	dockerClient.DeleteQueue(zoneInfo.ZoneCode)
 
 	tx.Commit()
 

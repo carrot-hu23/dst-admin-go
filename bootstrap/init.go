@@ -50,6 +50,7 @@ func initDB() {
 		&model.QueueInfo{},
 		&model.ZoneQueue{},
 		&model.PortInfo{},
+		&model.LevelTemplate{},
 	)
 	if err != nil {
 		return
