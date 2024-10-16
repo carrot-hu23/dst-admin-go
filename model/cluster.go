@@ -11,7 +11,7 @@ type Cluster struct {
 	//UpdatedAt time.Time
 	//DeletedAt gorm.DeletedAt `gorm:"index"` // 逻辑删除
 
-	ClusterName string `gorm:"uniqueIndex" json:"clusterName"`
+	ClusterName string `gorm:"uniqueIndex;size:255" json:"clusterName"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 
