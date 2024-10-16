@@ -76,7 +76,11 @@ func (c *LevelTemplateApi) CreateLevelTemplate(ctx *gin.Context) {
 	}
 
 	db := database.DB
-	db.Create(&template)
+	if template.ID != 0 {
+		db.Create(&template)
+	} else {
+		db.Save(&template)
+	}
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
