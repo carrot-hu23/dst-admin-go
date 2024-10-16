@@ -41,6 +41,7 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.GET("/zone/queue", queueApi.GetQueuesByZone)
 
 		cluster.GET("/level/template", levelTemplateApi.GetLevelTemplate)
+		cluster.GET("/level/template/community", levelTemplateApi.GetCommunityLevelTemplate)
 		cluster.POST("/level/template", levelTemplateApi.CreateLevelTemplate)
 		cluster.PUT("/level/template", levelTemplateApi.UpdateTemplate)
 		cluster.DELETE("/level/template", levelTemplateApi.DeleteTemplate)

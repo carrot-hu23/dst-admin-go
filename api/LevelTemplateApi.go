@@ -5,6 +5,7 @@ import (
 	"dst-admin-go/model"
 	"dst-admin-go/vo"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 type LevelTemplateApi struct {
 }
 
-func (c *LevelTemplateApi) GetLevelTemplate(ctx *gin.Context) {
+func (c *LevelTemplateApi) GetCommunityLevelTemplate(ctx *gin.Context) {
 
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
@@ -30,6 +31,60 @@ func (c *LevelTemplateApi) GetLevelTemplate(ctx *gin.Context) {
 		db = db.Where("name LIKE ?", "%"+name+"%")
 		db2 = db2.Where("name LIKE ?", "%"+name+"%")
 	}
+	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
+	levelTemplates := make([]model.LevelTemplate, 0)
+
+	if err := db.Find(&levelTemplates).Error; err != nil {
+		fmt.Println(err.Error())
+	}
+
+	var total int64
+	db2.Model(&model.LevelTemplate{}).Count(&total)
+
+	totalPages := total / int64(size)
+	if total%int64(size) != 0 {
+		totalPages++
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: vo.Page{
+			Data:       levelTemplates,
+			Page:       page,
+			Size:       size,
+			Total:      total,
+			TotalPages: totalPages,
+		},
+	})
+}
+
+func (c *LevelTemplateApi) GetLevelTemplate(ctx *gin.Context) {
+
+	session := sessions.Default(ctx)
+	username := session.Get("username")
+	role := session.Get("role")
+
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
+	if page <= 0 {
+		page = 1
+	}
+	if size < 0 {
+		size = 10
+	}
+	db := database.DB
+	db2 := database.DB
+	if name, isExist := ctx.GetQuery("name"); isExist {
+		db = db.Where("name LIKE ?", "%"+name+"%")
+		db2 = db2.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	if role != "admin" {
+		db = db.Where("username = ?", username)
+		db2 = db2.Where("username = ?", username)
+	}
+
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	levelTemplates := make([]model.LevelTemplate, 0)
 
