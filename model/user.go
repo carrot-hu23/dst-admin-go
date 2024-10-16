@@ -13,7 +13,8 @@ type User struct {
 	Description string `json:"description"`
 	PhotoURL    string `json:"photoURL"`
 
+	Role string `json:"role"`
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"` // 逻辑删除
 }

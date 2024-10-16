@@ -4,10 +4,10 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
-	"dst-admin-go/session"
 	"dst-admin-go/vo"
 	"encoding/csv"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -21,12 +21,12 @@ var clusterManager = service.ClusterManager{}
 var portInfoService = service.PortInfoService{}
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
-	clusterManager.QueryCluster(ctx, sessions)
+	clusterManager.QueryCluster(ctx)
 }
 
-func checkAdmin(ctx *gin.Context, sessions *session.Manager) {
-	s := sessions.Start(ctx.Writer, ctx.Request)
-	role := s.Get("role")
+func checkAdmin(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	role := session.Get("role")
 	if role != "admin" {
 		log.Panicln("你无权限操作")
 	}
@@ -34,7 +34,7 @@ func checkAdmin(ctx *gin.Context, sessions *session.Manager) {
 
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
-	checkAdmin(ctx, sessions)
+	checkAdmin(ctx)
 
 	clusterModel := model.Cluster{}
 	err := ctx.ShouldBind(&clusterModel)
@@ -121,7 +121,7 @@ func (c *ClusterApi) UpdateCluster(ctx *gin.Context) {
 
 func (c *ClusterApi) DeleteCluster(ctx *gin.Context) {
 
-	checkAdmin(ctx, sessions)
+	checkAdmin(ctx)
 
 	clusterName := ctx.Query("clusterName")
 
@@ -173,7 +173,7 @@ func (c *ClusterApi) GetCluster(ctx *gin.Context) {
 
 func (c *ClusterApi) UpdateClusterContainer(ctx *gin.Context) {
 
-	checkAdmin(ctx, sessions)
+	checkAdmin(ctx)
 
 	var payload struct {
 		ClusterName string `json:"ClusterName"`
@@ -263,6 +263,7 @@ func (c *ClusterApi) BindCluster(ctx *gin.Context) {
 		Password:    payload.Password,
 		DisplayName: payload.DisplayName,
 		PhotoURL:    payload.PhotoURL,
+		Role:        "normal",
 	}
 
 	tx.Create(&user)

@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
-	"dst-admin-go/session"
 	"dst-admin-go/vo"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -39,11 +39,11 @@ func (c *ClusterManager) getClusterIdByRole(userId uint, role string) []int {
 	return ids
 }
 
-func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
+func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 
-	s := sessions.Start(ctx.Writer, ctx.Request)
-	role := s.Get("role")
-	userId := s.Get("userId")
+	session := sessions.Default(ctx)
+	role := session.Get("role")
+	userId := session.Get("userId")
 	log.Println("role", role, "userId", userId)
 
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"dst-admin-go/api"
+	"github.com/gin-contrib/sessions"
 	"net/http"
 	"strings"
 
@@ -10,7 +10,12 @@ import (
 
 var (
 	whitelist = []string{
-		"/api/login", "/api/logout", "/ws", "/api/bootstrap", "/api/init", "/api/install/steamcmd",
+		"/api/login",
+		"/api/logout",
+		"/ws",
+		"/api/bootstrap",
+		"/api/init",
+		"/api/install/steamcmd",
 		"/api/cluster/zone/queue",
 	}
 )
@@ -34,10 +39,10 @@ func Authentication() gin.HandlerFunc {
 			c.Next()
 			return
 		} else {
-			session := api.Sessions().Start(c.Writer, c.Request)
-			cookieName := session.Get("username")
+			session := sessions.Default(c)
+			username := session.Get("username")
 			// sessionID := url.QueryEscape(session.SessionID())
-			if cookieName == nil {
+			if username == nil {
 				// 如果用户未登录，返回 HTTP 401
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {

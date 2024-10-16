@@ -8,8 +8,8 @@ import (
 	"dst-admin-go/model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/glebarez/sqlite"
 	"gopkg.in/yaml.v2"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"io"
@@ -35,7 +35,14 @@ func initDockerClient() {
 }
 
 func initDB() {
-	db, err := gorm.Open(sqlite.Open(global.Config.Db), &gorm.Config{
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		global.Config.Database.User,
+		global.Config.Database.Password,
+		global.Config.Database.Host,
+		global.Config.Database.Port,
+		global.Config.Database.DBName)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
