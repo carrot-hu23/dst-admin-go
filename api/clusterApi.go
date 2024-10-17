@@ -477,7 +477,18 @@ func (c *ClusterApi) RenewalCluster(ctx *gin.Context) {
 		cluster.ExpireTime = cluster.ExpireTime + (day * 60 * 60 * 24)
 
 		db := database.DB
-		db.Save(&cluster)
+		tx := db.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
+		newCluster.Activate = true
+		newCluster.ParentClusterName = cluster.ClusterName
+		tx.Save(&cluster)
+		tx.Save(&newCluster)
+		tx.Commit()
+
 	} else {
 		log.Panicln("当前卡密配置不匹配 卡密1", payload.ClusterName, "，卡密2", payload.NewClusterName)
 	}
