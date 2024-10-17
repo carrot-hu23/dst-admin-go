@@ -22,6 +22,8 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.DELETE("", clusterApi.DeleteCluster)
 
 		cluster.PUT("/container", clusterApi.UpdateClusterContainer)
+		// 续费
+		cluster.GET("/renewal", clusterApi.RenewalCluster)
 
 		cluster.GET("/kami", clusterApi.GetKamiList)
 		cluster.GET("/kami/export", clusterApi.ExportKamiList)

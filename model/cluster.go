@@ -40,7 +40,8 @@ type Cluster struct {
 
 	Day int64 `json:"day"`
 
-	Activate bool `json:"activate"`
+	Activate          bool   `json:"activate"`
+	ParentClusterName string `json:"parentClusterName"`
 
 	Quantity int `json:"quantity"`
 

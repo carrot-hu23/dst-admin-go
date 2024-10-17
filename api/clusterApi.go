@@ -447,3 +447,43 @@ func (c *ClusterApi) ExportKamiList(ctx *gin.Context) {
 	// 添加 Boom 头
 	ctx.Header("Content-Security-Policy", "default-src 'none'; style-src 'self'; font-src 'self';")
 }
+
+func (c *ClusterApi) RenewalCluster(ctx *gin.Context) {
+
+	var payload struct {
+		ClusterName    string `json:"clusterName"`
+		NewClusterName string `json:"newClusterName"`
+	}
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		log.Panicln(err)
+	}
+	// 查找当前
+	cluster := clusterManager.GetCluster(payload.ClusterName)
+	if cluster.ID == 0 {
+		log.Panicln("未找到当前卡密", payload.ClusterName)
+	}
+	newCluster := clusterManager.GetCluster(payload.NewClusterName)
+	if newCluster.Activate {
+		log.Panicln("当前卡密已激活", payload.NewClusterName)
+	}
+	if cluster.ZoneCode == newCluster.ZoneCode &&
+		cluster.LevelNum == newCluster.LevelNum &&
+		cluster.MaxPlayers == newCluster.MaxPlayers &&
+		cluster.Core == newCluster.Core &&
+		cluster.Memory == newCluster.Memory {
+		day := newCluster.Day
+		cluster.Day = cluster.Day + day
+		cluster.ExpireTime = cluster.ExpireTime + (day * 60 * 60 * 24)
+
+		db := database.DB
+		db.Save(&cluster)
+	} else {
+		log.Panicln("当前卡密配置不匹配 卡密1", payload.ClusterName, "，卡密2", payload.NewClusterName)
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}

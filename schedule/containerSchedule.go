@@ -24,7 +24,7 @@ func CollectContainerStatus() {
 
 	db := database.DB
 	var clusterList []model.Cluster
-	db.Where("activate = ?", true).Find(&clusterList)
+	db.Where("activate = ? and parent_cluster_name is null", true).Find(&clusterList)
 	for i := range clusterList {
 		go func(i int) {
 			defer func() {
