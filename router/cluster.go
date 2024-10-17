@@ -23,7 +23,7 @@ func initClusterRouter(router *gin.RouterGroup) {
 
 		cluster.PUT("/container", clusterApi.UpdateClusterContainer)
 		// 续费
-		cluster.GET("/renewal", clusterApi.RenewalCluster)
+		cluster.POST("/renewal", clusterApi.RenewalCluster)
 
 		cluster.GET("/kami", clusterApi.GetKamiList)
 		cluster.GET("/kami/export", clusterApi.ExportKamiList)
