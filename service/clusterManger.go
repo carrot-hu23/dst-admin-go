@@ -95,8 +95,8 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 		db2 = db2.Where("zone_code = ?", zoneCode)
 	}
 
-	db = db.Where("activate = ? and parent_cluster_name is null", true)
-	db2 = db2.Where("activate = ? and parent_cluster_name is null", true)
+	db = db.Where("activate = ?", true).Not("parent_cluster_name", "").Not("parent_cluster_name", nil)
+	db2 = db2.Where("activate = ? ", true).Not("parent_cluster_name", "").Not("parent_cluster_name", nil)
 
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 	clusters := make([]model.Cluster, 0)
