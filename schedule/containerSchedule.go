@@ -63,7 +63,7 @@ func CheckClusterExpired() {
 
 	db := database.DB
 	var clusterList []model.Cluster
-	db.Where("activate = ?", true).Find(&clusterList)
+	db.Where("activate = ? and (parent_cluster_name = '' or parent_cluster_name IS NULL)", true).Find(&clusterList)
 	for i := range clusterList {
 		cluster := clusterList[i]
 		if time.Now().Unix() > cluster.ExpireTime {
@@ -72,7 +72,9 @@ func CheckClusterExpired() {
 			cluster.Expired = false
 		}
 		db.Save(&cluster)
-
+		if cluster.ExpireTime == 0 {
+			return
+		}
 		if time.Now().Unix() > cluster.ExpireTime+3*24*60*60 {
 			log.Println("正在删除卡密", cluster.Uuid)
 			_, err := clusterManger.DeleteCluster(cluster.ClusterName)
