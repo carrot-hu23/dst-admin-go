@@ -159,7 +159,7 @@ func (receiver *LevelInstance) Start() {
 	if receiver.bin == 32 {
 		args = append(args, "./dontstarve_dedicated_server_nullrenderer.exe")
 	} else {
-		args = append(args, "./dontstarve_dedicated_server_nullrenderer.exe")
+		args = append(args, "./dontstarve_dedicated_server_nullrenderer_x64.exe")
 	}
 	args = append(args, "-console")
 	args = append(args, "-cluster")
