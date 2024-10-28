@@ -1,9 +1,9 @@
 package api
 
 import (
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/config/global"
 	"dst-admin-go/service"
+	"dst-admin-go/service/autoCheck"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/vo"

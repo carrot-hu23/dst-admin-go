@@ -3,10 +3,10 @@ package service
 import (
 	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
-	"dst-admin-go/session"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"log"
 	"net"
 	"strings"
@@ -36,7 +36,7 @@ func (l *LoginService) GetUserInfo() map[string]interface{} {
 	}
 }
 
-func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
+func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context) *vo.Response {
 
 	response := &vo.Response{}
 
@@ -45,8 +45,6 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 
-	// username := strings.TrimSpace(strings.Split(user[0], "=")[1])
-	// password := strings.TrimSpace(strings.Split(user[1], "=")[1])
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	password := strings.TrimSpace(strings.Split(user[1], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
@@ -60,11 +58,14 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 			return response
 		}
 	}
-	session := sessions.Start(ctx.Writer, ctx.Request)
-
+	session := sessions.Default(ctx)
 	session.Set("username", username)
+	err = session.Save()
+	if err != nil {
+		log.Panicln(err)
+	}
 
-	userVO.SessionID = session.SessionID()
+	userVO.SessionID = session.ID()
 	response.Code = 200
 	response.Msg = "Login success"
 	userVO.Password = ""
@@ -76,18 +77,24 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 
 	return response
 }
-func (l *LoginService) DirectLogin(ctx *gin.Context, sessions *session.Manager) {
+
+func (l *LoginService) Logout(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	session.Clear()
+	err := session.Save()
+	if err != nil {
+		log.Panicln(err)
+	}
+}
+
+func (l *LoginService) DirectLogin(ctx *gin.Context) {
 	user, err := fileUtils.ReadLnFile(consts.PasswordPath)
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
-	session := sessions.Start(ctx.Writer, ctx.Request)
+	session := sessions.Default(ctx)
 	session.Set("username", username)
-}
-
-func (l *LoginService) Logout(ctx *gin.Context, sessions *session.Manager) {
-	sessions.Destroy(ctx.Writer, ctx.Request)
 }
 
 func (l *LoginService) ChangeUser(username, password string) {

@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"dst-admin-go/api"
 	"dst-admin-go/service"
 	"dst-admin-go/vo"
+	"github.com/gin-contrib/sessions"
 	"net/http"
 	"strings"
 
@@ -66,18 +66,15 @@ func Authentication() gin.HandlerFunc {
 			c.Next()
 			return
 		} else {
-			session := api.Sessions().Start(c.Writer, c.Request)
-			cookieName := session.Get("username")
-			// sessionID := url.QueryEscape(session.SessionID())
-			if cookieName == nil {
-				// 如果用户未登录，返回 HTTP 401
+			session := sessions.Default(c)
+			username := session.Get("username")
+			if username == nil {
 				if loginService.IsWhiteIP(c) {
-					loginService.DirectLogin(c, api.Sessions())
+					loginService.DirectLogin(c)
 					c.Next()
 					return
 				}
 				c.AbortWithStatus(http.StatusUnauthorized)
-
 			} else {
 				c.Next()
 			}

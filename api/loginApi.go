@@ -26,14 +26,17 @@ func (l *LoginApi) GetUserInfo(ctx *gin.Context) {
 func (l *LoginApi) Login(ctx *gin.Context) {
 
 	userVO := vo.NewUserVO()
-	ctx.BindJSON(userVO)
+	err := ctx.ShouldBind(userVO)
+	if err != nil {
+		log.Panicln(err)
+	}
 
-	response := loginService.Login(userVO, ctx, sessions)
+	response := loginService.Login(userVO, ctx)
 	ctx.JSON(http.StatusOK, response)
 }
 
 func (l *LoginApi) Logout(ctx *gin.Context) {
-	loginService.Logout(ctx, sessions)
+	loginService.Logout(ctx)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "Logout success",

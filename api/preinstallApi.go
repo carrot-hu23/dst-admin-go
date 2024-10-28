@@ -1,7 +1,7 @@
 package api
 
 import (
-	"dst-admin-go/autoCheck"
+	"dst-admin-go/service/autoCheck"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"

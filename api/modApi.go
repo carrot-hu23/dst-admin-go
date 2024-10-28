@@ -2,8 +2,8 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/mod"
 	"dst-admin-go/model"
+	mod2 "dst-admin-go/service/mod"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -32,7 +32,7 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
 
-	data, err := mod.SearchModList(text, page, size)
+	data, err := mod2.SearchModList(text, page, size)
 	if err != nil {
 		log.Panicln("搜索mod失败", err)
 	}
@@ -47,7 +47,7 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
-	modinfo, err, status := mod.SubscribeModByModId(moId)
+	modinfo, err, status := mod2.SubscribeModByModId(moId)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -135,7 +135,7 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 
 func (m *ModApi) UpdateAllModInfos(ctx *gin.Context) {
 
-	mod.UpdateModinfoList()
+	mod2.UpdateModinfoList()
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -231,7 +231,7 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 	fileUtils.DeleteDir(mod_path)
 
-	modinfo, err, status := mod.SubscribeModByModId(modId)
+	modinfo, err, status := mod2.SubscribeModByModId(modId)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -289,7 +289,7 @@ func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 		log.Panicln("写入 modinfo.lua 失败， path: ", modinfoPath, "error: ", err)
 	}
 
-	mod.AddModInfo(payload.WorkshopId)
+	mod2.AddModInfo(payload.WorkshopId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,

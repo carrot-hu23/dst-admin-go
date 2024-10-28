@@ -13,4 +13,11 @@ func initDstConfigRouter(router *gin.RouterGroup) {
 		dstConfig.GET("", dstConfigApi.GetDstConfig)
 		dstConfig.POST("", dstConfigApi.SaveDstConfig)
 	}
+
+	kvApi := api.KvApi{}
+	kv := router.Group("/api/kv")
+	{
+		kv.GET("", kvApi.GetKv)
+		kv.POST("", kvApi.SaveKv)
+	}
 }

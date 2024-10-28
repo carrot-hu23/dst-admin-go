@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -701,6 +702,7 @@ func get_v1_mod_info_config(modid, file_url string) map[string]interface{} {
 		log.Panicln("模组zip 解压失败")
 		return make(map[string]interface{})
 	}
+	UnzipToDir(zipReader, filepath.Join(dstUtils.GetUgcModPath(), "content", "322330", modid))
 	for _, file := range zipReader.File {
 		switch file.Name {
 		case "modinfo.lua":
@@ -951,4 +953,51 @@ func UploadMod(ctx *gin.Context) {
 		db.Create(&modInfo)
 	}
 
+}
+
+func UnzipToDir(zipReader *zip.Reader, destDir string) error {
+	for _, file := range zipReader.File {
+		// 获取目标文件的路径
+		destPath := filepath.Join(destDir, file.Name)
+
+		// 检查目录路径的安全性，避免目录遍历漏洞
+		if !filepath.HasPrefix(destPath, filepath.Clean(destDir)+string(os.PathSeparator)) {
+			return fmt.Errorf("非法文件路径: %s", destPath)
+		}
+
+		// 如果是目录，则创建它
+		if file.FileInfo().IsDir() {
+			err := os.MkdirAll(destPath, os.ModePerm)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		// 如果是文件，先确保目录存在
+		if err := os.MkdirAll(filepath.Dir(destPath), os.ModePerm); err != nil {
+			return err
+		}
+
+		// 创建文件并写入解压内容
+		outFile, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+		if err != nil {
+			return err
+		}
+		defer outFile.Close()
+
+		// 打开 zip 文件中的文件流
+		rc, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+
+		// 将文件内容写入到本地文件
+		_, err = io.Copy(outFile, rc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

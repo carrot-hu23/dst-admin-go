@@ -24,6 +24,36 @@ type GameConsoleApi struct {
 var consoleService = service.GameConsoleService{}
 var gameArchiveService = service.GameArchive{}
 var announceService = service.AnnounceService{}
+var gameService = service.GameService{}
+
+func (g *GameConsoleApi) UpdateGame(ctx *gin.Context) {
+
+	log.Println("正在更新游戏。。。。。。")
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	err := gameService.UpdateGame(clusterName)
+	if err != nil {
+		log.Panicln("更新游戏失败: ", err)
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "update dst success",
+		Data: nil,
+	})
+}
+
+func (g *GameConsoleApi) GetSystemInfo(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: gameService.GetSystemInfo(clusterName),
+	})
+}
 
 func (g *GameConsoleApi) SentBroadcast(ctx *gin.Context) {
 	message := ctx.Query("message")

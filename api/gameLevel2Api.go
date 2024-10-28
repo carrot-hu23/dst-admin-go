@@ -1,10 +1,10 @@
 package api
 
 import (
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
+	"dst-admin-go/service/autoCheck"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
