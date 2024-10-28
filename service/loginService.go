@@ -4,9 +4,9 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/constant"
 	"dst-admin-go/model"
-	"dst-admin-go/session"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
+	"github.com/gin-contrib/sessions"
 	"log"
 	"strings"
 
@@ -35,17 +35,16 @@ func (l *LoginService) GetUserInfo() map[string]interface{} {
 	}
 }
 
-func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *session.Manager) *vo.Response {
+func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context) *vo.Response {
 
 	response := &vo.Response{}
-
 	user, err := fileUtils.ReadLnFile(constant.PASSWORD_PATH)
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 
-	// username := strings.TrimSpace(strings.Split(user[0], "=")[1])
-	// password := strings.TrimSpace(strings.Split(user[1], "=")[1])
+	session := sessions.Default(ctx)
+
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	password := strings.TrimSpace(strings.Split(user[1], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
@@ -63,14 +62,15 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 			response.Msg = "User authentication failed"
 			return response
 		}
-		session := sessions.Start(ctx.Writer, ctx.Request)
+
 		session.Set("username", dbUser.Username)
 		session.Set("role", "normal")
 		session.Set("cluster", []string{})
 		session.Set("userId", dbUser.ID)
+		session.Save()
 		// TODO 增加一个集群放到session里面做拦截
 
-		userVO.SessionID = session.SessionID()
+		userVO.SessionID = session.ID()
 		response.Code = 200
 		response.Msg = "Login success"
 		userVO.Password = ""
@@ -91,12 +91,10 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 		return response
 	}
 
-	session := sessions.Start(ctx.Writer, ctx.Request)
-
 	session.Set("username", username)
 	session.Set("role", "admin")
-
-	userVO.SessionID = session.SessionID()
+	session.Save()
+	userVO.SessionID = session.ID()
 	response.Code = 200
 	response.Msg = "Login success"
 	userVO.Password = ""
@@ -110,8 +108,13 @@ func (l *LoginService) Login(userVO *vo.UserVO, ctx *gin.Context, sessions *sess
 	return response
 }
 
-func (l *LoginService) Logout(ctx *gin.Context, sessions *session.Manager) {
-	sessions.Destroy(ctx.Writer, ctx.Request)
+func (l *LoginService) Logout(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	session.Clear()
+	err := session.Save()
+	if err != nil {
+		log.Panicln(err)
+	}
 }
 
 func (l *LoginService) ChangeUser(username, password string) {

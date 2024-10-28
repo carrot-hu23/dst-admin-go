@@ -5,11 +5,11 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
 	"dst-admin-go/model"
-	"dst-admin-go/session"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/vo"
 	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -25,11 +25,11 @@ type ClusterManager struct {
 	RemoteService
 }
 
-func (c *ClusterManager) QueryCluster(ctx *gin.Context, sessions *session.Manager) {
+func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 	//获取查询参数
 	db := database.DB
 	clusters := make([]model.Cluster, 0)
-	session := sessions.Start(ctx.Writer, ctx.Request)
+	session := sessions.Default(ctx)
 	role := session.Get("role")
 	userId := session.Get("userId")
 	log.Println("role", role, "userId", userId)

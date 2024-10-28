@@ -220,7 +220,7 @@ func (i *InitService) InitCluster2(cluster *model.Cluster, token string) {
 		ports := i.getNextPorts()
 		// 初始化标准的森林和洞穴
 		i.InitBaseNewLevel(filepath.Join(baseLevelPath, "Master"), ports[0], true, "forest", "Master", 1)
-		i.InitBaseNewLevel(filepath.Join(baseLevelPath, "Caves"), ports[0], true, "caves", "Caves", 2)
+		i.InitBaseNewLevel(filepath.Join(baseLevelPath, "Caves"), ports[1], true, "caves", "Caves", 2)
 
 		levelConfig := levelConfigUtils.LevelConfig{
 			LevelList: []levelConfigUtils.Item{

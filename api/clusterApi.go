@@ -16,13 +16,16 @@ type ClusterApi struct{}
 var clusterManager = service.ClusterManager{}
 
 func (c *ClusterApi) GetClusterList(ctx *gin.Context) {
-	clusterManager.QueryCluster(ctx, sessions)
+	clusterManager.QueryCluster(ctx)
 }
 
 func (c *ClusterApi) CreateCluster(ctx *gin.Context) {
 
 	clusterModel := model.Cluster{}
-	ctx.ShouldBind(&clusterModel)
+	err := ctx.ShouldBind(&clusterModel)
+	if err != nil {
+		log.Panicln(err)
+	}
 	fmt.Printf("%v", clusterModel)
 
 	clusterManager.CreateCluster(&clusterModel)
