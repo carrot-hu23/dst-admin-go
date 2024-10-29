@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -123,9 +124,34 @@ func (c *ClusterManager) CreateCluster(cluster *model.Cluster) {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
+		tx.Commit()
 	}()
 
-	err := db.Create(&cluster).Error
+	if len(cluster.RemoteClusterNameList) > 0 {
+		if len(cluster.RemoteClusterNameList) > 0 {
+			var clusterList []model.Cluster
+			remoteClusterNameList := cluster.RemoteClusterNameList
+			for i := range remoteClusterNameList {
+				remoteClusterName := remoteClusterNameList[i]
+				newUUID, _ := uuid.NewUUID()
+				newCluster := model.Cluster{
+					ClusterName:       newUUID.String(),
+					RemoteClusterName: remoteClusterName,
+					Ip:                cluster.Ip,
+					Port:              cluster.Port,
+					Username:          cluster.Username,
+					Password:          cluster.Password,
+					ClusterType:       cluster.ClusterType,
+					Name:              cluster.Name,
+				}
+				clusterList = append(clusterList, newCluster)
+			}
+			tx.Create(&clusterList)
+		}
+		return
+	}
+
+	err := tx.Create(&cluster).Error
 	if err != nil {
 		if err.Error() == "Error 1062: Duplicate entry" {
 			log.Panicln("唯一索引冲突！", err)

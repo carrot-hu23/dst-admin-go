@@ -67,6 +67,7 @@ func Proxy(c *gin.Context) {
 			req.URL.Host = fmt.Sprintf("%s:%d", cluster.Ip, cluster.Port)
 			req.Host = req.URL.Host
 			req.Header.Set("Cookie", cache.GetToken(cluster))
+			req.Header.Set("Cluster", cluster.RemoteClusterName)
 		},
 		ModifyResponse: func(resp *http.Response) error {
 			if resp.StatusCode == http.StatusUnauthorized {
