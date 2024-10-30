@@ -157,8 +157,8 @@ func initUpdateModinfos() {
 				select {
 				case <-ticker.C:
 					log.Println("正在定时更新模组配置 间隔: ", t, "分钟")
-					// 每隔10分钟执行的任务
-					mod.UpdateModinfoList()
+					// TODO 中英文问题，每隔10分钟执行的任务
+					mod.UpdateModinfoList("zh")
 				}
 			}
 		}()

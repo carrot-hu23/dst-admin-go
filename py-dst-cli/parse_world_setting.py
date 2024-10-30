@@ -62,9 +62,9 @@ def parse_po(path_po):  # 把 .po 文件按照 msgctxt: msgstr 的格式转为�
         split_key(dict_zh_split, i.split("."), j)
 
     # print('获取英文对照')
-    # dict_en = {i[0]: i[1] for i in pattern.findall(data)}  # 因为 costomize 中有连接字符串的，所以这里不能构建成一个字典，会出错
-    # for i, j in dict_en.items():
-    #     split_key(dict_en_split, i.split("."), j)
+    dict_en = {i[0]: i[1] for i in pattern.findall(data)}  # 因为 costomize 中有连接字符串的，所以这里不能构建成一个字典，会出错
+    for i, j in dict_en.items():
+        split_key(dict_en_split, i.split("."), j)
 
     dict_split = {'zh': dict_zh_split}
     if dict_en_split:
