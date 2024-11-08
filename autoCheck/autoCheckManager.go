@@ -110,7 +110,7 @@ func (m *AutoCheckManager) Start() {
 	clusterList := m.getClusterList()
 	for i := range clusterList {
 		clusterName := clusterList[i].ClusterName
-		if clusterList[i].RemoteClusterName != "" {
+		if clusterList[i].ClusterType == "远程" {
 			continue
 		}
 		config, _ := levelConfigUtils.GetLevelConfig(clusterName)
@@ -132,7 +132,7 @@ func (m *AutoCheckManager) Start() {
 
 		autoChecks = append(autoChecks, autoCheck2)
 
-		log.Println("autoChecks", autoChecks)
+		// log.Println("autoChecks", autoChecks)
 		m.AutoChecks = append(m.AutoChecks, autoChecks...)
 		m.statusMap = make(map[string]chan int)
 

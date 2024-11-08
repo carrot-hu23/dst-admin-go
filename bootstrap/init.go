@@ -110,7 +110,7 @@ func initCollect() {
 	var clusters []model.Cluster
 	database.DB.Find(&clusters)
 	for _, cluster := range clusters {
-		if cluster.ClusterType != "本地" {
+		if cluster.ClusterType == "远程" {
 			continue
 		}
 		global.CollectMap.AddNewCollect(cluster.ClusterName)
