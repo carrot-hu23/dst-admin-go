@@ -15,6 +15,13 @@ func initClusterRouter(router *gin.RouterGroup) {
 		cluster.POST("", clusterApi.CreateCluster)
 		cluster.PUT("", clusterApi.UpdateCluster)
 		cluster.DELETE("", clusterApi.DeleteCluster)
+		cluster.POST("/remote", clusterApi.FetchRemoteClusterList)
 	}
 
+	kvApi := api.KvApi{}
+	kv := router.Group("/api/kv")
+	{
+		kv.GET("", kvApi.GetKv)
+		kv.POST("", kvApi.SaveKv)
+	}
 }

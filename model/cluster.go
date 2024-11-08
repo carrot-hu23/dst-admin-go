@@ -28,5 +28,5 @@ type Cluster struct {
 
 	RemoteClusterName string `json:"remoteClusterName"`
 	// 远程集群名称列表
-	RemoteClusterNameList []string `gorm:"-"`
+	RemoteClusterNameList []string `gorm:"-" json:"remoteClusterNameList"`
 }

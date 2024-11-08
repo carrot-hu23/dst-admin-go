@@ -20,6 +20,7 @@ var whiteList = map[string]bool{
 	"/api/init":                            true,
 	"/api/install/steamcmd":                true,
 	"/api/cluster":                         true,
+	"/api/user":                            true,
 	"/api/user/account":                    true,
 	"/api/user/account/cluster":            true,
 	"/api/user/account/cluster/permission": true,
@@ -30,6 +31,8 @@ var whiteList = map[string]bool{
 	"/api/dst/home/server/detail": true,
 
 	"/api/game/level/server/download": true,
+	"/api/kv":                         true,
+	"/api/cluster/remote":             true,
 }
 
 func Proxy(c *gin.Context) {

@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type RemoteService struct{}
@@ -45,7 +46,9 @@ func (r *RemoteService) GetRemoteLevelStatus(cluster model.Cluster) bool {
 	}()
 
 	// 创建一个 HTTP 客户端
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
 
 	// 创建一个新的 GET 请求
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d", cluster.Ip, cluster.Port)+"/api/game/8level/status", nil)
@@ -54,6 +57,7 @@ func (r *RemoteService) GetRemoteLevelStatus(cluster model.Cluster) bool {
 	}
 
 	req.Header.Set("Cookie", cache.GetToken(cluster))
+	req.Header.Set("Cluster", cluster.RemoteClusterName)
 
 	// 发送请求
 	resp, err := client.Do(req)
@@ -65,7 +69,7 @@ func (r *RemoteService) GetRemoteLevelStatus(cluster model.Cluster) bool {
 	// 读取响应主体
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Error reading response body: %v", err)
+		log.Panicln("Error reading response body: %v", err)
 	}
 
 	var remoteGameStatus RemoteGameStatus
@@ -93,7 +97,9 @@ func (r *RemoteService) GetRemoteGameArchive(cluster model.Cluster) *vo.GameArch
 	}()
 
 	// 创建一个 HTTP 客户端
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
 
 	// 创建一个新的 GET 请求
 	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d", cluster.Ip, cluster.Port)+"/api/game/archive", nil)
@@ -102,6 +108,7 @@ func (r *RemoteService) GetRemoteGameArchive(cluster model.Cluster) *vo.GameArch
 	}
 
 	req.Header.Set("Cookie", cache.GetToken(cluster))
+	req.Header.Set("Cluster", cluster.RemoteClusterName)
 
 	// 发送请求
 	resp, err := client.Do(req)
@@ -113,8 +120,9 @@ func (r *RemoteService) GetRemoteGameArchive(cluster model.Cluster) *vo.GameArch
 	// 读取响应主体
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Error reading response body: %v", err)
+		log.Panicln("Error reading response body: %v", err)
 	}
+
 	var remoteGameArchive RemoteGameArchive
 
 	err = json.Unmarshal(body, &remoteGameArchive)

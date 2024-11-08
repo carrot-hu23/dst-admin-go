@@ -76,9 +76,25 @@ func (c *ClusterManager) QueryCluster(ctx *gin.Context) {
 				ClusterPassword: cluster.Password,
 			}
 			if cluster.ClusterType == "远程" {
-				// TODO 增加xinxi
-				clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
-				clusterVO.Status = c.GetRemoteLevelStatus(cluster)
+				var w sync.WaitGroup
+				w.Add(2)
+				go func() {
+					defer func() {
+						if r := recover(); r != nil {
+						}
+						w.Done()
+					}()
+					clusterVO.GameArchive = c.GetRemoteGameArchive(cluster)
+				}()
+				go func() {
+					defer func() {
+						if r := recover(); r != nil {
+						}
+						w.Done()
+					}()
+					clusterVO.Status = c.GetRemoteLevelStatus(cluster)
+				}()
+				w.Wait()
 			} else {
 				clusterVO.GameArchive = c.GetGameArchive(clusterVO.ClusterName)
 				clusterVO.Status = c.GetLevelStatus(clusterVO.ClusterName, "Master")
@@ -189,7 +205,13 @@ func (c *ClusterManager) UpdateCluster(cluster *model.Cluster) {
 	oldCluster.Name = cluster.Name
 	oldCluster.Bin = cluster.Bin
 	oldCluster.Ugc_directory = cluster.Ugc_directory
-	db.Updates(oldCluster)
+
+	oldCluster.Ip = cluster.Ip
+	oldCluster.Port = cluster.Port
+	oldCluster.Username = cluster.Username
+	oldCluster.Password = cluster.Password
+
+	db.Save(oldCluster)
 
 	if cluster.Ugc_directory == "" {
 		db.Model(&model.Cluster{}).Where("ID = ?", cluster.ID).UpdateColumn("ugc_directory", "")
@@ -202,9 +224,6 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	if clusterName == "" {
 		log.Panicln("cluster is not allow null")
 	}
-
-	// 停止服务
-	c.s.StopGame(clusterName)
 	db := database.DB
 	cluster := model.Cluster{}
 	result := db.Where("cluster_name = ?", clusterName).Unscoped().Delete(&cluster)
@@ -212,12 +231,14 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	if result.Error != nil {
 		return nil, result.Error
 	}
-
-	// TODO 删除房间 和 饥荒、备份、mod 下载
-	if cluster.ClusterType != "远程" {
+	if cluster.ClusterType == "本地" {
+		// 停止服务
+		c.s.StopGame(clusterName)
 		// 删除房间
-		fileUtils.DeleteDir(dstUtils.GetClusterBasePath(clusterName))
-		// 删除饥荒
+		err := fileUtils.DeleteDir(dstUtils.GetClusterBasePath(clusterName))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &cluster, nil

@@ -105,12 +105,14 @@ func (m *AutoCheckManager) ReStart(clusterName string) {
 func (m *AutoCheckManager) Start() {
 	// TODO 这里是防止1.2.5 版本残留的问题
 	db2 := database.DB
-
 	db2.Where("uuid is null or uuid = '' ").Unscoped().Delete(&model.AutoCheck{})
 
 	clusterList := m.getClusterList()
 	for i := range clusterList {
 		clusterName := clusterList[i].ClusterName
+		if clusterList[i].RemoteClusterName != "" {
+			continue
+		}
 		config, _ := levelConfigUtils.GetLevelConfig(clusterName)
 		var uuidSet []string
 		for i := range config.LevelList {

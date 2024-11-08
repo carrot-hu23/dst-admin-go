@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	whitelist = []string{"/api/login", "/api/logout", "/ws", "/api/bootstrap", "/api/init", "/api/install/steamcmd"}
+	whitelist = []string{"/api/login", "/api/logout", "/ws", "/api/bootstrap", "/api/init", "/api/install/steamcmd", "/api/kv"}
 )
 
 // 拦截检查是否安装 dst steam cmd

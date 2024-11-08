@@ -58,6 +58,7 @@ func initDB() {
 		&model.WebLink{},
 		&model.User{},
 		&model.UserCluster{},
+		&model.KV{},
 	)
 	if err != nil {
 		return
@@ -109,6 +110,9 @@ func initCollect() {
 	var clusters []model.Cluster
 	database.DB.Find(&clusters)
 	for _, cluster := range clusters {
+		if cluster.ClusterType != "本地" {
+			continue
+		}
 		global.CollectMap.AddNewCollect(cluster.ClusterName)
 	}
 

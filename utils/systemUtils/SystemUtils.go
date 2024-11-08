@@ -230,7 +230,7 @@ func FindIpRegion(ip string) string {
 	url := "https://www.ip.cn/api/index?ip=" + ip + "&type=1"
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatalf("Error making GET request: %v", err)
+		log.Panicln("Error making GET request: %v", err)
 	}
 	defer resp.Body.Close() // 确保在函数结束时关闭响应体
 

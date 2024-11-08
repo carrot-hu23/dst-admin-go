@@ -57,6 +57,11 @@ func (c *Collect) ReCollect(baseLogPath, clusterName string) {
 
 func (c *Collect) StartCollect() {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
 		for {
 			select {
 			case <-c.state:
