@@ -22,7 +22,7 @@ func NewRoute() *gin.Engine {
 	})
 	// 设置session中间件，参数mysession，指的是session的名字，也是cookie的名字
 	// store是前面创建的存储引擎，我们可以替换成其他存储引擎
-	app.Use(sessions.Sessions("mysession", store))
+	app.Use(sessions.Sessions("token", store))
 
 	app.Use(middleware.Recover)
 	// app.Use(middleware.ShellInjectionInterceptor())

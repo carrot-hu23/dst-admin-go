@@ -40,7 +40,7 @@ func (b *BackupService) GetBackupList(clusterName string) []vo.BackupVo {
 	//获取文件或目录相关信息
 	fileInfoList, err := ioutil.ReadDir(backupPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 
 	for _, file := range fileInfoList {

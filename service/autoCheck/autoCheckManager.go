@@ -231,7 +231,7 @@ func (m *AutoCheckManager) check(task *model.AutoCheck) {
 				log.Println(task.ClusterName, task.Uuid, task.CheckType, "has not started, starting it...")
 				err := strategy.Run(task.ClusterName, task.Uuid)
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 				}
 			}
 		}
