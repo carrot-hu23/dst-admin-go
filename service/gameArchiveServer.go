@@ -8,7 +8,6 @@ import (
 	"dst-admin-go/vo"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -29,7 +28,7 @@ type GameArchive struct {
 func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(5)
 
 	gameArchie := vo.NewGameArchie()
 	basePath := dstUtils.GetClusterBasePath(clusterName)
@@ -117,24 +116,13 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		gameArchie.LastVersion = version
 	}()
 
-	go func() {
-		defer func() {
-			wg.Done()
-			if r := recover(); r != nil {
-				log.Println(r)
-			}
-		}()
-		// 默认取Master世界人数
-		gameArchie.Players = d.GetPlayerList(clusterName, "#ALL_LEVEL")
-	}()
-
 	wg.Wait()
 
 	return gameArchie
 }
 
 func (d *GameArchive) GetPublicIP() (string, error) {
-	resp, err := http.Get("https://api.ipify.org/")
+	resp, err := http.Get("https://cdid.c-ctrip.com/model-poc2/h")
 	if err != nil {
 		return "", err
 	}

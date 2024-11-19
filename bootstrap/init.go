@@ -1,15 +1,15 @@
 package bootstrap
 
 import (
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/collect"
 	"dst-admin-go/config"
 	"dst-admin-go/config/database"
 	"dst-admin-go/config/global"
-	"dst-admin-go/mod"
 	"dst-admin-go/model"
 	"dst-admin-go/schedule"
 	"dst-admin-go/service"
+	"dst-admin-go/service/autoCheck"
+	"dst-admin-go/service/mod"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"fmt"
@@ -157,8 +157,8 @@ func initUpdateModinfos() {
 				select {
 				case <-ticker.C:
 					log.Println("正在定时更新模组配置 间隔: ", t, "分钟")
-					// 每隔10分钟执行的任务
-					mod.UpdateModinfoList()
+					// TODO 中英文问题，每隔10分钟执行的任务
+					mod.UpdateModinfoList("zh")
 				}
 			}
 		}()
@@ -188,7 +188,6 @@ func InitSnapshotBackup() {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Println(">>>>>>>>>>>>>>>")
 				log.Println(r)
 			}
 		}()

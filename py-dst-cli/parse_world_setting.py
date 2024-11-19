@@ -62,9 +62,9 @@ def parse_po(path_po):  # 把 .po 文件按照 msgctxt: msgstr 的格式转为�
         split_key(dict_zh_split, i.split("."), j)
 
     # print('获取英文对照')
-    # dict_en = {i[0]: i[1] for i in pattern.findall(data)}  # 因为 costomize 中有连接字符串的，所以这里不能构建成一个字典，会出错
-    # for i, j in dict_en.items():
-    #     split_key(dict_en_split, i.split("."), j)
+    dict_en = {i[0]: i[1] for i in pattern.findall(data)}  # 因为 costomize 中有连接字符串的，所以这里不能构建成一个字典，会出错
+    for i, j in dict_en.items():
+        split_key(dict_en_split, i.split("."), j)
 
     dict_split = {'zh': dict_zh_split}
     if dict_en_split:
@@ -264,8 +264,8 @@ def parse_world_setting(path_base="data"):
 
 
 if __name__ == "__main__":
-    datadata = parse_world_setting("/root/mine/dst/test/dst/data")
+    datadata = parse_world_setting("C:\\Program Files (x86)\\Steam\steamapps\\common\\Don't Starve Together\\data")
     print(datadata)
     import json
-    with open('/root/mine/dst/test/misc/dst_world_setting.json', 'w', encoding='utf-8') as f:
+    with open('C:\\Users\\paratera\\Desktop\\我的\\饥荒面板\\dst-admin-go\\py-dst-cli\\dst_world_setting.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(datadata, ensure_ascii=False))

@@ -1,18 +1,23 @@
 package api
 
 import (
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
+	"dst-admin-go/service/autoCheck"
 	"dst-admin-go/utils/clusterUtils"
+	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/level"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -133,6 +138,61 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 
 }
 
+func startBefore(ctx *gin.Context) {
+	copyOsFile()
+}
+
+func copyOsFile() {
+	config := dstConfigUtils.GetDstConfig()
+	// 定义路径
+	srcFile := filepath.Join(config.Steamcmd, "linux32", "steamclient.so")
+	dstDir := filepath.Join(config.Force_install_dir, "bin", "lib32")
+	dstFile := filepath.Join(dstDir, "steamclient.so")
+	backupFile := filepath.Join(dstDir, "steamclient.so.bak")
+
+	// 检查目标文件是否存在
+	if _, err := os.Stat(dstFile); err == nil {
+		// 如果目标文件存在，先重命名为备份文件
+		if err = os.Rename(dstFile, backupFile); err != nil {
+			log.Println("重命名文件失败:", err)
+			return
+		}
+		log.Println("已将", dstFile, "重命名为", backupFile)
+	}
+
+	// 复制新文件
+	if err := copyFile(srcFile, dstFile); err != nil {
+		log.Println("复制文件失败:", err)
+		return
+	}
+	log.Println("已将复制到", srcFile, dstFile)
+
+}
+
+// copyFile 实现文件复制
+func copyFile(src, dst string) error {
+	// 打开源文件
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("无法打开源文件: %v", err)
+	}
+	defer srcFile.Close()
+
+	// 创建目标文件
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("无法创建目标文件: %v", err)
+	}
+	defer dstFile.Close()
+
+	// 复制内容
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		return fmt.Errorf("复制内容失败: %v", err)
+	}
+
+	return nil
+}
+
 // Start 启动世界
 func (g *GameLevel2Api) Start(ctx *gin.Context) {
 	levelName := ctx.Query("levelName")
@@ -140,6 +200,8 @@ func (g *GameLevel2Api) Start(ctx *gin.Context) {
 	bin := cluster.Bin
 	beta := cluster.Beta
 	clusterName := cluster.ClusterName
+
+	startBefore(ctx)
 
 	gameService.StartLevel(clusterName, levelName, bin, beta)
 

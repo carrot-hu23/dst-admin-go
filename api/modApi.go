@@ -2,8 +2,8 @@ package api
 
 import (
 	"dst-admin-go/config/database"
-	"dst-admin-go/mod"
 	"dst-admin-go/model"
+	mod2 "dst-admin-go/service/mod"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -31,8 +31,9 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 	text := ctx.Query("text")
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
+	lang := ctx.DefaultQuery("lang", "zh")
 
-	data, err := mod.SearchModList(text, page, size)
+	data, err := mod2.SearchModList(text, page, size, lang)
 	if err != nil {
 		log.Panicln("搜索mod失败", err)
 	}
@@ -47,7 +48,8 @@ func (m *ModApi) SearchModList(ctx *gin.Context) {
 func (m *ModApi) GetModInfo(ctx *gin.Context) {
 
 	moId := ctx.Param("modId")
-	modinfo, err, status := mod.SubscribeModByModId(moId)
+	lang := ctx.DefaultQuery("lang", "zh")
+	modinfo, err, status := mod2.SubscribeModByModId(moId, lang)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -134,8 +136,8 @@ func (m *ModApi) GetMyModList(ctx *gin.Context) {
 }
 
 func (m *ModApi) UpdateAllModInfos(ctx *gin.Context) {
-
-	mod.UpdateModinfoList()
+	lang := ctx.DefaultQuery("lang", "zh")
+	mod2.UpdateModinfoList(lang)
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
 		Msg:  "success",
@@ -223,6 +225,8 @@ func (m *ModApi) SaveModInfoFile(ctx *gin.Context) {
 func (m *ModApi) UpdateMod(ctx *gin.Context) {
 
 	modId := ctx.Param("modId")
+	lang := ctx.DefaultQuery("lang", "zh")
+
 	db := database.DB
 	db.Where("modid = ?", modId).Delete(&model.ModInfo{})
 
@@ -231,7 +235,7 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 	mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 	fileUtils.DeleteDir(mod_path)
 
-	modinfo, err, status := mod.SubscribeModByModId(modId)
+	modinfo, err, status := mod2.SubscribeModByModId(modId, lang)
 	if err != nil {
 		log.Panicln("模组下载失败", "status: ", status)
 	}
@@ -262,6 +266,7 @@ func (m *ModApi) UpdateMod(ctx *gin.Context) {
 func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 
 	cluster := clusterUtils.GetClusterFromGin(ctx)
+	lang := ctx.DefaultQuery("lang", "zh")
 
 	var payload struct {
 		WorkshopId string `json:"workshopId"`
@@ -289,7 +294,7 @@ func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 		log.Panicln("写入 modinfo.lua 失败， path: ", modinfoPath, "error: ", err)
 	}
 
-	mod.AddModInfo(payload.WorkshopId)
+	mod2.AddModInfo(lang, payload.WorkshopId)
 
 	ctx.JSON(http.StatusOK, vo.Response{
 		Code: 200,
@@ -299,7 +304,7 @@ func (m *ModApi) AddModInfoFile(ctx *gin.Context) {
 
 }
 
-// AddModInfoFile 手动添加模组
+// UploadModFile 手动添加模组
 func (m *ModApi) UploadModFile(ctx *gin.Context) {
 
 }

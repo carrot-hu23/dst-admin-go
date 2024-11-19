@@ -46,7 +46,7 @@ func InitGameRouter(router *gin.RouterGroup) {
 		gameConfig.POST("", gameConfigApi.SaveConfig)
 	}
 
-	gameApi := api.GameApi{}
+	gameApi := api.GameConsoleApi{}
 	game := router.Group("/api/game")
 	{
 		game.GET("/update", gameApi.UpdateGame)

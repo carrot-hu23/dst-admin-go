@@ -26,7 +26,7 @@ type DstConfig struct {
 	Conf_dir string `json:"conf_dir"`
 }
 
-const dst_config_path = "./dst_config"
+const dst_config_path = "./docker_dst_config"
 
 func NewDstConfig() *DstConfig {
 	return &DstConfig{}
@@ -39,13 +39,13 @@ func GetDstConfig() DstConfig {
 	//判断是否存在，不存在创建一个
 	if !fileUtils.Exists(dst_config_path) {
 		if err := fileUtils.CreateFile(dst_config_path); err != nil {
-			log.Panicln("create dst_config error", err)
+			log.Panicln("create docker_dst_config error", err)
 		}
 
 	}
 	data, err := fileUtils.ReadLnFile(dst_config_path)
 	if err != nil {
-		log.Panicln("read dst_config error", err)
+		log.Panicln("read docker_dst_config error", err)
 	}
 	for _, value := range data {
 		if value == "" {
@@ -195,7 +195,7 @@ func SaveDstConfig(dstConfig *DstConfig) {
 		"beta=" + strconv.Itoa(dstConfig.Beta),
 	})
 	if err != nil {
-		log.Panicln("write dst_config error:", err)
+		log.Panicln("write docker_dst_config error:", err)
 	}
 	// global.Collect.ReCollect(filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster), dstConfig.Cluster)
 }

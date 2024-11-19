@@ -35,11 +35,11 @@ WORKDIR /app
 COPY dst-admin-go /app/dst-admin-go
 RUN chmod 755 /app/dst-admin-go
 
-COPY run.sh /app/run.sh
-RUN chmod 755 /app/run.sh
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod 755 /app/docker-entrypoint.sh
 
 COPY config.yml /app/config.yml
-COPY dst_config /app/dst_config
+COPY docker_dst_config /app/dst_config
 COPY dist /app/dist
 COPY static /app/static
 
@@ -51,4 +51,4 @@ EXPOSE 10998/udp
 EXPOSE 10999/udp
 
 # 运行命令
-ENTRYPOINT ["./run.sh"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

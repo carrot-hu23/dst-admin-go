@@ -2,9 +2,9 @@ package api
 
 import (
 	"bufio"
-	"dst-admin-go/autoCheck"
 	"dst-admin-go/config/global"
 	"dst-admin-go/constant/consts"
+	"dst-admin-go/service/autoCheck"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/shellUtils"
@@ -21,8 +21,6 @@ import (
 )
 
 type InstallSteamCmd struct{}
-
-var flag int32
 
 // 安装饥荒环境
 func (i *InstallSteamCmd) InstallSteamCmd(ctx *gin.Context) {

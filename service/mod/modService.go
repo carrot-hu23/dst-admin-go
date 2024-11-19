@@ -204,7 +204,7 @@ func CheckModInfoUpdate() {
 	}
 }
 
-func UpdateModinfoList() {
+func UpdateModinfoList(lang string) {
 
 	var modInfos []model.ModInfo
 	var needUpdateList []model.ModInfo
@@ -245,7 +245,7 @@ func UpdateModinfoList() {
 			mod_download_path := dstConfig.Mod_download_path
 			mod_path := filepath.Join(mod_download_path, "/steamapps/workshop/content/322330/", modId)
 			_ = fileUtils.DeleteDir(mod_path)
-			_, _, _ = SubscribeModByModId(modId)
+			_, _, _ = SubscribeModByModId(modId, lang)
 		}(i)
 	}
 	wg.Wait()

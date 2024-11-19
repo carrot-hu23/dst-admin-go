@@ -3,14 +3,14 @@ package mod
 import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
-	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	lua "github.com/yuin/gopher-lua"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -18,9 +18,6 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
-	"strings"
-
-	lua "github.com/yuin/gopher-lua"
 
 	"archive/zip"
 	"bytes"
@@ -94,13 +91,13 @@ func get_dst_ucgs_mods_installed_path(modid string) (string, bool) {
 	return "", false
 }
 
-func get_mod_info_config(mod_id string) map[string]interface{} {
+func get_mod_info_config(lang, mod_id string) map[string]interface{} {
 	// 从服务器本地读取mod信息
 	if dst_mod_installed_path, ok := get_dst_ucgs_mods_installed_path(mod_id); ok {
 		modinfo_path := filepath.Join(dst_mod_installed_path, "modinfo.lua")
 		log.Println("ucg modinfo.lua: ", modinfo_path)
 		if _, err := os.Stat(modinfo_path); err == nil {
-			return read_mod_info(mod_id, modinfo_path)
+			return read_mod_info(lang, mod_id, modinfo_path)
 		}
 	}
 
@@ -160,10 +157,10 @@ func get_mod_info_config(mod_id string) map[string]interface{} {
 		fmt.Println("Error finding modinfo.lua:", err)
 		return make(map[string]interface{})
 	}
-	return read_mod_info(mod_id, modinfo_path)
+	return read_mod_info(lang, mod_id, modinfo_path)
 }
 
-func read_mod_info(mod_id, modinfo_path string) map[string]interface{} {
+func read_mod_info(lang, mod_id, modinfo_path string) map[string]interface{} {
 	// 读取 modinfo.lua 文件内容
 	script, err := ioutil.ReadFile(modinfo_path)
 	if err != nil {
@@ -175,15 +172,15 @@ func read_mod_info(mod_id, modinfo_path string) map[string]interface{} {
 	// fmt.Println("Modinfo.lua content:")
 	// fmt.Println(string(content))
 
-	return parseModInfoLua(mod_id, string(script))
+	return parseModInfoLua(lang, mod_id, string(script))
 }
 
-func parseModInfoLua(mod_id, script string) map[string]interface{} {
+func parseModInfoLua(lang, mod_id, script string) map[string]interface{} {
 	L := lua.NewState()
 	defer L.Close()
 
 	// 模�~K~_�~P�~L�~N��~C
-	lang := "zh"
+	//lang := "zh"
 	L.SetGlobal("locale", lua.LString(lang))
 	L.SetGlobal("folder_name", lua.LString(fmt.Sprintf("workshop-%s", mod_id)))
 	L.SetGlobal("ChooseTranslationTable", L.NewFunction(func(L *lua.LState) int {
@@ -297,7 +294,7 @@ func isTableArray(t *lua.LTable) bool {
 }
 
 // SearchModList 搜索 mod 的函数
-func SearchModList(text string, page int, num int) (map[string]interface{}, error) {
+func SearchModList(text string, page int, num int, lang string) (map[string]interface{}, error) {
 	modId, ok := isModId(text)
 	if ok {
 		modInfo := SearchModInfoByWorkshopId(modId)
@@ -325,6 +322,11 @@ func SearchModList(text string, page int, num int) (map[string]interface{}, erro
 		"search_text":      {text},
 		"return_vote_data": {"true"},
 		"return_children":  {"true"},
+	}
+	if lang == "zh" {
+		data.Set("language", "6")
+	} else {
+		data.Set("language", "")
 	}
 	urlStr = urlStr + "?" + data.Encode()
 
@@ -481,11 +483,11 @@ func isWorkshopId(id string) bool {
 	return err == nil
 }
 
-func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
+func SubscribeModByModId(modId, lang string) (model.ModInfo, error, int) {
 
 	if !isWorkshopId(modId) {
 
-		modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+		modConfigJson, _ := json.Marshal(get_mod_info_config(lang, modId))
 		modConfig := string(modConfigJson)
 
 		newModInfo := model.ModInfo{
@@ -572,10 +574,10 @@ func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
 			fileUrl = file_url.(string)
 		}
 		if fileUrl != "" {
-			modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modId, fileUrl))
+			modConfigJson, _ := json.Marshal(get_v1_mod_info_config(lang, modId, fileUrl))
 			modConfig = string(modConfigJson)
 		} else {
-			modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+			modConfigJson, _ := json.Marshal(get_mod_info_config(lang, modId))
 			modConfig = string(modConfigJson)
 		}
 
@@ -600,10 +602,10 @@ func SubscribeModByModId(modId string) (model.ModInfo, error, int) {
 	var modConfig string
 
 	if fileUrl != "" {
-		modConfigJson, _ := json.Marshal(get_v1_mod_info_config(modId, fileUrl))
+		modConfigJson, _ := json.Marshal(get_v1_mod_info_config(lang, modId, fileUrl))
 		modConfig = string(modConfigJson)
 	} else {
-		modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+		modConfigJson, _ := json.Marshal(get_mod_info_config(lang, modId))
 		modConfig = string(modConfigJson)
 	}
 
@@ -662,7 +664,7 @@ func getVersion(tags interface{}) string {
 	return ""
 }
 
-func get_v1_mod_info_config(modid, file_url string) map[string]interface{} {
+func get_v1_mod_info_config(lang, modid, file_url string) map[string]interface{} {
 	log.Println("开始下载 v1 mod，并提取 modinfo.lua 文件")
 	// 0: 下载失败, 1: 下载成功, 2: mod 中没有 modinfo.lua 文件
 	modinfo := map[string][]byte{"modinfo": nil, "modinfo_chs": nil}
@@ -701,6 +703,7 @@ func get_v1_mod_info_config(modid, file_url string) map[string]interface{} {
 		log.Panicln("模组zip 解压失败")
 		return make(map[string]interface{})
 	}
+	UnzipToDir(zipReader, filepath.Join(dstUtils.GetUgcModPath(), "content", "322330", modid))
 	for _, file := range zipReader.File {
 		switch file.Name {
 		case "modinfo.lua":
@@ -726,7 +729,7 @@ func get_v1_mod_info_config(modid, file_url string) map[string]interface{} {
 		}
 	}
 	if modinfo["modinfo"] != nil {
-		return parseModInfoLua(modid, string(modinfo["modinfo"]))
+		return parseModInfoLua(lang, modid, string(modinfo["modinfo"]))
 	}
 	return make(map[string]interface{})
 }
@@ -805,11 +808,11 @@ func SearchModInfoByWorkshopId(modID int) ModInfo {
 	return modInfo
 }
 
-func AddModInfo(modid string) {
+func AddModInfo(lang, modid string) {
 	var modInfo model.ModInfo
 	var err error
 	if !isWorkshopId(modid) {
-		modInfo, err, _ = GetLocalModInfo(modid)
+		modInfo, err, _ = GetLocalModInfo(lang, modid)
 	} else {
 		// 获取mod基本信息
 		modInfo, err, _ = GetModInfo2(modid)
@@ -823,7 +826,7 @@ func AddModInfo(modid string) {
 
 	// 更新配置项
 	var modConfig string
-	modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+	modConfigJson, err := json.Marshal(get_mod_info_config(lang, modid))
 	if err != nil {
 		log.Println(err)
 	}
@@ -847,8 +850,8 @@ func AddModInfo(modid string) {
 
 }
 
-func GetLocalModInfo(modId string) (model.ModInfo, error, int) {
-	modConfigJson, _ := json.Marshal(get_mod_info_config(modId))
+func GetLocalModInfo(lang, modId string) (model.ModInfo, error, int) {
+	modConfigJson, _ := json.Marshal(get_mod_info_config(lang, modId))
 	modConfig := string(modConfigJson)
 
 	newModInfo := model.ModInfo{
@@ -869,86 +872,49 @@ func GetLocalModInfo(modId string) (model.ModInfo, error, int) {
 	return newModInfo, nil, 0
 }
 
-func UploadMod(ctx *gin.Context) {
+func UnzipToDir(zipReader *zip.Reader, destDir string) error {
+	for _, file := range zipReader.File {
+		// 获取目标文件的路径
+		destPath := filepath.Join(destDir, file.Name)
 
-	cluster := clusterUtils.GetClusterFromGin(ctx)
-	// 单文件
-	file, _ := ctx.FormFile("file")
-	log.Println(file.Filename)
-	modid := file.Filename
-	modName := filepath.Base(file.Filename[:len(file.Filename)-len(filepath.Ext(file.Filename))])
-
-	// /ugc_mods/Cluster1/Master/content/322330
-
-	modUgcZipPath := filepath.Join(filepath.Join(cluster.ForceInstallDir, "/ugc_mods/", cluster.ClusterName, "/Master/content/322330"), file.Filename)
-	// modUgcPath := filepath.Join(filepath.Join(cluster.ForceInstallDir, "/ugc_mods/", cluster.ClusterName, "/Master/content/322330"), modName)
-
-	if fileUtils.Exists(modUgcZipPath) {
-		fileUtils.DeleteDir(modUgcZipPath)
-	}
-
-	defer func() {
-		fileUtils.DeleteFile(modUgcZipPath)
-		if r := recover(); r != nil {
-			log.Println(r)
+		// 检查目录路径的安全性，避免目录遍历漏洞
+		if !filepath.HasPrefix(destPath, filepath.Clean(destDir)+string(os.PathSeparator)) {
+			return fmt.Errorf("非法文件路径: %s", destPath)
 		}
-	}()
-	// 上传文件至指定的完整文件路径
-	err := ctx.SaveUploadedFile(file, modUgcZipPath)
-	if err != nil {
-		log.Panicln(err)
-	}
 
-	// 如果上传的是 创意工坊的内容
-	if strings.Contains(modName, "workshop-") {
-		// 获取mod基本信息
-		modInfo, err, _ := GetModInfo2(modid)
+		// 如果是目录，则创建它
+		if file.FileInfo().IsDir() {
+			err := os.MkdirAll(destPath, os.ModePerm)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		// 如果是文件，先确保目录存在
+		if err := os.MkdirAll(filepath.Dir(destPath), os.ModePerm); err != nil {
+			return err
+		}
+
+		// 创建文件并写入解压内容
+		outFile, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
 		if err != nil {
-			log.Panicln("获取modinfo 失败", err)
+			return err
 		}
-		// 从数据查找是由有
-		oldModinfo, ok := getModInfoConfig2(modid)
+		defer outFile.Close()
 
-		// 更新配置项
-		var modConfig string
-		modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+		// 打开 zip 文件中的文件流
+		rc, err := file.Open()
 		if err != nil {
-			log.Println(err)
+			return err
 		}
-		modConfig = string(modConfigJson)
-		if ok {
-			oldModinfo.LastTime = modInfo.LastTime
-			oldModinfo.Name = modInfo.Name
-			oldModinfo.Auth = modInfo.Auth
-			oldModinfo.Description = modInfo.Description
-			oldModinfo.Img = modInfo.Img
-			oldModinfo.V = modInfo.V
-			oldModinfo.ModConfig = modConfig
-			db := database.DB
-			db.Save(&oldModinfo)
-		} else {
-			modInfo.ModConfig = modConfig
-			db := database.DB
-			db.Create(&modInfo)
-		}
-	} else {
-		// 读取模组文件
-		var modConfig string
-		modConfigJson, err := json.Marshal(get_mod_info_config(modid))
+		defer rc.Close()
+
+		// 将文件内容写入到本地文件
+		_, err = io.Copy(outFile, rc)
 		if err != nil {
-			log.Println(err)
+			return err
 		}
-		modConfig = string(modConfigJson)
-		modInfo := model.ModInfo{}
-		db := database.DB
-		modInfo.LastTime = 0
-		modInfo.Name = modName
-		modInfo.Auth = "无"
-		modInfo.Description = "无"
-		modInfo.Img = "http://xxx/images"
-		modInfo.V = "null"
-		modInfo.ModConfig = modConfig
-		db.Create(&modInfo)
 	}
-
+	return nil
 }
