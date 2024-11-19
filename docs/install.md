@@ -18,9 +18,13 @@
 
 **第一次启动时会自动下载steamcmd和饥荒服务器，请耐心等待10-20分钟，你也可以使用挂载路径避免下载**
 
+
+
+自己映射对应的端口
+
 ```
-docker pull hujinbo23/dst-admin-go:1.2.7
-docker run -d -p8082:8082 hujinbo23/dst-admin-go:1.2.7
+docker pull hujinbo23/dst-admin-go:1.3.1
+docker run -d -p8082:8082  hujinbo23/dst-admin-go:1.3.1
 ```
 
 **路径参考**
@@ -29,7 +33,7 @@ docker run -d -p8082:8082 hujinbo23/dst-admin-go:1.2.7
 + 容器存档启动路径: /root/.klei/DoNotStarveTogether
 + 容器存档备份路径: /app/backup
 + 容器存档模组路径: /app/mod
-+ 容器玩家日志路径: /app/dst-db
++ 容器玩家日志路径: /app/dst-db 这是一个文件
 + 容器服务日志路径: /app/dst-admin-go.log
 + 容器启动饥荒路径: /app/dst-dedicated-server
 + 容器启steamcmd：/app/steamcmd
