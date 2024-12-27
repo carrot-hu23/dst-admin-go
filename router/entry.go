@@ -56,6 +56,7 @@ func NewRoute() *gin.Engine {
 	initLevel2(router)
 
 	initFile(router)
+	initDstGenMapRouter(router)
 
 	initStaticFile(app)
 
