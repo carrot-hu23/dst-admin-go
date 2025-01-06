@@ -26,7 +26,7 @@ type DstConfig struct {
 	Conf_dir string `json:"conf_dir"`
 }
 
-const dst_config_path = "./docker_dst_config"
+const dst_config_path = "./dst_config"
 
 func NewDstConfig() *DstConfig {
 	return &DstConfig{}

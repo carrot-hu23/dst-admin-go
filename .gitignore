@@ -3,9 +3,11 @@
 # dependencies
 /dist
 /dst
+.idea
 
 first
 dst-admin-go
+dst-admin-go.exe
 dst-admin-go.log
 dst-db
 password.txt
@@ -32,6 +34,5 @@ yarn-error.log*
 #py-dst-cli
 /py-dst-cli/__pycache__
 /py-dst-cli/data
-
 
 /test
