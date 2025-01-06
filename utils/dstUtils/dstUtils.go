@@ -297,7 +297,7 @@ func DedicatedServerModsSetup(clusterName string, modConfig string) {
 	}
 }
 
-func DedicatedServerModsSetup2(clusterName string, modConfig string) {
+func DedicatedServerModsSetup2(clusterName string, modConfig string) error {
 	if modConfig != "" {
 		var serverModSetup []string
 		workshopIds := WorkshopIds(modConfig)
@@ -308,7 +308,7 @@ func DedicatedServerModsSetup2(clusterName string, modConfig string) {
 		modSetupPath := GetModSetup2(clusterName)
 		mods, err := fileUtils.ReadLnFile(modSetupPath)
 		if err != nil {
-			log.Panicln("读取 dedicated_server_mods_setup.lua 失败", err)
+			return err
 		}
 		var newServerModSetup []string
 		for i := range serverModSetup {
@@ -326,9 +326,10 @@ func DedicatedServerModsSetup2(clusterName string, modConfig string) {
 		newServerModSetup = append(newServerModSetup, mods...)
 		err = fileUtils.WriterLnFile(modSetupPath, newServerModSetup)
 		if err != nil {
-			log.Panicln("写入 dedicated_server_mods_setup.lua 失败", err)
+			return err
 		}
 	}
+	return nil
 }
 
 type WorkshopItem struct {

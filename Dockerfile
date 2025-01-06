@@ -1,31 +1,26 @@
-FROM debian:buster-slim
+# 使用官方的Ubuntu基础镜像
+FROM ubuntu:20.04
 
 LABEL maintainer="hujinbo23 jinbohu23@outlook.com"
 LABEL description="DoNotStarveTogehter server panel written in golang.  github: https://github.com/hujinbo23/dst-admin-go"
 
-# 切换到清华大学的 apt 镜像源
-RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list \
-    && sed -i 's|security.debian.org/debian-security|mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list
-
-# 更新软件包索引
-RUN apt-get update
-
-# Install packages
-RUN  dpkg --add-architecture i386 \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends --no-install-suggests  \
-        libcurl4-gnutls-dev:i386 \
-        lib32gcc1 \
-        lib32stdc++6 \
-        libcurl4-gnutls-dev \
-        libgcc1 \
-        libstdc++6 \
-        wget \
-        ca-certificates \
-        screen \
-        procps \
-        sudo \
-    && apt-get clean \
+# 更新并安装必要的软件包
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y \
+    curl \
+    libcurl4-gnutls-dev:i386 \
+    lib32gcc1 \
+    lib32stdc++6 \
+    libcurl4-gnutls-dev \
+    libgcc1 \
+    libstdc++6 \
+    wget \
+    ca-certificates \
+    screen \
+    procps \
+    sudo \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -44,10 +39,13 @@ COPY dist /app/dist
 COPY static /app/static
 
 # 内嵌源配置信息
-
+# 控制面板访问的端口
 EXPOSE 8082/tcp
+# 饥荒世界通信的端口
 EXPOSE 10888/udp
+# 饥荒洞穴世界的端口
 EXPOSE 10998/udp
+# 饥荒森林世界的端口
 EXPOSE 10999/udp
 
 # 运行命令
