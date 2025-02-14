@@ -154,7 +154,7 @@ func (c *GameConsoleService) MasterConsole(clusterName string, command string) {
 		WindowGameConsoleService.MasterConsole(clusterName, command)
 		return
 	}
-	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 }
 
@@ -163,7 +163,7 @@ func (c *GameConsoleService) CavesConsole(clusterName string, command string) {
 		WindowGameConsoleService.CavesConsole(clusterName, command)
 		return
 	}
-	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 }
 
@@ -205,7 +205,7 @@ func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, l
 	log.Println("serverLogPath", serverLogPath)
 	lines, err := fileUtils.ReverseRead(serverLogPath, length)
 	if err != nil {
-		log.Panicln("读取日志server_log失败", err)
+		return []string{}
 	}
 	return lines
 }
@@ -215,7 +215,7 @@ func (c *GameConsoleService) ReadLevelServerChatLog(clusterName, levelName strin
 	serverChatLogPath := dstUtils.GetLevelServerChatLogPath(clusterName, levelName)
 	lines, err := fileUtils.ReverseRead(serverChatLogPath, length)
 	if err != nil {
-		log.Panicln("读取日志server_chat_log失败")
+		return []string{}
 	}
 	return lines
 }
@@ -225,7 +225,7 @@ func (c *GameConsoleService) SendCommand(clusterName string, levelName string, c
 		WindowGameConsoleService.SendCommand(clusterName, levelName, command)
 		return
 	}
-	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 }
 
@@ -238,7 +238,7 @@ func (c *GameConsoleService) CSave(clusterName string, levelName string) {
 
 	log.Println("正在 s_save() 存档", clusterName, levelName)
 	command := "c_save()"
-	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 
 	time.Sleep(5 * time.Second)

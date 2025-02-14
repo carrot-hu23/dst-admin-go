@@ -100,7 +100,7 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 			}
 		}
 
-		cmd := "ps -aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName + " |awk '{print $3, $4, $5, $6,$16}'"
+		cmd := "ps aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName + " |awk '{print $3, $4, $5, $6,$16}'"
 		info, err := shellUtils.Shell(cmd)
 		if err != nil {
 			log.Println(cmd + " error: " + err.Error())
@@ -231,7 +231,7 @@ func (g *GameLevel2Api) Stop(ctx *gin.Context) {
 func (g *GameLevel2Api) StartAll(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
-
+	startBefore(ctx)
 	gameService.StartGame(clusterName)
 
 	ctx.JSON(http.StatusOK, vo.Response{

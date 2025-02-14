@@ -84,13 +84,13 @@ func (c *WindowsGameConsoleService) Regenerateworld(clusterName string) {
 
 func (c *WindowsGameConsoleService) MasterConsole(clusterName string, command string) {
 
-	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 }
 
 func (c *WindowsGameConsoleService) CavesConsole(clusterName string, command string) {
 
-	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, "Master") + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 }
 
@@ -139,7 +139,7 @@ func (c *WindowsGameConsoleService) SendCommand(clusterName string, levelName st
 func (c *WindowsGameConsoleService) CSave(clusterName string, levelName string) {
 	log.Println("正在 s_save() 存档", clusterName, levelName)
 	command := "c_save()"
-	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
+	cmd := "screen -S \"" + screenKey.Key(clusterName, levelName) + "\" -p 0 -X stuff $'" + command + "\\r'"
 	shellUtils.Shell(cmd)
 
 	time.Sleep(5 * time.Second)

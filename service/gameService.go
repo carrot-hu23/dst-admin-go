@@ -220,6 +220,10 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
 	}
 
+	if runtime.GOOS == "darwin" {
+		startCmd = "cd " + dstInstallDir + "/dontstarve_dedicated_server_nullrenderer.app/Contents/MacOS ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
+	}
+
 	if ugcDirectory != "" {
 		startCmd += " -ugc_directory " + ugcDirectory
 	}

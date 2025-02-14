@@ -41,8 +41,12 @@ func init() {
 		//klei_path = filepath.Join(consts.HomePath, "Documents", "klei", "DoNotStarveTogether")
 		DefaultKleiDstPath = filepath.Join(home, "Documents", "klei", "DoNotStarveTogether")
 	} else {
-		// klei_path = filepath.Join(consts.HomePath, ".klei", "DoNotStarveTogether")
-		DefaultKleiDstPath = filepath.Join(home, ".klei", "DoNotStarveTogether")
+		if runtime.GOOS == "darwin" {
+			DefaultKleiDstPath = filepath.Join(home, "Documents", "klei", "DoNotStarveTogether")
+		} else {
+			// klei_path = filepath.Join(consts.HomePath, ".klei", "DoNotStarveTogether")
+			DefaultKleiDstPath = filepath.Join(home, ".klei", "DoNotStarveTogether")
+		}
 	}
 
 }
