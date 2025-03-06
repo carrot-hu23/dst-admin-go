@@ -2,11 +2,11 @@ package dstUtils
 
 import (
 	"bytes"
-	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/shellUtils"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -59,7 +59,7 @@ func GetKleiDstPath() string {
 	persistentStorageRoot := dstConfig.Persistent_storage_root
 	kleiDstPath := ""
 	if persistentStorageRoot == "" {
-		kleiDstPath = consts.DefaultKleiDstPath
+		kleiDstPath = dstConfigUtils.KleiDstPath()
 	} else {
 		if confDir == "" {
 			confDir = "DoNotStarveTogether"
@@ -142,23 +142,61 @@ func GetBlocklistPath(clusterName string) string {
 
 func GetModSetup(clusterName string) string {
 	cluster := dstConfigUtils.GetDstConfig()
-	return filepath.Join(cluster.Force_install_dir, "mods", "dedicated_server_mods_setup.lua")
+	dstServerPath := cluster.Force_install_dir
+	if dstConfigUtils.IsBeta() {
+		dstServerPath = dstServerPath + "-beta"
+	}
+	return filepath.Join(dstServerPath, "mods", "dedicated_server_mods_setup.lua")
 }
+
+//func GetDstUpdateCmd(clusterName string) string {
+//	cluster := dstConfigUtils.GetDstConfig()
+//	steamcmd := cluster.Steamcmd
+//	dst_install_dir := cluster.Force_install_dir
+//
+//	dst_install_dir = EscapePath(dst_install_dir)
+//
+//	if runtime.GOOS == "windows" {
+//		return "cd /d " + steamcmd + " && Start steamcmd.exe +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+//	}
+//	if !fileUtils.Exists(filepath.Join(steamcmd, "steamcmd.sh")) {
+//		return "cd " + steamcmd + " ; ./steamcmd +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+//	}
+//	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+//}
 
 func GetDstUpdateCmd(clusterName string) string {
 	cluster := dstConfigUtils.GetDstConfig()
-	steamcmd := cluster.Steamcmd
-	dst_install_dir := cluster.Force_install_dir
+	steamCmdPath := cluster.Steamcmd
+	dstInstallDir := cluster.Force_install_dir
+	if cluster.Beta == 1 {
+		dstInstallDir = dstInstallDir + "-beta"
+	}
+	// 确保路径是跨平台兼容的
+	dstInstallDir = filepath.Clean(EscapePath(dstInstallDir))
+	steamCmdPath = filepath.Clean(steamCmdPath)
 
-	dst_install_dir = EscapePath(dst_install_dir)
+	// 构建基本命令
+	baseCmd := "+login anonymous +force_install_dir %s +app_update 343050"
+	if cluster.Beta == 1 {
+		baseCmd += " -beta updatebeta"
+	}
+	baseCmd += " validate +quit"
+	baseCmd = fmt.Sprintf(baseCmd, dstInstallDir)
 
+	// 根据操作系统生成不同的命令
+	var cmd string
 	if runtime.GOOS == "windows" {
-		return "cd /d " + steamcmd + " && Start steamcmd.exe +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+		cmd = fmt.Sprintf("cd /d %s && Start steamcmd.exe %s", steamCmdPath, baseCmd)
+	} else {
+		steamCmdScript := filepath.Join(steamCmdPath, "steamcmd.sh")
+		if fileUtils.Exists(steamCmdScript) {
+			cmd = fmt.Sprintf("cd %s ; ./steamcmd.sh %s", steamCmdPath, baseCmd)
+		} else {
+			cmd = fmt.Sprintf("cd %s ; ./steamcmd %s", steamCmdPath, baseCmd)
+		}
 	}
-	if !fileUtils.Exists(filepath.Join(steamcmd, "steamcmd.sh")) {
-		return "cd " + steamcmd + " ; ./steamcmd +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
-	}
-	return "cd " + steamcmd + " ; ./steamcmd.sh +login anonymous +force_install_dir " + dst_install_dir + " +app_update 343050 validate +quit"
+	return cmd
 }
 
 func Status(clusterName, level string) bool {

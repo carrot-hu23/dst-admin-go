@@ -1,13 +1,60 @@
 package dstConfigUtils
 
 import (
-	"dst-admin-go/constant/consts"
 	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/systemUtils"
 	"log"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
+
+func KleiDstPath() string {
+	home, err := systemUtils.Home()
+	if err != nil {
+		panic("Home path error: " + err.Error())
+	}
+	klei := ""
+	if runtime.GOOS == "windows" {
+		klei = filepath.Join(home, "Documents", "klei", "DoNotStarveTogether")
+	} else {
+		klei = filepath.Join(home, ".klei", "DoNotStarveTogether")
+	}
+	if IsBeta() {
+		klei = klei + "BetaBranch"
+	}
+	return klei
+}
+
+func IsBeta() bool {
+	//判断是否存在，不存在创建一个
+	if !fileUtils.Exists(dst_config_path) {
+		if err := fileUtils.CreateFile(dst_config_path); err != nil {
+			log.Panicln("create docker_dst_config error", err)
+		}
+	}
+	data, err := fileUtils.ReadLnFile(dst_config_path)
+	if err != nil {
+		log.Panicln("read docker_dst_config error", err)
+	}
+	for _, value := range data {
+		if value == "" {
+			continue
+		}
+		if strings.Contains(value, "beta=") {
+			split := strings.Split(value, "=")
+			if len(split) > 1 {
+				s := strings.TrimSpace(split[1])
+				beta, _ := strconv.ParseInt(strings.Replace(s, "\\n", "", -1), 10, 64)
+				if beta == 1 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
 
 type DstConfig struct {
 	Steamcmd                   string `json:"steamcmd"`
@@ -137,12 +184,12 @@ func GetDstConfig() DstConfig {
 		dstConfig.Cluster = "Cluster1"
 	}
 	if dstConfig.Backup == "" {
-		defaultPath := filepath.Join(consts.DefaultKleiDstPath, "backup")
+		defaultPath := filepath.Join(KleiDstPath(), "backup")
 		fileUtils.CreateDirIfNotExists(defaultPath)
 		dstConfig.Backup = defaultPath
 	}
 	if dstConfig.Mod_download_path == "" {
-		defaultPath := filepath.Join(consts.DefaultKleiDstPath, "mod_config_download")
+		defaultPath := filepath.Join(KleiDstPath(), "mod_config_download")
 		fileUtils.CreateDirIfNotExists(defaultPath)
 		dstConfig.Mod_download_path = defaultPath
 	}

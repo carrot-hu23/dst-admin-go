@@ -3,7 +3,6 @@ package consts
 import (
 	"dst-admin-go/utils/systemUtils"
 	"fmt"
-	"path/filepath"
 	"runtime"
 )
 
@@ -25,7 +24,6 @@ const (
 )
 
 var HomePath string
-var DefaultKleiDstPath string
 
 const PasswordPath = "./password.txt"
 
@@ -39,10 +37,10 @@ func init() {
 
 	if runtime.GOOS == "windows" {
 		//klei_path = filepath.Join(consts.HomePath, "Documents", "klei", "DoNotStarveTogether")
-		DefaultKleiDstPath = filepath.Join(home, "Documents", "klei", "DoNotStarveTogether")
+		// DefaultKleiDstPath = filepath.Join(home, "Documents", "klei", "DoNotStarveTogether")
 	} else {
 		// klei_path = filepath.Join(consts.HomePath, ".klei", "DoNotStarveTogether")
-		DefaultKleiDstPath = filepath.Join(home, ".klei", "DoNotStarveTogether")
+		// DefaultKleiDstPath = filepath.Join(home, ".klei", "DoNotStarveTogether")
 	}
 
 }

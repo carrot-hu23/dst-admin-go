@@ -205,7 +205,7 @@ func (c *GameConsoleService) ReadLevelServerLog(clusterName, levelName string, l
 	log.Println("serverLogPath", serverLogPath)
 	lines, err := fileUtils.ReverseRead(serverLogPath, length)
 	if err != nil {
-		log.Panicln("读取日志server_log失败", err)
+		return []string{}
 	}
 	return lines
 }
