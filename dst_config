@@ -1,0 +1,11 @@
+steamcmd=/Users/carrothu/Documents/Steam
+force_install_dir=/Users/carrothu/Documents/dst-dedicated-server
+donot_starve_server_directory=
+ugc_directory=
+conf_dir=
+persistent_storage_root=
+cluster=Cluster1
+backup=/Users/carrothu/Documents/dst-dedicated-server/backup
+mod_download_path=/Users/carrothu/Documents/dst-dedicated-server/mod_config_download
+bin=32
+beta=0
