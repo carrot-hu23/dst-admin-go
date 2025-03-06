@@ -219,11 +219,11 @@ func (c *GameConfigService) createModoverrides(clusterName string, modConfig str
 			fileUtils.WriterTXT(filepath.Join(dstUtils.GetClusterBasePath(clusterName), config.LevelList[i].File, "modoverrides.lua"), modConfig)
 		}
 		var serverModSetup = ""
-		//TODO 添加m
 		workshopIds := dstUtils.WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
 			serverModSetup += "ServerModSetup(\"" + workshopId + "\")\n"
 		}
+		log.Println(dstUtils.GetModSetup(clusterName), serverModSetup)
 		fileUtils.WriterTXT(dstUtils.GetModSetup(clusterName), serverModSetup)
 	}
 

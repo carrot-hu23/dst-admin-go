@@ -1,7 +1,7 @@
 steamcmd=/Users/carrothu/Documents/Steam
 force_install_dir=/Users/carrothu/Documents/dst-dedicated-server
 donot_starve_server_directory=
-ugc_directory=
+ugc_directory=/Users/carrothu/Library/Application Support/Steam/steamapps/workshop
 conf_dir=
 persistent_storage_root=
 cluster=Cluster1

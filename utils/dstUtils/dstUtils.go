@@ -146,6 +146,9 @@ func GetModSetup(clusterName string) string {
 	if dstConfigUtils.IsBeta() {
 		dstServerPath = dstServerPath + "-beta"
 	}
+	if runtime.GOOS == "darwin" {
+		return filepath.Join(dstServerPath, "dontstarve_dedicated_server_nullrenderer.app", "Contents", "mods", "dedicated_server_mods_setup.lua")
+	}
 	return filepath.Join(dstServerPath, "mods", "dedicated_server_mods_setup.lua")
 }
 

@@ -257,7 +257,7 @@ func (t *ThirdPartyApi) GiteeProxy(c *gin.Context) {
 	}
 
 	// 构建目标 URL
-	targetURL := "https://gitee.com/hhhuhu23/dst-static/raw/master/" + filePath
+	targetURL := "http://gitee.com/hhhuhu23/dst-static/raw/master/" + filePath
 
 	// 创建带超时的 HTTP 客户端
 	client := &http.Client{
@@ -276,6 +276,10 @@ func (t *ThirdPartyApi) GiteeProxy(c *gin.Context) {
 	// 复制请求头
 	for key, values := range c.Request.Header {
 		for _, value := range values {
+			// 排除 Host 头，避免影响转发
+			if key == "Host" || key == "Referer" {
+				continue
+			}
 			req.Header.Add(key, value)
 		}
 	}
