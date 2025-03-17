@@ -49,6 +49,9 @@ func GetLevelServerChatLogPath(clusterName string, levelName string) string {
 func GetClusterBasePath(clusterName string) string {
 	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether", clusterName)
 }
+func GetKleiDstPath() string {
+	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether")
+}
 
 func GetDoNotStarveTogetherPath() string {
 	return path.Join(constant.HOME_PATH, ".klei/DoNotStarveTogether")

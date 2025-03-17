@@ -15,7 +15,7 @@ func NewRoute() *gin.Engine {
 	store := cookie.NewStore([]byte("secret"))
 	store.Options(sessions.Options{
 		// 设置过期时间为 30 分钟
-		MaxAge:   int(30 * time.Minute.Seconds()),
+		MaxAge:   int(60 * 24 * 7 * time.Minute.Seconds()),
 		Path:     "/",
 		HttpOnly: true, // 仅允许在 HTTP 请求中使用，增加安全性
 	})
@@ -56,6 +56,8 @@ func NewRoute() *gin.Engine {
 	initLevel2(router)
 
 	initUserRouter(router)
+
+	initDstGenMapRouter(router)
 
 	initStaticFile(app)
 

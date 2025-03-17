@@ -48,6 +48,11 @@ func Proxy(c *gin.Context) {
 		return
 	}
 
+	if strings.Contains(baseURL, "/api/dst-static") {
+		c.Next()
+		return
+	}
+
 	// 获取请求头中的cluster UUID
 	clusterUUID := c.GetHeader("Cluster")
 
