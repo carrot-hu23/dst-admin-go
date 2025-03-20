@@ -231,7 +231,7 @@ func (c *ClusterManager) DeleteCluster(clusterName string) (*model.Cluster, erro
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	if cluster.ClusterType == "本地" {
+	if cluster.ClusterType == "本地" || cluster.ClusterType == "" {
 		// 停止服务
 		c.s.StopGame(clusterName)
 		// 删除房间

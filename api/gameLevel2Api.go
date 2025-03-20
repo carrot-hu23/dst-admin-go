@@ -341,6 +341,30 @@ func (g *GameLevel2Api) SaveLevelsList(ctx *gin.Context) {
 	})
 }
 
+func (g *GameLevel2Api) ImportLevelsList(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	var body struct {
+		Levels []level.World `json:"levels"`
+	}
+	err := ctx.ShouldBind(&body)
+	if err != nil {
+		log.Panicln("参数解析错误", err)
+	}
+
+	err = gameLevel2Service.ImportLevels(clusterName, body.Levels)
+	if err != nil {
+		log.Panicln("导入世界配置失败", err)
+	}
+
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
+
 func (g *GameLevel2Api) DeleteLevel(ctx *gin.Context) {
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName

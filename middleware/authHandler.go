@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-contrib/sessions"
+	"log"
 	"net/http"
 	"strings"
 
@@ -35,7 +36,8 @@ func Authentication() gin.HandlerFunc {
 		} else {
 			session := sessions.Default(c)
 			username := session.Get("username")
-			if username == nil {
+			log.Println("auth:", username)
+			if username == nil || username == "" {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			} else {
 				c.Next()

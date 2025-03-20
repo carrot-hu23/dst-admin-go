@@ -131,6 +131,32 @@ func (g *GameLevel2Service) UpdateLevel(clusterName string, level *level.World) 
 	return err
 }
 
+func (g *GameLevel2Service) ImportLevels(clusterName string, levels []level.World) error {
+	// 删除之前的level.json
+	levelConfig, err := levelConfigUtils.GetLevelConfig(clusterName)
+	if err != nil {
+		return err
+	}
+	levelConfig.LevelList = []levelConfigUtils.Item{}
+	// 写入新的level.json
+	for _, world := range levels {
+		levelConfig.LevelList = append(levelConfig.LevelList, levelConfigUtils.Item{Name: world.LevelName, File: world.Uuid})
+	}
+	log.Println(clusterName, levelConfig.LevelList)
+	err = levelConfigUtils.SaveLevelConfig(clusterName, levelConfig)
+	if err != nil {
+		return err
+	}
+	for i := range levels {
+		dstUtils.DedicatedServerModsSetup2(clusterName, levels[i].Modoverrides)
+		err := g.UpdateLevel(clusterName, &levels[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (g *GameLevel2Service) CreateLevel(clusterName string, level *level.World) error {
 	uuid := ""
 	if level.Uuid == "" {

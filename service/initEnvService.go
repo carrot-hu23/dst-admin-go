@@ -15,6 +15,7 @@ import (
 	"log"
 	"path/filepath"
 	"runtime"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,7 @@ const (
 
 var gameLevel2Service GameLevel2Service
 var clusterManger ClusterManager
+var homeService HomeService
 
 type InitService struct {
 	GameConfigService
@@ -99,6 +101,7 @@ func (i *InitService) InitClusterIni(basePath string, username string) {
 	clusterIni.ClusterName = clusterName
 	clusterIni.GameMode = "survival"
 	clusterIni.MaxPlayers = 6
+	clusterIni.MasterPort = uint(i.getNextMasterPorts())
 	fileUtils.WriterTXT(cluster_ini_path, dstUtils.ParseTemplate(cluster_template, clusterIni))
 }
 
@@ -220,7 +223,7 @@ func (i *InitService) InitCluster2(cluster *model.Cluster, token string) {
 		ports := i.getNextPorts()
 		// 初始化标准的森林和洞穴
 		i.InitBaseNewLevel(filepath.Join(baseLevelPath, "Master"), ports[0], true, "forest", "Master", 1)
-		i.InitBaseNewLevel(filepath.Join(baseLevelPath, "Caves"), ports[1], true, "caves", "Caves", 2)
+		i.InitBaseNewLevel(filepath.Join(baseLevelPath, "Caves"), ports[1], false, "caves", "Caves", 2)
 
 		levelConfig := levelConfigUtils.LevelConfig{
 			LevelList: []levelConfigUtils.Item{
@@ -290,6 +293,31 @@ func (i *InitService) getNextPorts() (portList []int) {
 	log.Println("portList", portList)
 	return portList
 
+}
+
+func (i *InitService) getNextMasterPorts() int {
+
+	// 过滤目前存档已经使用了的端口
+	db := database.DB
+	clusters := make([]model.Cluster, 0)
+	if err := db.Find(&clusters).Error; err != nil {
+		fmt.Println(err.Error())
+	}
+	var userPorts []uint
+	for i1 := range clusters {
+		clusterName := clusters[i1].ClusterName
+		clusterIni := homeService.GetClusterIni(clusterName)
+		userPorts = append(userPorts, clusterIni.MasterPort)
+	}
+	sort.Slice(userPorts, func(i, j int) bool {
+		return userPorts[i] < userPorts[j]
+	})
+	log.Println("userMasterPorts", userPorts)
+	if len(userPorts) >= 1 {
+		return int(userPorts[0] - 1)
+	} else {
+		return 10888
+	}
 }
 
 func (i *InitService) InitBaseNewLevel(basePath string, port int, isMaster bool, levelType string, levelName string, id int) {

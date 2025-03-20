@@ -12,6 +12,7 @@ func initLevel2(router *gin.RouterGroup) {
 	{
 		group.GET("", gameLevelApi.GetLevelList)
 		group.PUT("", gameLevelApi.SaveLevelsList)
+		group.PUT("/import", gameLevelApi.ImportLevelsList)
 		group.POST("", gameLevelApi.CreateNewLevel)
 		group.DELETE("", gameLevelApi.DeleteLevel)
 	}
