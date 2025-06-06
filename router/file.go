@@ -11,6 +11,8 @@ func initFile(router *gin.RouterGroup) {
 	file := router.Group("/api/file")
 	{
 		file.POST("/ugc/upload", fileApi.UploadUgcMods)
+		file.POST("/background", fileApi.UploadBackground)
+		file.GET("/background", fileApi.GetBackground)
 	}
 
 }
