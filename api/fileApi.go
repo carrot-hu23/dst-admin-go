@@ -45,3 +45,32 @@ func (d *FileApi) UploadUgcMods(ctx *gin.Context) {
 		Data: nil,
 	})
 }
+
+func (d *FileApi) GetBackground(ctx *gin.Context) {
+	// 文件路径
+	filePath := "./dist/assets/background.png"
+	// 返回文件
+	ctx.File(filePath)
+}
+
+func (d *FileApi) UploadBackground(ctx *gin.Context) {
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		log.Panicln(err)
+	}
+	files := form.File["file"]
+	dir := "./dist/assets"
+	fileUtils.CreateDirIfNotExists(dir)
+	for _, file := range files {
+		p := filepath.Join("./dist/assets/background.png")
+		log.Println(p)
+		if err := ctx.SaveUploadedFile(file, p); err != nil {
+			log.Panicln(err)
+		}
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: nil,
+	})
+}
