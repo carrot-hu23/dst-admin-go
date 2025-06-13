@@ -33,7 +33,7 @@ func Init() {
 	initCollect()
 	initSchedule()
 
-	// initUpdateModinfos()
+	initUpdateModinfos()
 }
 
 func initDB() {
@@ -129,24 +129,6 @@ func initSchedule() {
 
 func initUpdateModinfos() {
 	if global.Config.AutoUpdateModinfo.Enable {
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println(r)
-				}
-			}()
-			t := global.Config.AutoUpdateModinfo.UpdateCheckInterval
-			ticker := time.NewTicker(time.Duration(t) * time.Minute)
-			for {
-				select {
-				case <-ticker.C:
-					log.Println("正在定时更新模组配置 间隔: ", 30, "分钟")
-					// 每隔10分钟执行的任务
-					mod.UpdateModinfoList("Cluster1")
-				}
-			}
-		}()
-
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
