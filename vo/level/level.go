@@ -34,7 +34,7 @@ type ClusterIni struct {
 	// [STEAM]
 	SteamGroupOnly   bool   `json:"steam_group_only"`
 	SteamGroupId     string `json:"steam_group_id"`
-	SteamGroupAdmins string `json:"steam_group_admins"`
+	SteamGroupAdmins bool   `json:"steam_group_admins"`
 }
 type ServerIni struct {
 
@@ -73,7 +73,7 @@ func NewClusterIni() *ClusterIni {
 		ClusterKey:       "",
 		SteamGroupOnly:   false,
 		SteamGroupId:     "",
-		SteamGroupAdmins: "",
+		SteamGroupAdmins: false,
 	}
 }
 
