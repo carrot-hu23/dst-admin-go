@@ -227,11 +227,11 @@ func DedicatedServerModsSetup2(clusterName string, modConfig string) {
 		for _, workshopId := range workshopIds {
 			serverModSetup = append(serverModSetup, "ServerModSetup(\""+workshopId+"\")")
 		}
-
 		modSetupPath := GetModSetup2(clusterName)
+		fileUtils.CreateFileIfNotExists(modSetupPath)
 		mods, err := fileUtils.ReadLnFile(modSetupPath)
 		if err != nil {
-			log.Panicln("读取 dedicated_server_mods_setup.lua 失败", err)
+			log.Println("读取 dedicated_server_mods_setup.lua 失败", err)
 		}
 		var newServerModSetup []string
 		for i := range serverModSetup {
@@ -249,7 +249,7 @@ func DedicatedServerModsSetup2(clusterName string, modConfig string) {
 		newServerModSetup = append(newServerModSetup, mods...)
 		err = fileUtils.WriterLnFile(modSetupPath, newServerModSetup)
 		if err != nil {
-			log.Panicln("写入 dedicated_server_mods_setup.lua 失败", err)
+			log.Println("写入 dedicated_server_mods_setup.lua 失败", err)
 		}
 	}
 }
