@@ -23,7 +23,7 @@
 ```
 docker pull hujinbo23/dst-admin-go:1.3.1
 docker run --name dst -d \
-  -p 8084:8082 \
+  -p 8082:8082 \
   -p 10999:10999/udp \
   -p 10998:10998/udp \
   -p 10888:10888/udp \
