@@ -61,7 +61,11 @@ func (g *GameService) GetLocalDstVersion(clusterName string) int64 {
 	}
 
 	cluster := clusterUtils.GetCluster(clusterName)
-	versionTextPath := filepath.Join(cluster.ForceInstallDir, "version.txt")
+	dstInstallDir := cluster.ForceInstallDir
+	if cluster.Beta == 1 {
+		dstInstallDir = dstInstallDir + "-beta"
+	}
+	versionTextPath := filepath.Join(dstInstallDir, "version.txt")
 
 	// 使用filepath.Clean确保路径格式正确
 	cleanPath := filepath.Clean(versionTextPath)
@@ -204,6 +208,9 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 
 	cluster := clusterUtils.GetCluster(clusterName)
 	dstInstallDir := cluster.ForceInstallDir
+	if cluster.Beta == 1 {
+		dstInstallDir = dstInstallDir + "-beta"
+	}
 	ugcDirectory := cluster.Ugc_directory
 	persistent_storage_root := cluster.Persistent_storage_root
 	conf_dir := cluster.Conf_dir

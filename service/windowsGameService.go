@@ -105,6 +105,9 @@ func (g *WindowsGameService) LaunchLevel(clusterName, level string, bin, beta in
 	if runtime.GOOS == "windows" {
 		cluster := clusterUtils.GetCluster(clusterName)
 		dstInstallDir := cluster.ForceInstallDir
+		if cluster.Beta == 1 {
+			dstInstallDir = dstInstallDir + "-beta"
+		}
 		ugcDirectory := cluster.Ugc_directory
 		persistent_storage_root := cluster.Persistent_storage_root
 		conf_dir := cluster.Conf_dir
