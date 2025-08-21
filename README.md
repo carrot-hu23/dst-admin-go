@@ -20,7 +20,7 @@
 ## 部署
 注意目录必须要有读写权限。
 
-点击查看 [部署文档](docs/install.md)
+点击查看 [部署文档](https://carrot-hu23.github.io/dst-admin-go-docs/)
 
 ## 预览
 
