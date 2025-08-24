@@ -4,11 +4,12 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"dst-admin-go/service"
-	"github.com/robfig/cron/v3"
 	"log"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/robfig/cron/v3"
 )
 
 var ScheduleSingleton *Schedule
@@ -27,6 +28,9 @@ func init() {
 
 	StrategyMap["startGame"] = &StartGameStrategy{}
 	StrategyMap["stopGame"] = &StopGameStrategy{}
+
+	// 无动作
+	StrategyMap["none"] = &NoneStrategy{}
 
 }
 
