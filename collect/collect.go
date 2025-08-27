@@ -4,11 +4,13 @@ import (
 	"dst-admin-go/config/database"
 	"dst-admin-go/model"
 	"fmt"
-	"github.com/hpcloud/tail"
 	"log"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
+
+	"github.com/hpcloud/tail"
 )
 
 type Collect struct {
@@ -256,20 +258,24 @@ func (c *Collect) parseChatLog(text string) {
 func (c *Collect) parseSay(text string) {
 	fmt.Println(text)
 
-	arr := strings.Split(text, " ")
-	temp := strings.Replace(arr[0], " ", "", -1)
-	t := temp[:len(temp)-1]
-	action := arr[1]
-	kuId := arr[2]
-	kuId = kuId[1 : len(kuId)-1]
-	name := arr[3]
-	name = name[:len(name)-1]
-	rest := ""
-	for i := 4; i <= len(arr)-1; i++ {
-		rest += arr[i] + " "
+	// 正则解析日志
+	re := regexp.MustCompile(`\[(.*?)\]: (\[.*?\]) \((.*?)\) (.*?): (.*)`)
+	matches := re.FindStringSubmatch(text)
+	if len(matches) != 6 {
+		fmt.Println("无法解析日志:", text, matches)
+		return
 	}
-	actionDesc := rest
 
+	// 时间
+	t := matches[1]
+	// [Say]
+	action := matches[2]
+	kuId := matches[3]
+	// 玩家名字，可包含空格
+	name := matches[4]
+	actionDesc := matches[5]
+
+	// 获取玩家角色和连接信息
 	spawn := c.getSpawnRole(name)
 	connect := c.getConnectInfo(name)
 
@@ -284,7 +290,11 @@ func (c *Collect) parseSay(text string) {
 		SteamId:     connect.SteamId,
 		ClusterName: c.clusterName,
 	}
-	database.DB.Create(&playerLog)
+
+	// 保存到数据库，并打印错误
+	if err := database.DB.Create(&playerLog).Error; err != nil {
+		fmt.Println("插入玩家日志失败:", err)
+	}
 }
 
 func (c *Collect) parseResurrect(text string) {
