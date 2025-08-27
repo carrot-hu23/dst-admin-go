@@ -91,3 +91,9 @@ func (s *StopGameStrategy) Execute(clusterName string, levelName string) {
 	log.Println("正在定时关闭游戏(所有) clusterName: ", clusterName)
 	gameService.StopGame(clusterName)
 }
+
+type NoneStrategy struct{}
+
+func (s *NoneStrategy) Execute(clusterName string, levelName string) {
+	log.Println("正在进行定时游戏内宣告 clusterName: ", clusterName)
+}
