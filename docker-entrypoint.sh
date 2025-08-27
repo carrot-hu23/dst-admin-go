@@ -38,11 +38,6 @@ while [ ! -e "${steam_dst_server}/bin/dontstarve_dedicated_server_nullrenderer" 
   mkdir -p $USER_DIR/.klei/DoNotStarveTogether/MyDediServer
   mkdir -p /app/backup
   mkdir -p /app/mod
-  echo "steamcmd=$steam_cmd_path" >> /app/dst_config
-  echo "force_install_dir=$steam_dst_server" >> /app/dst_config
-  echo "cluster=MyDediServer" >> /app/dst_config
-  echo "backup=/app/backup" >> /app/dst_config
-  echo "mod_download_path=/app/mod" >> /app/dst_config
   echo "username=admin" >> /app/password.txt
   echo "password=123456" >> /app/password.txt
   echo "displayName=admin" >> /app/password.txt
