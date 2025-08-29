@@ -56,6 +56,10 @@ func (l *PlayerLogApi) PlayerLogQueryPage(ctx *gin.Context) {
 		db = db.Where("action LIKE ?", "%"+action+"%")
 		db2 = db2.Where("action LIKE ?", "%"+action+"%")
 	}
+	if ip, isExist := ctx.GetQuery("ip"); isExist {
+		db = db.Where("ip LIKE ?", "%"+ip+"%")
+		db2 = db2.Where("ip LIKE ?", "%"+ip+"%")
+	}
 
 	db = db.Order("created_at desc").Limit(size).Offset((page - 1) * size)
 

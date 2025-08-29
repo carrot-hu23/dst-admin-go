@@ -253,6 +253,10 @@ func (c *Collect) parseChatLog(text string) {
 	if strings.Contains(text, "[Say]") {
 		c.parseSay(text)
 	}
+	//[10:01:42]: [Announcement] 欢迎访客歪比巴卜，游玩
+	if strings.Contains(text, "[Announcement]") {
+		c.parseAnnouncement(text)
+	}
 }
 
 func (c *Collect) parseSay(text string) {
@@ -410,4 +414,41 @@ func (c *Collect) getConnectInfo(name string) *model.Connect {
 	connect := new(model.Connect)
 	database.DB.Where("name LIKE ? and cluster_name = ?", "%"+name+"%", c.clusterName).Last(connect)
 	return connect
+}
+
+func (c *Collect) parseAnnouncement(text string) {
+	fmt.Println(text)
+
+	// 正则解析日志
+	re := regexp.MustCompile(`\[(.*?)\]: (\[Announcement\]) (.*)`)
+	matches := re.FindStringSubmatch(text)
+	// 无法解析宣告日志: 00:55:21 Announcement test
+	if len(matches) != 4 {
+		fmt.Println("无法解析宣告日志:", text, matches)
+		return
+	}
+
+	// 时间
+	t := matches[1]
+	// [Announcement]
+	action := matches[2]
+	// 宣告的内容
+	actionDesc := matches[3]
+
+	playerLog := model.PlayerLog{
+		Name:        "-",
+		Role:        "-",
+		Action:      action,
+		ActionDesc:  actionDesc,
+		Time:        t,
+		Ip:          "-",
+		KuId:        "-",
+		SteamId:     "-",
+		ClusterName: c.clusterName,
+	}
+
+	// 保存到数据库，并打印错误
+	if err := database.DB.Create(&playerLog).Error; err != nil {
+		fmt.Println("插入玩家日志失败:", err)
+	}
 }
