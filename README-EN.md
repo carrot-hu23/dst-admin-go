@@ -1,5 +1,7 @@
 # dst-admin-go
 > dst-admin-go manage web
+>
+> preview https://carrot-hu23.github.io/dst-admin-go-preview/
 
 [English](README-EN.md)/[中文](README.md)
 
