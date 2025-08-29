@@ -23,18 +23,18 @@ type DstMapApi struct {
 
 func (d *DstMapApi) GenDstMap(ctx *gin.Context) {
 
-	clusterName := ctx.Query("clusterName")
-	if clusterName == "" {
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
 		ctx.JSON(http.StatusBadRequest, vo.Response{
 			Code: 400,
-			Msg:  "clusterName 参数不能为空",
+			Msg:  "levelName 参数不能为空",
 		})
 		return
 	}
 
 	dstConfig := dstConfigUtils.GetDstConfig()
-	outputImage := filepath.Join(dstUtils.GetClusterBasePath(dstConfig.Cluster), "dst_map_"+clusterName+".jpg")
-	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster, clusterName, "save", "session")
+	outputImage := filepath.Join(dstUtils.GetClusterBasePath(dstConfig.Cluster), "dst_map_"+levelName+".jpg")
+	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster, levelName, "save", "session")
 	filePath, err := findLatestMetaFile(sessionPath)
 	if err != nil {
 		log.Panicln(err)
@@ -63,17 +63,17 @@ func (d *DstMapApi) GenDstMap(ctx *gin.Context) {
 
 func (d *DstMapApi) GetDstMapImage(ctx *gin.Context) {
 
-	clusterName := ctx.Query("clusterName")
-	if clusterName == "" {
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
 		ctx.JSON(http.StatusBadRequest, vo.Response{
 			Code: 400,
-			Msg:  "clusterName 参数不能为空",
+			Msg:  "levelName 参数不能为空",
 		})
 		return
 	}
 
 	dstConfig := dstConfigUtils.GetDstConfig()
-	outputImage := filepath.Join(dstUtils.GetClusterBasePath(dstConfig.Cluster), "dst_map_"+clusterName+".jpg")
+	outputImage := filepath.Join(dstUtils.GetClusterBasePath(dstConfig.Cluster), "dst_map_"+levelName+".jpg")
 	log.Println(outputImage)
 	// 使用 Gin 提供的文件传输方法返回图片
 	ctx.File(outputImage)
@@ -83,17 +83,17 @@ func (d *DstMapApi) GetDstMapImage(ctx *gin.Context) {
 
 func (d *DstMapApi) HasWalrusHutPlains(ctx *gin.Context) {
 
-	clusterName := ctx.Query("clusterName")
-	if clusterName == "" {
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
 		ctx.JSON(http.StatusBadRequest, vo.Response{
 			Code: 400,
-			Msg:  "clusterName 参数不能为空",
+			Msg:  "levelName 参数不能为空",
 		})
 		return
 	}
 
 	dstConfig := dstConfigUtils.GetDstConfig()
-	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster, clusterName, "save", "session")
+	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), dstConfig.Cluster, levelName, "save", "session")
 	filePath, err := findLatestMetaFile(sessionPath)
 	if err != nil {
 		log.Panicln(err)
