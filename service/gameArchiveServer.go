@@ -134,6 +134,7 @@ func (d *GameArchive) GetPublicIP() (string, error) {
 		"https://myip.ipip.net",
 		"https://cdid.c-ctrip.com/model-poc2/h", // 某携程api，IPv6优先
 		// == 以下优先返回国外ip ==
+		"https://lobby-v2.klei.com/lobby/getIP", // Klei官方api
 		"https://api.ipify.org",
 		"https://ifconfig.me/ip",
 		"https://checkip.amazonaws.com",
@@ -190,7 +191,7 @@ func (d *GameArchive) GetPrivateIP() (string, error) {
 		}
 	}
 
-	return "127.0.0.1", nil
+	return "", nil
 }
 
 func (d *GameArchive) getSubPathLevel(rootP, curPath string) int {
