@@ -1,19 +1,20 @@
 package service
 
 import (
-	"dst-admin-go/constant/consts"
+	"dst-admin-go/config/global"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/luaUtils"
 	"dst-admin-go/vo"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"net"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -77,20 +78,29 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 		clusterIni := d.GetClusterIni(clusterName)
 		password := clusterIni.ClusterPassword
 		serverIni := d.GetServerIni(path.Join(basePath, "Master", "server.ini"), true)
-		ipv4, err := d.GetPublicIP()
-		if err != nil {
-			log.Println(err)
+		wanip := global.Config.WanIP
+		if wanip != "" {
+
+		} else {
+			ipv4, err := d.GetPublicIP()
+			if err != nil {
+				wanip, _ = d.GetPrivateIP()
+			} else {
+				wanip = ipv4
+			}
+		}
+		if wanip == "" {
 			gameArchie.IpConnect = ""
 		} else {
 			// c_connect("IP address", port, "password")
 			if password != "" {
-				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ",\"" + password + "\"" + ")"
+				gameArchie.IpConnect = "c_connect(\"" + wanip + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ",\"" + password + "\"" + ")"
 			} else {
-				gameArchie.IpConnect = "c_connect(\"" + ipv4 + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
+				gameArchie.IpConnect = "c_connect(\"" + wanip + "\"," + strconv.Itoa(int(serverIni.ServerPort)) + ")"
 			}
 		}
 		gameArchie.Port = serverIni.ServerPort
-		gameArchie.Ip = ipv4
+		gameArchie.Ip = wanip
 
 	}()
 
@@ -113,19 +123,75 @@ func (d *GameArchive) GetGameArchive(clusterName string) *vo.GameArchive {
 	return gameArchie
 }
 
+/*
+- 以下均是公开接口，返回纯文本数据
+- 如果服务端有透明代理或者分流，可能获取到的是代理ip，优先使用能获取真实ip的接口
+- 饥荒暂不支持IPv6
+*/
 func (d *GameArchive) GetPublicIP() (string, error) {
-	resp, err := http.Get("https://cdid.c-ctrip.com/model-poc2/h")
+	apis := [...]string{
+		// == 以下优先返回国内ip ==
+		"https://myip.ipip.net",
+		"https://cdid.c-ctrip.com/model-poc2/h", // 某携程api，IPv6优先
+		// == 以下优先返回国外ip ==
+		"https://lobby-v2.klei.com/lobby/getIP", // Klei官方api
+		"https://api.ipify.org",
+		"https://ifconfig.me/ip",
+		"https://checkip.amazonaws.com",
+	}
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	for _, api := range apis {
+		resp, err := client.Get(api)
+		if err != nil {
+			continue
+		}
+		body, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			continue
+		}
+
+		ipv4Regex := regexp.MustCompile(`\b\d{1,3}(\.\d{1,3}){3}\b`)
+		text := strings.TrimSpace(string(body))
+		if match := ipv4Regex.FindString(text); match != "" {
+			if ip := net.ParseIP(match); ip != nil && ip.To4() != nil {
+				return ip.String(), nil
+			}
+		}
+	}
+
+	return "", nil
+}
+
+func (d *GameArchive) GetPrivateIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 
-	ip, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	for _, addr := range addrs {
+		var ip net.IP
+
+		switch v := addr.(type) {
+		case *net.IPNet:
+			ip = v.IP
+		case *net.IPAddr:
+			ip = v.IP
+		}
+
+		if ip == nil || ip.IsLoopback() {
+			continue
+		}
+		if ipv4 := ip.To4(); ipv4 != nil {
+			return ipv4.String(), nil
+		}
 	}
 
-	return string(ip), nil
+	return "", nil
 }
 
 func (d *GameArchive) getSubPathLevel(rootP, curPath string) int {
@@ -211,7 +277,7 @@ func findLatestMetaFile(directory string) (string, error) {
 }
 
 func (d *GameArchive) Snapshoot(clusterName string) vo.Meta {
-	sessionPath := filepath.Join(consts.KleiDstPath, clusterName, "Master", "save", "session")
+	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), clusterName, "Master", "save", "session")
 	p, err := findLatestMetaFile(sessionPath)
 	if err != nil {
 		fmt.Println("查找meta文件失败", err)
