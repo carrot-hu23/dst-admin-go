@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
+dnsmasq --no-daemon &
+
 # 获取传入的参数
 steam_cmd_path='/app/steamcmd'
 steam_dst_server='/app/dst-dedicated-server'

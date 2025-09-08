@@ -21,6 +21,7 @@ RUN dpkg --add-architecture i386 && \
     procps \
     sudo \
     unzip \
+    dnsmasq \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -37,6 +38,7 @@ COPY config.yml /app/config.yml
 COPY docker_dst_config /app/dst_config
 COPY dist /app/dist
 COPY static /app/static
+COPY dnsmasq.conf /etc/dnsmasq.conf
 
 # 内嵌源配置信息
 # 控制面板访问的端口
