@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 修正最大文件描述符数，部分docker版本给的默认值过高，会导致screen运行卡顿
+ulimit -Sn 10000
+
 # 获取传入的参数
 steam_cmd_path='/app/steamcmd'
 steam_dst_server='/app/dst-dedicated-server'
