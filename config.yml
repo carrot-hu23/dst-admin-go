@@ -1,5 +1,8 @@
+#绑定地址
+bindAddress: ""
 #启动端口
 port: 8082
+# wincli端口
 dstCliPort: 8102
 #数据库
 database: dst-db
