@@ -13,6 +13,7 @@ func initDstGenMapRouter(router *gin.RouterGroup) {
 		dstMap.GET("/gen", dstMapApi.GenDstMap)
 		dstMap.GET("image", dstMapApi.GetDstMapImage)
 		dstMap.GET("/has/walrusHut/plains", dstMapApi.HasWalrusHutPlains)
+		dstMap.GET("/session/file", dstMapApi.GetSessionFile)
 	}
 
 }

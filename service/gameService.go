@@ -3,6 +3,7 @@ package service
 import (
 	"dst-admin-go/constant/consts"
 	"dst-admin-go/model"
+	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/utils/systemUtils"
@@ -107,7 +108,26 @@ func ClearScreen() bool {
 	return res != ""
 }
 
+func (g *GameService) updateDepotDownloader() error {
+
+	cmd := "cd /opt/DepotDownloader; ./DepotDownloader -app 343050 -os linux -osarch 64 -dir /app/dst-dedicated-server -validate"
+	log.Println(cmd)
+	command, err := shellUtils.Shell(cmd)
+	log.Println(command, err)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
 func (g *GameService) UpdateGame(clusterName string) error {
+
+	dstConfig := dstConfigUtils.GetDstConfig()
+	if dstConfig.Bin == 2664 {
+		return g.updateDepotDownloader()
+	}
+
 	if isWindows() {
 		return WindowService.UpdateGame(clusterName)
 	}
@@ -223,6 +243,10 @@ func (g *GameService) LaunchLevel(clusterName, level string, bin, beta int) {
 		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
 	} else if bin == 100 {
 		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer_x64_luajit -console -cluster " + clusterName + " -shard " + level
+	} else if bin == 86 {
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\" box86 ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
+	} else if bin == 2664 {
+		startCmd = "cd " + dstInstallDir + "/bin64 ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\" box64 ./dontstarve_dedicated_server_nullrenderer_x64 -console -cluster " + clusterName + " -shard " + level
 	} else {
 		startCmd = "cd " + dstInstallDir + "/bin ; screen -d -m -S \"" + screenKey.Key(clusterName, level) + "\"  ./dontstarve_dedicated_server_nullrenderer -console -cluster " + clusterName + " -shard " + level
 	}

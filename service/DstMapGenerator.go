@@ -223,8 +223,8 @@ func (g *DSTMapGenerator) DecodeMapData(tilesBase64 string) ([]int, error) {
 }
 
 // CreateMapImage 创建地图图像
-func (g *DSTMapGenerator) CreateMapImage(tileIds []int, width, height int) *image.RGBA {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
+func (g *DSTMapGenerator) CreateMapImage(tileIds []int, width, height, scale int) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, width*scale, height*scale))
 
 	// 填充地形颜色
 	for y := 0; y < height; y++ {
@@ -241,14 +241,20 @@ func (g *DSTMapGenerator) CreateMapImage(tileIds []int, width, height int) *imag
 				tileColor = Color{0, 0, 0, "未知地形"}
 			}
 
-			// 在Go中，图像坐标是从左到右的，所以需要翻转X坐标
+			// 翻转X坐标
 			flippedX := width - x - 1
-			img.Set(flippedX, y, color.RGBA{
-				R: tileColor.R,
-				G: tileColor.G,
-				B: tileColor.B,
-				A: 255,
-			})
+
+			// 按 scale 填充方块
+			for dy := 0; dy < scale; dy++ {
+				for dx := 0; dx < scale; dx++ {
+					img.Set(flippedX*scale+dx, y*scale+dy, color.RGBA{
+						R: tileColor.R,
+						G: tileColor.G,
+						B: tileColor.B,
+						A: 255,
+					})
+				}
+			}
 		}
 	}
 
@@ -272,7 +278,7 @@ func (g *DSTMapGenerator) GenerateMap(saveFilePath, outputPath string, width, he
 	fmt.Printf("生成的地图尺寸: %dx%d\n", width, height)
 
 	// 创建地图图像
-	img := g.CreateMapImage(tileIds, width, height)
+	img := g.CreateMapImage(tileIds, width, height, 16)
 
 	// 保存图像
 	f, err := os.Create(outputPath)
