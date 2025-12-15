@@ -22,9 +22,17 @@ type DstMapApi struct {
 
 func (d *DstMapApi) GenDstMap(ctx *gin.Context) {
 
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		ctx.JSON(http.StatusBadRequest, vo.Response{
+			Code: 400,
+			Msg:  "levelName 参数不能为空",
+		})
+		return
+	}
 	cluster := clusterUtils.GetClusterFromGin(ctx)
-	outputImage := filepath.Join(dstUtils.GetClusterBasePath(cluster.ClusterName), "dst_map.png")
-	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), cluster.ClusterName, "Master", "save", "session")
+	outputImage := filepath.Join(dstUtils.GetClusterBasePath(cluster.ClusterName), "dst_map_"+levelName+".jpg")
+	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), cluster.ClusterName, levelName, "save", "session")
 	filePath, err := findLatestMetaFile(sessionPath)
 	if err != nil {
 		log.Panicln(err)
@@ -52,8 +60,16 @@ func (d *DstMapApi) GenDstMap(ctx *gin.Context) {
 }
 
 func (d *DstMapApi) GetDstMapImage(ctx *gin.Context) {
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		ctx.JSON(http.StatusBadRequest, vo.Response{
+			Code: 400,
+			Msg:  "levelName 参数不能为空",
+		})
+		return
+	}
 	cluster := clusterUtils.GetClusterFromGin(ctx)
-	outputImage := filepath.Join(dstUtils.GetClusterBasePath(cluster.ClusterName), "dst_map.png")
+	outputImage := filepath.Join(dstUtils.GetClusterBasePath(cluster.ClusterName), "dst_map_"+levelName+".jpg")
 	log.Println(outputImage)
 	// 使用 Gin 提供的文件传输方法返回图片
 	ctx.File(outputImage)
@@ -62,8 +78,17 @@ func (d *DstMapApi) GetDstMapImage(ctx *gin.Context) {
 
 func (d *DstMapApi) HasWalrusHutPlains(ctx *gin.Context) {
 
+	levelName := ctx.Query("levelName")
+	if levelName == "" {
+		ctx.JSON(http.StatusBadRequest, vo.Response{
+			Code: 400,
+			Msg:  "levelName 参数不能为空",
+		})
+		return
+	}
+
 	cluster := clusterUtils.GetClusterFromGin(ctx)
-	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), cluster.ClusterName, "Master", "save", "session")
+	sessionPath := filepath.Join(dstUtils.GetKleiDstPath(), cluster.ClusterName, levelName, "save", "session")
 	filePath, err := findLatestMetaFile(sessionPath)
 	if err != nil {
 		log.Panicln(err)
