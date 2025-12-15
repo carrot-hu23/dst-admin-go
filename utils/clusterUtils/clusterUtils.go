@@ -40,7 +40,7 @@ func GetCluster(clusterName string) *model.Cluster {
 func GetClusterFromGin(ctx *gin.Context) *model.Cluster {
 	clusterName := ctx.GetHeader("Cluster")
 	if clusterName == "" {
-		// log.Panicln("clusterName is not be null or empty")
+		clusterName = ctx.Query("clusterName")
 	}
 	log.Println(ctx.Request.RequestURI, "cluster: ", clusterName)
 	db := database.DB

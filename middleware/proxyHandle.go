@@ -55,7 +55,9 @@ func Proxy(c *gin.Context) {
 
 	// 获取请求头中的cluster UUID
 	clusterUUID := c.GetHeader("Cluster")
-
+	if clusterUUID == "" {
+		clusterUUID = c.Query("clusterName")
+	}
 	// 根据UUID查询对应的服务器信息
 	var cluster model.Cluster
 	result := database.DB.Where("cluster_name = ?", clusterUUID).First(&cluster)
