@@ -16,8 +16,8 @@ tar -xvzf steamcmd_linux.tar.gz
 
 cp ~/steamcmd/linux32/libstdc++.so.6 ~/dst-dedicated-server/bin/lib32/
 # 修复mod下载更新问题
-cp ~/steamcmd/linux32/steamclient.so ~/dst/bin/lib32/
-cp ~/steamcmd/linux64/steamclient.so ~/dst/bin64/lib64/
+cp ~/steamcmd/linux32/steamclient.so ~/dontstarve_dedicated_server/bin/lib32/
+cp ~/steamcmd/linux64/steamclient.so ~/dontstarve_dedicated_server/bin64/lib64/
 
 #Abandon the use of script execution, and change to execute directly through java code
 #cd ~/dst-dedicated-server/bin

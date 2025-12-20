@@ -18,7 +18,7 @@ tar -xvzf steamcmd_linux.tar.gz
 
 cp ~/steamcmd/linux32/libstdc++.so.6 ~/dontstarve_dedicated_server/bin/lib32/
 # 修复mod下载更新问题
-cp ~/steamcmd/linux32/steamclient.so ~/dst/bin/lib32/
-cp ~/steamcmd/linux64/steamclient.so ~/dst/bin64/lib64/
+cp ~/steamcmd/linux32/steamclient.so ~/dontstarve_dedicated_server/bin/lib32/
+cp ~/steamcmd/linux64/steamclient.so ~/dontstarve_dedicated_server/bin64/lib64/
 mkdir -p ~/.klei/DoNotStarveTogether/MyCluster1
 cd ~
