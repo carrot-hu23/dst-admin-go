@@ -190,3 +190,117 @@ func findLatestMetaFile(directory string) (string, error) {
 
 	return latestMetaFile, nil
 }
+
+func (d *DstMapApi) GetPlayerSessionFile(ctx *gin.Context) {
+
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	levelName := ctx.Query("levelName")
+	kuId := ctx.Query("kuId")
+	if levelName == "" || kuId == "" {
+		ctx.JSON(http.StatusBadRequest, vo.Response{
+			Code: 400,
+			Msg:  "levelName or kuId 参数不能为空",
+		})
+		return
+	}
+
+	// 找到 kuid 对应的最新一条 connect 记录
+	//db := database.DB
+	//connect := model.Connect{}
+	//db.Where("ku_id = ? AND cluster_name = ? AND session_file is not null AND session_file != '' ", kuId, cluster.ClusterName).Order("created_at desc").First(&connect)
+	//if connect.SessionFile == "" {
+	//	ctx.JSON(http.StatusBadRequest, vo.Response{
+	//		Code: 400,
+	//		Msg:  "该用户未找到存档文件",
+	//	})
+	//	return
+	//}
+
+	baseSessionFile := filepath.Join(dstUtils.GetKleiDstPath(), cluster.ClusterName, levelName, "save", "session")
+	latestMetaFile, err2 := findLatestMetaFile(baseSessionFile)
+	if err2 != nil {
+		ctx.JSON(http.StatusBadRequest, vo.Response{
+			Code: 400,
+			Msg:  err2.Error(),
+		})
+		return
+	}
+	sessionID := extractSessionID(latestMetaFile)
+	sessionPath := filepath.Join(baseSessionFile, sessionID, kuId+"_")
+	log.Println(sessionPath)
+	filePath, err := findLatestPlayerFile(sessionPath)
+	if err != nil {
+		log.Panicln(err)
+	}
+	log.Println(filePath)
+	file, err := fileUtils.ReadFile(filePath)
+	if err != nil {
+		log.Panicln(err)
+	}
+	ctx.JSON(http.StatusOK, vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: file,
+	})
+
+}
+
+func findLatestPlayerFile(directory string) (string, error) {
+	// 检查指定目录是否存在
+	_, err := os.Stat(directory)
+	if os.IsNotExist(err) {
+		return "", fmt.Errorf("目录不存在：%s", directory)
+	}
+
+	// 用于存储最新的.meta文件路径和其修改时间
+	var latestFile string
+	var latestFileTime time.Time
+
+	// 获取指定目录下所有的文件
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		return "", fmt.Errorf("读取目录失败：%s", err)
+	}
+	for _, file := range files {
+		// 检查文件是否是文件
+		if !file.IsDir() {
+			// 获取文件的修改时间
+			modifiedTime := file.ModTime()
+			// 如果找到的文件的修改时间比当前最新的.meta文件的修改时间更晚，则更新最新的.meta文件路径和修改时间
+			if modifiedTime.After(latestFileTime) {
+				latestFile = filepath.Join(directory, file.Name())
+				latestFileTime = modifiedTime
+			}
+		}
+	}
+
+	if latestFile == "" {
+		return "", fmt.Errorf("未找到文件")
+	}
+
+	return latestFile, nil
+}
+
+func extractSessionPrefix(sessionFile string) string {
+	parts := strings.Split(sessionFile, "/")
+	if len(parts) >= 2 {
+		return parts[0] + "/" + parts[1]
+	}
+	return sessionFile
+}
+
+const sessionPrefix = "/save/session/"
+
+// extractSessionID 提取 /save/session/ 后的第一个路径段（如 925F2AFB73839B9E）
+func extractSessionID(p string) string {
+	// 找到 "/save/session/" 的起始位置
+	i := strings.Index(p, sessionPrefix)
+	// 由于题目保证一定存在，可直接跳过错误检查
+	rest := p[i+len(sessionPrefix):]
+	// 取第一个 '/' 之前的部分（即 session ID）
+	if j := strings.Index(rest, "/"); j != -1 {
+		return rest[:j]
+	}
+	// 理论上不会走到这里（因为后面还有子目录如 /0000000002），但为安全起见：
+	return rest // 整个剩余部分（如路径恰好以 ID 结尾）
+}

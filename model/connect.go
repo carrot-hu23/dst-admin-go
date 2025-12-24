@@ -10,4 +10,5 @@ type Connect struct {
 	SteamId     string
 	Time        string
 	ClusterName string
+	SessionFile string
 }

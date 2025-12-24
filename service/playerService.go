@@ -265,7 +265,7 @@ func (p *PlayerService) GetPlayerList(clusterName string, levelName string) []vo
 	defer t.Stop()
 
 	// 设置一个10秒的超时作为安全网
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	// 发送命令 (你原有的逻辑)

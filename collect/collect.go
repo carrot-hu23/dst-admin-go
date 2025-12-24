@@ -176,6 +176,34 @@ func (c *Collect) parseNewIncomingLog(lines []string) {
 				connect.ClusterName = c.clusterName
 			}
 		}
+		if strings.Contains(line, "Resuming user:") {
+			// 解析 session file path
+			str := strings.Split(line, " ")
+			log.Println(len(str), lines)
+			//[00:14:37]: Resuming user: session/7477D5E4A0424844/KU_Mt-zrX8K_
+			if len(str) < 4 {
+				log.Println("session file path 解析错误: ", line)
+			} else {
+				name := str[3]
+				name = strings.Replace(name, "session/", "", -1)
+				connect.SessionFile = name
+			}
+		}
+		// [03:19:10]: Serializing user: session/D480EA2CEF7633C0/KU_Mt-zrX8K_/0000000005
+		if strings.Contains(line, "Serializing user:") {
+			// 解析 session file path
+			str := strings.Split(line, " ")
+			log.Println(len(str), lines)
+			//[00:14:37]: Resuming user: session/7477D5E4A0424844/KU_Mt-zrX8K_
+			if len(str) < 4 {
+				log.Println("session file path 解析错误: ", line)
+			} else {
+				name := str[3]
+				name = strings.Replace(name, "session/", "", -1)
+				connect.SessionFile = name
+			}
+
+		}
 	}
 	database.DB.Create(&connect)
 }
@@ -218,7 +246,7 @@ func (c *Collect) tailServeLog(fileName string) {
 				if isNewConnect {
 					incoming = append(incoming, text)
 					which++
-					if which > 4 {
+					if which > 10 {
 						isNewConnect = false
 						which = 0
 						c.parseNewIncomingLog(incoming)
