@@ -56,6 +56,8 @@ func NewRoute() *gin.Engine {
 
 	initDstGenMapRouter(router)
 
+	InitLogRouter(router)
+
 	initStaticFile(app)
 
 	return app
