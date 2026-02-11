@@ -51,6 +51,7 @@ func InitGameRouter(router *gin.RouterGroup) {
 	{
 		game.GET("/update", gameApi.UpdateGame)
 		game.GET("/system/info", gameApi.GetSystemInfo)
+		game.GET("/system/info/stream", gameApi.GetSystemInfoStream)
 	}
 
 }

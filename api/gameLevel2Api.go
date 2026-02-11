@@ -10,6 +10,7 @@ import (
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/level"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -21,6 +22,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 var gameLevel2Service = service.GameLevel2Service{}
@@ -136,6 +138,131 @@ func (g *GameLevel2Api) GetStatus(ctx *gin.Context) {
 		})
 	}
 
+}
+
+// GetStatusStream SSE流式接口,实时推送世界状态
+func (g *GameLevel2Api) GetStatusStream(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	// 设置SSE响应头
+	ctx.Header("Content-Type", "text/event-stream")
+	ctx.Header("Cache-Control", "no-cache")
+	ctx.Header("Connection", "keep-alive")
+	ctx.Header("X-Accel-Buffering", "no")
+
+	// 创建一个ticker,每2秒推送一次数据
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	// 使用context来检测客户端断开连接
+	clientGone := ctx.Request.Context().Done()
+
+	// 立即发送第一次数据
+	g.sendStatusData(ctx, clusterName)
+
+	for {
+		select {
+		case <-clientGone:
+			log.Println("Client disconnected from status stream")
+			return
+		case <-ticker.C:
+			g.sendStatusData(ctx, clusterName)
+		}
+	}
+}
+
+// sendStatusData 发送状态数据的辅助方法
+func (g *GameLevel2Api) sendStatusData(ctx *gin.Context, clusterName string) {
+	levelList := gameLevel2Service.GetLevelList(clusterName)
+	length := len(levelList)
+	result := make([]LevelInfo, length)
+
+	if runtime.GOOS == "windows" {
+		var wg sync.WaitGroup
+		wg.Add(length)
+		for i := range levelList {
+			go func(index int) {
+				defer func() {
+					wg.Done()
+					if r := recover(); r != nil {
+						// 静默处理panic
+					}
+				}()
+				world := levelList[index]
+				ps := gameService.PsAuxSpecified(clusterName, world.Uuid)
+				status := gameService.GetLevelStatus(clusterName, world.Uuid)
+				result[index] = LevelInfo{
+					Ps:                ps,
+					Status:            status,
+					LevelName:         world.LevelName,
+					IsMaster:          world.IsMaster,
+					Uuid:              world.Uuid,
+					Leveldataoverride: world.Leveldataoverride,
+					Modoverrides:      world.Modoverrides,
+					ServerIni:         world.ServerIni,
+				}
+			}(i)
+		}
+		wg.Wait()
+	} else {
+		for i := range levelList {
+			world := levelList[i]
+			result[i] = LevelInfo{
+				Ps:                &vo.DstPsVo{},
+				Status:            false,
+				LevelName:         world.LevelName,
+				IsMaster:          world.IsMaster,
+				Uuid:              world.Uuid,
+				Leveldataoverride: world.Leveldataoverride,
+				Modoverrides:      world.Modoverrides,
+				ServerIni:         world.ServerIni,
+			}
+		}
+
+		cmd := "ps -aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName + " |awk '{print $3, $4, $5, $6,$16}'"
+		info, err := shellUtils.Shell(cmd)
+		if err != nil {
+			log.Println(cmd + " error: " + err.Error())
+		} else {
+			lines := strings.Split(info, "\n")
+			for lineIndex := range lines {
+				dstPsVo := vo.NewDstPsVo()
+				arr := strings.Split(lines[lineIndex], " ")
+				if len(arr) > 4 {
+					dstPsVo.CpuUage = strings.Replace(arr[0], "\n", "", -1)
+					dstPsVo.MemUage = strings.Replace(arr[1], "\n", "", -1)
+					dstPsVo.VSZ = strings.Replace(arr[2], "\n", "", -1)
+					dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
+					for i := range result {
+						levelName := result[i].Uuid
+						if strings.Contains(arr[4], levelName) {
+							result[i].Ps = dstPsVo
+							result[i].Status = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// 构造响应数据
+	response := vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: result,
+	}
+
+	// 将数据序列化为JSON
+	data, err := json.Marshal(response)
+	if err != nil {
+		log.Println("Failed to marshal status data:", err)
+		return
+	}
+
+	// 发送SSE数据
+	ctx.SSEvent("message", string(data))
+	ctx.Writer.Flush()
 }
 
 func startBefore(ctx *gin.Context) {

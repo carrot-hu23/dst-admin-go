@@ -8,12 +8,14 @@ import (
 	"dst-admin-go/utils/fileUtils"
 	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/vo"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,6 +55,61 @@ func (g *GameConsoleApi) GetSystemInfo(ctx *gin.Context) {
 		Msg:  "success",
 		Data: gameService.GetSystemInfo(clusterName),
 	})
+}
+
+// GetSystemInfoStream SSE流式接口,实时推送系统信息
+func (g *GameConsoleApi) GetSystemInfoStream(ctx *gin.Context) {
+	cluster := clusterUtils.GetClusterFromGin(ctx)
+	clusterName := cluster.ClusterName
+
+	// 设置SSE响应头
+	ctx.Header("Content-Type", "text/event-stream")
+	ctx.Header("Cache-Control", "no-cache")
+	ctx.Header("Connection", "keep-alive")
+	ctx.Header("X-Accel-Buffering", "no")
+
+	// 创建一个ticker,每2秒推送一次数据
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	// 使用context来检测客户端断开连接
+	clientGone := ctx.Request.Context().Done()
+
+	// 立即发送第一次数据
+	g.sendSystemInfoData(ctx, clusterName)
+
+	for {
+		select {
+		case <-clientGone:
+			log.Println("Client disconnected from system info stream")
+			return
+		case <-ticker.C:
+			g.sendSystemInfoData(ctx, clusterName)
+		}
+	}
+}
+
+// sendSystemInfoData 发送系统信息数据的辅助方法
+func (g *GameConsoleApi) sendSystemInfoData(ctx *gin.Context, clusterName string) {
+	systemInfo := gameService.GetSystemInfo(clusterName)
+
+	// 构造响应数据
+	response := vo.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: systemInfo,
+	}
+
+	// 将数据序列化为JSON
+	data, err := json.Marshal(response)
+	if err != nil {
+		log.Println("Failed to marshal system info data:", err)
+		return
+	}
+
+	// 发送SSE数据
+	ctx.SSEvent("message", string(data))
+	ctx.Writer.Flush()
 }
 
 func (g *GameConsoleApi) SentBroadcast(ctx *gin.Context) {
