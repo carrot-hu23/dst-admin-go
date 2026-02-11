@@ -2,10 +2,11 @@ package router
 
 import (
 	"dst-admin-go/middleware"
+	"time"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 func NewRoute() *gin.Engine {
@@ -53,6 +54,8 @@ func NewRoute() *gin.Engine {
 
 	initFile(router)
 	initDstGenMapRouter(router)
+
+	InitLogRouter(router)
 
 	initStaticFile(app)
 
