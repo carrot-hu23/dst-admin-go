@@ -26,6 +26,9 @@ RUN dpkg --add-architecture i386 && \
 # 设置工作目录
 WORKDIR /app
 
+# 声明数据卷
+VOLUME ["/data"]
+
 # 拷贝程序二进制文件
 COPY dst-admin-go /app/dst-admin-go
 RUN chmod 755 /app/dst-admin-go
