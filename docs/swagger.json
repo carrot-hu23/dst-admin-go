@@ -1,0 +1,2574 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "饥荒联机版服务器管理后台 API 文档",
+        "title": "DST Admin Go API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "https://github.com/carrot-hu23/dst-admin-go"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8082",
+    "basePath": "/",
+    "paths": {
+        "/api/cluster/level": {
+            "get": {
+                "description": "获取指定世界的详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "level"
+                ],
+                "summary": "获取单个世界",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "批量更新多个世界的配置信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "level"
+                ],
+                "summary": "批量更新世界",
+                "parameters": [
+                    {
+                        "description": "世界配置信息列表",
+                        "name": "levels",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/levelConfig.LevelInfo"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建一个新的世界(等级)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "level"
+                ],
+                "summary": "创建世界",
+                "parameters": [
+                    {
+                        "description": "世界配置信息",
+                        "name": "level",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/levelConfig.LevelInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定的世界",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "level"
+                ],
+                "summary": "删除世界",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dst/map/gen": {
+            "get": {
+                "description": "生成地图",
+                "tags": [
+                    "dstMap"
+                ],
+                "summary": "生成地图",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "levelName",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dst/map/has/walrusHut/plains": {
+            "get": {
+                "description": "检测地图中是否有walrusHutPlains",
+                "tags": [
+                    "dstMap"
+                ],
+                "summary": "检测地图中是否有walrusHutPlains",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "levelName",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dst/map/image": {
+            "get": {
+                "description": "获取地图图片",
+                "tags": [
+                    "dstMap"
+                ],
+                "summary": "获取地图图片",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "levelName",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dst/map/player/session/file": {
+            "get": {
+                "description": "获取玩家存档文件",
+                "tags": [
+                    "dstMap"
+                ],
+                "summary": "获取玩家存档文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "levelName",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dst/map/session/file": {
+            "get": {
+                "description": "获取存档文件",
+                "tags": [
+                    "dstMap"
+                ],
+                "summary": "获取存档文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "levelName",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/8level/status": {
+            "get": {
+                "description": "获取所有世界的运行状态信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "获取服务器状态",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/handler.LevelStatus"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/archive": {
+            "get": {
+                "description": "获取当前集群的游戏存档列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "获取游戏存档列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/backup": {
+            "get": {
+                "description": "获取当前集群的所有备份文件列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "获取备份列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "重命名指定的备份文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "重命名备份",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建新的游戏存档备份",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "创建备份",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "备份名称",
+                        "name": "backupName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定的备份文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "删除备份",
+                "parameters": [
+                    {
+                        "description": "要删除的文件名列表",
+                        "name": "fileNames",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/backup/download": {
+            "get": {
+                "description": "下载指定的备份文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "下载备份",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "备份文件名",
+                        "name": "backupName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/backup/snapshot/list": {
+            "get": {
+                "description": "获取当前集群的所有快照备份列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "获取快照列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/backup/snapshot/setting": {
+            "get": {
+                "description": "获取自动快照备份的设置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "获取快照设置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存自动快照备份的设置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "保存快照设置",
+                "parameters": [
+                    {
+                        "description": "快照设置",
+                        "name": "setting",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.BackupSnapshot"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/backup/upload": {
+            "post": {
+                "description": "上传新的备份文件",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "上传备份",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/command": {
+            "post": {
+                "description": "运行命令",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "运行命令",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命令",
+                        "name": "command",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/config": {
+            "get": {
+                "description": "获取房间配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "获取房间配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/gameConfig.HomeConfigVO"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/config/adminlist": {
+            "get": {
+                "description": "获取房间 adminlist.txt 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "获取房间 adminlist.txt 配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存房间 adminlist.txt 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "保存房间 adminlist.txt 配置",
+                "parameters": [
+                    {
+                        "description": "adminlist.txt 配置",
+                        "name": "list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/config/blacklist": {
+            "get": {
+                "description": "获取房间 blacklist.txt 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "获取房间 blacklist.txt 配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存房间 blacklist.txt 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "保存房间 blacklist.txt 配置",
+                "parameters": [
+                    {
+                        "description": "blacklist.txt 配置",
+                        "name": "list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/config/clusterIni": {
+            "get": {
+                "description": "获取房间 cluster.ini 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "获取房间 cluster.ini 配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/gameConfig.ClusterIniConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存房间 cluster.ini 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "保存房间 cluster.ini 配置",
+                "parameters": [
+                    {
+                        "description": "cluster.ini 配置",
+                        "name": "config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gameConfig.ClusterIniConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/config/whitelist": {
+            "get": {
+                "description": "获取房间 whitelist.txt 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "获取房间 whitelist.txt 配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存房间 whitelist.txt 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gameConfig"
+                ],
+                "summary": "保存房间 whitelist.txt 配置",
+                "parameters": [
+                    {
+                        "description": "whitelist.txt 配置",
+                        "name": "list",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/dst/config": {
+            "get": {
+                "description": "获取房间 dst 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dstConfig"
+                ],
+                "summary": "获取房间 dst 配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dstConfig.DstConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存房间 dst 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dstConfig"
+                ],
+                "summary": "保存房间 dst 配置",
+                "parameters": [
+                    {
+                        "description": "dst 配置",
+                        "name": "config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dstConfig.DstConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/level/server/download": {
+            "get": {
+                "description": "下载指定世界的完整服务器日志文件",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "log"
+                ],
+                "summary": "下载服务器日志",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "集群名称",
+                        "name": "clusterName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "服务器日志文件",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/level/server/log": {
+            "get": {
+                "description": "获取指定世界的服务器日志（默认最近100行）",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "log"
+                ],
+                "summary": "获取服务器日志",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "集群名称",
+                        "name": "clusterName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "返回日志行数，默认为100",
+                        "name": "lines",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "服务器日志列表",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/log/stream": {
+            "get": {
+                "description": "获取指定世界的实时日志流 (SSE)",
+                "consumes": [
+                    "text/event-stream"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "log"
+                ],
+                "summary": "服务器日志流",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "集群名称",
+                        "name": "clusterName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE 格式的日志流",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/start": {
+            "get": {
+                "description": "启动世界",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "启动世界",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/start/all": {
+            "get": {
+                "description": "启动所有世界",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "启动所有世界",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/stop": {
+            "get": {
+                "description": "停止世界",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "停止世界",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/stop/all": {
+            "get": {
+                "description": "停止所有世界",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "停止所有世界",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/system/info/stream": {
+            "get": {
+                "description": "获取服务器系统信息的实时流 (SSE)",
+                "consumes": [
+                    "text/event-stream"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "系统信息流",
+                "responses": {
+                    "200": {
+                        "description": "SSE 格式的系统信息流",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/game/update": {
+            "get": {
+                "description": "更新游戏",
+                "tags": [
+                    "update"
+                ],
+                "summary": "更新游戏",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/init": {
+            "get": {
+                "description": "检查系统是否进行了首次初始化",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "检查是否首次初始化",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "初始化系统首次用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "初始化首次用户",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "userInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/login.UserInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/kv": {
+            "get": {
+                "description": "获取kv值",
+                "tags": [
+                    "kv"
+                ],
+                "summary": "获取kv值",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "key",
+                        "name": "key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存kv值",
+                "tags": [
+                    "kv"
+                ],
+                "summary": "保存kv值",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "key",
+                        "name": "key",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "value",
+                        "name": "value",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod": {
+            "get": {
+                "description": "获取已订阅的模组列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "获取我的mod列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/modinfo": {
+            "put": {
+                "description": "批量更新所有已订阅模组的信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "批量更新模组信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "保存模组配置信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "保存模组配置文件",
+                "parameters": [
+                    {
+                        "description": "模组信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mod.ModInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/mod.ModInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/modinfo/file": {
+            "post": {
+                "description": "手动添加模组配置文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "手动添加模组",
+                "parameters": [
+                    {
+                        "description": "模组信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/modinfo/{modId}": {
+            "get": {
+                "description": "根据modId获取模组配置文件内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "获取模组配置文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模组ID",
+                        "name": "modId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/mod.ModInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/search": {
+            "get": {
+                "description": "搜索Steam创意工坊中的模组",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "搜索mod列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索关键词",
+                        "name": "text",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/setup/workshop": {
+            "delete": {
+                "description": "删除所有workshop模组文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "删除workshop文件",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/ugc": {
+            "delete": {
+                "description": "删除UGC模组文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "删除UGC模组文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "WorkshopID",
+                        "name": "workshopId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/ugc/acf": {
+            "get": {
+                "description": "获取UGC模组的ACF文件信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "获取UGC mod acf文件信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "世界名称",
+                        "name": "levelName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mod/{modId}": {
+            "get": {
+                "description": "根据modId获取模组详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "获取mod信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模组ID",
+                        "name": "modId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "根据modId更新模组",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "更新模组",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模组ID",
+                        "name": "modId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "根据modId删除模组",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mod"
+                ],
+                "summary": "删除模组",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模组ID",
+                        "name": "modId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/player/log": {
+            "get": {
+                "description": "分页查询玩家日志",
+                "tags": [
+                    "playerLog"
+                ],
+                "summary": "分页查询玩家日志",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "玩家名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "KuId",
+                        "name": "kuId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "SteamId",
+                        "name": "steamId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "角色",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "操作",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IP地址",
+                        "name": "ip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/player/log/delete": {
+            "post": {
+                "description": "删除玩家日志",
+                "tags": [
+                    "playerLog"
+                ],
+                "summary": "删除玩家日志",
+                "parameters": [
+                    {
+                        "description": "ID列表",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/player/log/delete/all": {
+            "get": {
+                "description": "删除所有玩家",
+                "tags": [
+                    "playerLog"
+                ],
+                "summary": "删除所有玩家日志",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/changePassword": {
+            "post": {
+                "description": "修改密码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "修改密码",
+                "parameters": [
+                    {
+                        "description": "新密码",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/info": {
+            "get": {
+                "description": "获取用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "获取用户信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/login.UserInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/login": {
+            "post": {
+                "description": "用户登录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/login.UserInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/logout": {
+            "get": {
+                "description": "用户登出",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "用户登出",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update": {
+            "post": {
+                "description": "更新用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "更新用户信息",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/backup/restore": {
+            "get": {
+                "description": "从备份文件恢复游戏存档",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backup"
+                ],
+                "summary": "恢复备份",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "备份文件名",
+                        "name": "backupName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dstConfig.DstConfig": {
+            "type": "object",
+            "properties": {
+                "backup": {
+                    "type": "string"
+                },
+                "beta": {
+                    "type": "integer"
+                },
+                "bin": {
+                    "type": "integer"
+                },
+                "cluster": {
+                    "type": "string"
+                },
+                "conf_dir": {
+                    "description": "存档相对位置",
+                    "type": "string"
+                },
+                "donot_starve_server_directory": {
+                    "type": "string"
+                },
+                "force_install_dir": {
+                    "type": "string"
+                },
+                "mod_download_path": {
+                    "type": "string"
+                },
+                "persistent_storage_root": {
+                    "description": "根目录位置",
+                    "type": "string"
+                },
+                "steamcmd": {
+                    "type": "string"
+                },
+                "ugc_directory": {
+                    "type": "string"
+                }
+            }
+        },
+        "game.DstPsAux": {
+            "type": "object",
+            "properties": {
+                "RSS": {
+                    "type": "string"
+                },
+                "VSZ": {
+                    "type": "string"
+                },
+                "cpuUage": {
+                    "type": "string"
+                },
+                "memUage": {
+                    "type": "string"
+                }
+            }
+        },
+        "gameConfig.ClusterIni": {
+            "type": "object",
+            "properties": {
+                "bind_ip": {
+                    "type": "string"
+                },
+                "cluster_description": {
+                    "type": "string"
+                },
+                "cluster_intention": {
+                    "type": "string"
+                },
+                "cluster_key": {
+                    "type": "string"
+                },
+                "cluster_language": {
+                    "type": "string"
+                },
+                "cluster_name": {
+                    "type": "string"
+                },
+                "cluster_password": {
+                    "type": "string"
+                },
+                "console_enabled": {
+                    "description": "[MISC]",
+                    "type": "boolean"
+                },
+                "game_mode": {
+                    "description": "[GAEMPLAY]",
+                    "type": "string"
+                },
+                "lan_only_cluster": {
+                    "description": "[NETWORK]",
+                    "type": "boolean"
+                },
+                "master_ip": {
+                    "type": "string"
+                },
+                "master_port": {
+                    "type": "integer"
+                },
+                "max_players": {
+                    "type": "integer"
+                },
+                "max_snapshots": {
+                    "type": "integer"
+                },
+                "offline_cluster": {
+                    "type": "boolean"
+                },
+                "pause_when_nobody": {
+                    "type": "boolean"
+                },
+                "pvp": {
+                    "type": "boolean"
+                },
+                "shard_enabled": {
+                    "description": "[SHARD]",
+                    "type": "boolean"
+                },
+                "steam_group_admins": {
+                    "type": "boolean"
+                },
+                "steam_group_id": {
+                    "description": "[STEAM]",
+                    "type": "string"
+                },
+                "steam_group_only": {
+                    "type": "boolean"
+                },
+                "tick_rate": {
+                    "type": "integer"
+                },
+                "vote_enabled": {
+                    "type": "boolean"
+                },
+                "vote_kick_enabled": {
+                    "type": "boolean"
+                },
+                "whitelist_slots": {
+                    "type": "integer"
+                }
+            }
+        },
+        "gameConfig.ClusterIniConfig": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "$ref": "#/definitions/gameConfig.ClusterIni"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "gameConfig.HomeConfigVO": {
+            "type": "object",
+            "properties": {
+                "cavesMapData": {
+                    "type": "string"
+                },
+                "clusterDescription": {
+                    "type": "string"
+                },
+                "clusterIntention": {
+                    "type": "string"
+                },
+                "clusterName": {
+                    "type": "string"
+                },
+                "clusterPassword": {
+                    "type": "string"
+                },
+                "gameMode": {
+                    "type": "string"
+                },
+                "masterMapData": {
+                    "type": "string"
+                },
+                "maxPlayers": {
+                    "type": "integer"
+                },
+                "max_snapshots": {
+                    "type": "integer"
+                },
+                "modData": {
+                    "type": "string"
+                },
+                "pause_when_nobody": {
+                    "type": "boolean"
+                },
+                "pvp": {
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "vote_enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handler.LevelStatus": {
+            "type": "object",
+            "properties": {
+                "Ps": {
+                    "$ref": "#/definitions/game.DstPsAux"
+                },
+                "isMaster": {
+                    "type": "boolean"
+                },
+                "levelName": {
+                    "type": "string"
+                },
+                "leveldataoverride": {
+                    "type": "string"
+                },
+                "modoverrides": {
+                    "type": "string"
+                },
+                "runVersion": {
+                    "type": "integer"
+                },
+                "serverIni": {
+                    "$ref": "#/definitions/levelConfig.ServerIni"
+                },
+                "status": {
+                    "type": "boolean"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "levelConfig.LevelInfo": {
+            "type": "object",
+            "properties": {
+                "isMaster": {
+                    "type": "boolean"
+                },
+                "levelName": {
+                    "type": "string"
+                },
+                "leveldataoverride": {
+                    "type": "string"
+                },
+                "modoverrides": {
+                    "type": "string"
+                },
+                "runVersion": {
+                    "type": "integer"
+                },
+                "server_ini": {
+                    "$ref": "#/definitions/levelConfig.ServerIni"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "levelConfig.ServerIni": {
+            "type": "object",
+            "properties": {
+                "authentication_port": {
+                    "description": "[STEAM]",
+                    "type": "integer"
+                },
+                "encode_user_path": {
+                    "description": "[ACCOUNT]",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_master": {
+                    "description": "[SHARD]",
+                    "type": "boolean"
+                },
+                "master_server_port": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "server_port": {
+                    "description": "[NETWORK]",
+                    "type": "integer"
+                }
+            }
+        },
+        "login.UserInfo": {
+            "type": "object",
+            "properties": {
+                "displayName": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "photoURL": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "mod.ModInfo": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "child": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "consumer_appid": {
+                    "type": "number"
+                },
+                "creator_appid": {
+                    "type": "number"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "file_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "img": {
+                    "type": "string"
+                },
+                "last_time": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sub": {
+                    "type": "integer"
+                },
+                "time": {
+                    "type": "integer"
+                },
+                "v": {
+                    "type": "string"
+                },
+                "vote": {
+                    "type": "object",
+                    "properties": {
+                        "num": {
+                            "type": "integer"
+                        },
+                        "star": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "model.BackupSnapshot": {
+            "type": "object"
+        },
+        "response.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "提示代码",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "数据"
+                },
+                "msg": {
+                    "description": "提示信息",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
