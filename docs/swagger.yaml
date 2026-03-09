@@ -1,0 +1,1665 @@
+basePath: /
+definitions:
+  dstConfig.DstConfig:
+    properties:
+      backup:
+        type: string
+      beta:
+        type: integer
+      bin:
+        type: integer
+      cluster:
+        type: string
+      conf_dir:
+        description: 存档相对位置
+        type: string
+      donot_starve_server_directory:
+        type: string
+      force_install_dir:
+        type: string
+      mod_download_path:
+        type: string
+      persistent_storage_root:
+        description: 根目录位置
+        type: string
+      steamcmd:
+        type: string
+      ugc_directory:
+        type: string
+    type: object
+  game.DstPsAux:
+    properties:
+      RSS:
+        type: string
+      VSZ:
+        type: string
+      cpuUage:
+        type: string
+      memUage:
+        type: string
+    type: object
+  gameConfig.ClusterIni:
+    properties:
+      bind_ip:
+        type: string
+      cluster_description:
+        type: string
+      cluster_intention:
+        type: string
+      cluster_key:
+        type: string
+      cluster_language:
+        type: string
+      cluster_name:
+        type: string
+      cluster_password:
+        type: string
+      console_enabled:
+        description: '[MISC]'
+        type: boolean
+      game_mode:
+        description: '[GAEMPLAY]'
+        type: string
+      lan_only_cluster:
+        description: '[NETWORK]'
+        type: boolean
+      master_ip:
+        type: string
+      master_port:
+        type: integer
+      max_players:
+        type: integer
+      max_snapshots:
+        type: integer
+      offline_cluster:
+        type: boolean
+      pause_when_nobody:
+        type: boolean
+      pvp:
+        type: boolean
+      shard_enabled:
+        description: '[SHARD]'
+        type: boolean
+      steam_group_admins:
+        type: boolean
+      steam_group_id:
+        description: '[STEAM]'
+        type: string
+      steam_group_only:
+        type: boolean
+      tick_rate:
+        type: integer
+      vote_enabled:
+        type: boolean
+      vote_kick_enabled:
+        type: boolean
+      whitelist_slots:
+        type: integer
+    type: object
+  gameConfig.ClusterIniConfig:
+    properties:
+      cluster:
+        $ref: '#/definitions/gameConfig.ClusterIni'
+      token:
+        type: string
+    type: object
+  gameConfig.HomeConfigVO:
+    properties:
+      cavesMapData:
+        type: string
+      clusterDescription:
+        type: string
+      clusterIntention:
+        type: string
+      clusterName:
+        type: string
+      clusterPassword:
+        type: string
+      gameMode:
+        type: string
+      masterMapData:
+        type: string
+      max_snapshots:
+        type: integer
+      maxPlayers:
+        type: integer
+      modData:
+        type: string
+      pause_when_nobody:
+        type: boolean
+      pvp:
+        type: boolean
+      token:
+        type: string
+      type:
+        type: integer
+      vote_enabled:
+        type: boolean
+    type: object
+  handler.LevelStatus:
+    properties:
+      Ps:
+        $ref: '#/definitions/game.DstPsAux'
+      isMaster:
+        type: boolean
+      levelName:
+        type: string
+      leveldataoverride:
+        type: string
+      modoverrides:
+        type: string
+      runVersion:
+        type: integer
+      serverIni:
+        $ref: '#/definitions/levelConfig.ServerIni'
+      status:
+        type: boolean
+      uuid:
+        type: string
+    type: object
+  levelConfig.LevelInfo:
+    properties:
+      isMaster:
+        type: boolean
+      levelName:
+        type: string
+      leveldataoverride:
+        type: string
+      modoverrides:
+        type: string
+      runVersion:
+        type: integer
+      server_ini:
+        $ref: '#/definitions/levelConfig.ServerIni'
+      uuid:
+        type: string
+    type: object
+  levelConfig.ServerIni:
+    properties:
+      authentication_port:
+        description: '[STEAM]'
+        type: integer
+      encode_user_path:
+        description: '[ACCOUNT]'
+        type: boolean
+      id:
+        type: integer
+      is_master:
+        description: '[SHARD]'
+        type: boolean
+      master_server_port:
+        type: integer
+      name:
+        type: string
+      server_port:
+        description: '[NETWORK]'
+        type: integer
+    type: object
+  login.UserInfo:
+    properties:
+      displayName:
+        type: string
+      password:
+        type: string
+      photoURL:
+        type: string
+      username:
+        type: string
+    type: object
+  mod.ModInfo:
+    properties:
+      author:
+        type: string
+      child:
+        items:
+          type: string
+        type: array
+      consumer_appid:
+        type: number
+      creator_appid:
+        type: number
+      desc:
+        type: string
+      file_url:
+        type: string
+      id:
+        type: string
+      img:
+        type: string
+      last_time:
+        type: number
+      name:
+        type: string
+      sub:
+        type: integer
+      time:
+        type: integer
+      v:
+        type: string
+      vote:
+        properties:
+          num:
+            type: integer
+          star:
+            type: integer
+        type: object
+    type: object
+  model.BackupSnapshot:
+    type: object
+  response.Response:
+    properties:
+      code:
+        description: 提示代码
+        type: integer
+      data:
+        description: 数据
+      msg:
+        description: 提示信息
+        type: string
+    type: object
+host: localhost:8082
+info:
+  contact:
+    name: API Support
+    url: https://github.com/carrot-hu23/dst-admin-go
+  description: 饥荒联机版服务器管理后台 API 文档
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: DST Admin Go API
+  version: "1.0"
+paths:
+  /api/cluster/level:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的世界
+      parameters:
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除世界
+      tags:
+      - level
+    get:
+      consumes:
+      - application/json
+      description: 获取指定世界的详细信息
+      parameters:
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取单个世界
+      tags:
+      - level
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的世界(等级)
+      parameters:
+      - description: 世界配置信息
+        in: body
+        name: level
+        required: true
+        schema:
+          $ref: '#/definitions/levelConfig.LevelInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 创建世界
+      tags:
+      - level
+    put:
+      consumes:
+      - application/json
+      description: 批量更新多个世界的配置信息
+      parameters:
+      - description: 世界配置信息列表
+        in: body
+        name: levels
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/levelConfig.LevelInfo'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 批量更新世界
+      tags:
+      - level
+  /api/dst/map/gen:
+    get:
+      description: 生成地图
+      parameters:
+      - description: levelName
+        in: query
+        name: levelName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 生成地图
+      tags:
+      - dstMap
+  /api/dst/map/has/walrusHut/plains:
+    get:
+      description: 检测地图中是否有walrusHutPlains
+      parameters:
+      - description: levelName
+        in: query
+        name: levelName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 检测地图中是否有walrusHutPlains
+      tags:
+      - dstMap
+  /api/dst/map/image:
+    get:
+      description: 获取地图图片
+      parameters:
+      - description: levelName
+        in: query
+        name: levelName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取地图图片
+      tags:
+      - dstMap
+  /api/dst/map/player/session/file:
+    get:
+      description: 获取玩家存档文件
+      parameters:
+      - description: levelName
+        in: query
+        name: levelName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取玩家存档文件
+      tags:
+      - dstMap
+  /api/dst/map/session/file:
+    get:
+      description: 获取存档文件
+      parameters:
+      - description: levelName
+        in: query
+        name: levelName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取存档文件
+      tags:
+      - dstMap
+  /api/game/8level/status:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有世界的运行状态信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.LevelStatus'
+                  type: array
+              type: object
+      summary: 获取服务器状态
+      tags:
+      - game
+  /api/game/archive:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前集群的游戏存档列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取游戏存档列表
+      tags:
+      - game
+  /api/game/backup:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的备份文件
+      parameters:
+      - description: 要删除的文件名列表
+        in: body
+        name: fileNames
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除备份
+      tags:
+      - backup
+    get:
+      consumes:
+      - application/json
+      description: 获取当前集群的所有备份文件列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取备份列表
+      tags:
+      - backup
+    post:
+      consumes:
+      - application/json
+      description: 创建新的游戏存档备份
+      parameters:
+      - description: 备份名称
+        in: query
+        name: backupName
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 创建备份
+      tags:
+      - backup
+    put:
+      consumes:
+      - application/json
+      description: 重命名指定的备份文件
+      parameters:
+      - description: 请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 重命名备份
+      tags:
+      - backup
+  /api/game/backup/download:
+    get:
+      consumes:
+      - application/json
+      description: 下载指定的备份文件
+      parameters:
+      - description: 备份文件名
+        in: query
+        name: backupName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 下载备份
+      tags:
+      - backup
+  /api/game/backup/snapshot/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前集群的所有快照备份列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取快照列表
+      tags:
+      - backup
+  /api/game/backup/snapshot/setting:
+    get:
+      consumes:
+      - application/json
+      description: 获取自动快照备份的设置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取快照设置
+      tags:
+      - backup
+    post:
+      consumes:
+      - application/json
+      description: 保存自动快照备份的设置
+      parameters:
+      - description: 快照设置
+        in: body
+        name: setting
+        required: true
+        schema:
+          $ref: '#/definitions/model.BackupSnapshot'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存快照设置
+      tags:
+      - backup
+  /api/game/backup/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传新的备份文件
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 上传备份
+      tags:
+      - backup
+  /api/game/command:
+    post:
+      consumes:
+      - application/json
+      description: 运行命令
+      parameters:
+      - description: 命令
+        in: query
+        name: command
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 运行命令
+      tags:
+      - game
+  /api/game/config:
+    get:
+      consumes:
+      - application/json
+      description: 获取房间配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/gameConfig.HomeConfigVO'
+              type: object
+      summary: 获取房间配置
+      tags:
+      - gameConfig
+  /api/game/config/adminlist:
+    get:
+      consumes:
+      - application/json
+      description: 获取房间 adminlist.txt 配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    type: string
+                  type: array
+              type: object
+      summary: 获取房间 adminlist.txt 配置
+      tags:
+      - gameConfig
+    post:
+      consumes:
+      - application/json
+      description: 保存房间 adminlist.txt 配置
+      parameters:
+      - description: adminlist.txt 配置
+        in: body
+        name: list
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存房间 adminlist.txt 配置
+      tags:
+      - gameConfig
+  /api/game/config/blacklist:
+    get:
+      consumes:
+      - application/json
+      description: 获取房间 blacklist.txt 配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    type: string
+                  type: array
+              type: object
+      summary: 获取房间 blacklist.txt 配置
+      tags:
+      - gameConfig
+    post:
+      consumes:
+      - application/json
+      description: 保存房间 blacklist.txt 配置
+      parameters:
+      - description: blacklist.txt 配置
+        in: body
+        name: list
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存房间 blacklist.txt 配置
+      tags:
+      - gameConfig
+  /api/game/config/clusterIni:
+    get:
+      consumes:
+      - application/json
+      description: 获取房间 cluster.ini 配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/gameConfig.ClusterIniConfig'
+              type: object
+      summary: 获取房间 cluster.ini 配置
+      tags:
+      - gameConfig
+    post:
+      consumes:
+      - application/json
+      description: 保存房间 cluster.ini 配置
+      parameters:
+      - description: cluster.ini 配置
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/gameConfig.ClusterIniConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存房间 cluster.ini 配置
+      tags:
+      - gameConfig
+  /api/game/config/whitelist:
+    get:
+      consumes:
+      - application/json
+      description: 获取房间 whitelist.txt 配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    type: string
+                  type: array
+              type: object
+      summary: 获取房间 whitelist.txt 配置
+      tags:
+      - gameConfig
+    post:
+      consumes:
+      - application/json
+      description: 保存房间 whitelist.txt 配置
+      parameters:
+      - description: whitelist.txt 配置
+        in: body
+        name: list
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存房间 whitelist.txt 配置
+      tags:
+      - gameConfig
+  /api/game/dst/config:
+    get:
+      consumes:
+      - application/json
+      description: 获取房间 dst 配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dstConfig.DstConfig'
+              type: object
+      summary: 获取房间 dst 配置
+      tags:
+      - dstConfig
+    post:
+      consumes:
+      - application/json
+      description: 保存房间 dst 配置
+      parameters:
+      - description: dst 配置
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/dstConfig.DstConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存房间 dst 配置
+      tags:
+      - dstConfig
+  /api/game/level/server/download:
+    get:
+      description: 下载指定世界的完整服务器日志文件
+      parameters:
+      - description: 集群名称
+        in: query
+        name: clusterName
+        type: string
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: 服务器日志文件
+          schema:
+            type: file
+      summary: 下载服务器日志
+      tags:
+      - log
+  /api/game/level/server/log:
+    get:
+      description: 获取指定世界的服务器日志（默认最近100行）
+      parameters:
+      - description: 集群名称
+        in: query
+        name: clusterName
+        type: string
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      - description: 返回日志行数，默认为100
+        in: query
+        name: lines
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务器日志列表
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    type: string
+                  type: array
+              type: object
+      summary: 获取服务器日志
+      tags:
+      - log
+  /api/game/log/stream:
+    get:
+      consumes:
+      - text/event-stream
+      description: 获取指定世界的实时日志流 (SSE)
+      parameters:
+      - description: 集群名称
+        in: query
+        name: clusterName
+        type: string
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE 格式的日志流
+          schema:
+            type: string
+      summary: 服务器日志流
+      tags:
+      - log
+  /api/game/start:
+    get:
+      consumes:
+      - application/json
+      description: 启动世界
+      parameters:
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 启动世界
+      tags:
+      - game
+  /api/game/start/all:
+    get:
+      consumes:
+      - application/json
+      description: 启动所有世界
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 启动所有世界
+      tags:
+      - game
+  /api/game/stop:
+    get:
+      consumes:
+      - application/json
+      description: 停止世界
+      parameters:
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 停止世界
+      tags:
+      - game
+  /api/game/stop/all:
+    get:
+      consumes:
+      - application/json
+      description: 停止所有世界
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 停止所有世界
+      tags:
+      - game
+  /api/game/system/info/stream:
+    get:
+      consumes:
+      - text/event-stream
+      description: 获取服务器系统信息的实时流 (SSE)
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE 格式的系统信息流
+          schema:
+            type: string
+      summary: 系统信息流
+      tags:
+      - game
+  /api/game/update:
+    get:
+      description: 更新游戏
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新游戏
+      tags:
+      - update
+  /api/init:
+    get:
+      consumes:
+      - application/json
+      description: 检查系统是否进行了首次初始化
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 检查是否首次初始化
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: 初始化系统首次用户信息
+      parameters:
+      - description: 用户信息
+        in: body
+        name: userInfo
+        required: true
+        schema:
+          $ref: '#/definitions/login.UserInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 初始化首次用户
+      tags:
+      - user
+  /api/kv:
+    get:
+      description: 获取kv值
+      parameters:
+      - description: key
+        in: query
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取kv值
+      tags:
+      - kv
+    post:
+      description: 保存kv值
+      parameters:
+      - description: key
+        in: formData
+        name: key
+        required: true
+        type: string
+      - description: value
+        in: formData
+        name: value
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 保存kv值
+      tags:
+      - kv
+  /api/mod:
+    get:
+      consumes:
+      - application/json
+      description: 获取已订阅的模组列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取我的mod列表
+      tags:
+      - mod
+  /api/mod/{modId}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据modId删除模组
+      parameters:
+      - description: 模组ID
+        in: path
+        name: modId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除模组
+      tags:
+      - mod
+    get:
+      consumes:
+      - application/json
+      description: 根据modId获取模组详细信息
+      parameters:
+      - description: 模组ID
+        in: path
+        name: modId
+        required: true
+        type: string
+      - default: zh
+        description: 语言
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取mod信息
+      tags:
+      - mod
+    put:
+      consumes:
+      - application/json
+      description: 根据modId更新模组
+      parameters:
+      - description: 模组ID
+        in: path
+        name: modId
+        required: true
+        type: string
+      - default: zh
+        description: 语言
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新模组
+      tags:
+      - mod
+  /api/mod/modinfo:
+    post:
+      consumes:
+      - application/json
+      description: 保存模组配置信息
+      parameters:
+      - description: 模组信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/mod.ModInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mod.ModInfo'
+              type: object
+      summary: 保存模组配置文件
+      tags:
+      - mod
+    put:
+      consumes:
+      - application/json
+      description: 批量更新所有已订阅模组的信息
+      parameters:
+      - default: zh
+        description: 语言
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 批量更新模组信息
+      tags:
+      - mod
+  /api/mod/modinfo/{modId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据modId获取模组配置文件内容
+      parameters:
+      - description: 模组ID
+        in: path
+        name: modId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mod.ModInfo'
+              type: object
+      summary: 获取模组配置文件
+      tags:
+      - mod
+  /api/mod/modinfo/file:
+    post:
+      consumes:
+      - application/json
+      description: 手动添加模组配置文件
+      parameters:
+      - description: 模组信息
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      - default: zh
+        description: 语言
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 手动添加模组
+      tags:
+      - mod
+  /api/mod/search:
+    get:
+      consumes:
+      - application/json
+      description: 搜索Steam创意工坊中的模组
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: text
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: size
+        type: integer
+      - default: zh
+        description: 语言
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 搜索mod列表
+      tags:
+      - mod
+  /api/mod/setup/workshop:
+    delete:
+      consumes:
+      - application/json
+      description: 删除所有workshop模组文件
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除workshop文件
+      tags:
+      - mod
+  /api/mod/ugc:
+    delete:
+      consumes:
+      - application/json
+      description: 删除UGC模组文件
+      parameters:
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      - description: WorkshopID
+        in: query
+        name: workshopId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除UGC模组文件
+      tags:
+      - mod
+  /api/mod/ugc/acf:
+    get:
+      consumes:
+      - application/json
+      description: 获取UGC模组的ACF文件信息
+      parameters:
+      - description: 世界名称
+        in: query
+        name: levelName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取UGC mod acf文件信息
+      tags:
+      - mod
+  /api/player/log:
+    get:
+      description: 分页查询玩家日志
+      parameters:
+      - description: 玩家名称
+        in: query
+        name: name
+        type: string
+      - description: KuId
+        in: query
+        name: kuId
+        type: string
+      - description: SteamId
+        in: query
+        name: steamId
+        type: string
+      - description: 角色
+        in: query
+        name: role
+        type: string
+      - description: 操作
+        in: query
+        name: action
+        type: string
+      - description: IP地址
+        in: query
+        name: ip
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: size
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 分页查询玩家日志
+      tags:
+      - playerLog
+  /api/player/log/delete:
+    post:
+      description: 删除玩家日志
+      parameters:
+      - description: ID列表
+        in: body
+        name: ids
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除玩家日志
+      tags:
+      - playerLog
+  /api/player/log/delete/all:
+    get:
+      description: 删除所有玩家
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除所有玩家日志
+      tags:
+      - playerLog
+  /api/user/changePassword:
+    post:
+      consumes:
+      - application/json
+      description: 修改密码
+      parameters:
+      - description: 新密码
+        in: body
+        name: password
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 修改密码
+      tags:
+      - user
+  /api/user/info:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/login.UserInfo'
+              type: object
+      summary: 获取用户信息
+      tags:
+      - user
+  /api/user/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录
+      parameters:
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/login.UserInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 用户登录
+      tags:
+      - user
+  /api/user/logout:
+    get:
+      consumes:
+      - application/json
+      description: 用户登出
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 用户登出
+      tags:
+      - user
+  /api/user/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新用户信息
+      parameters:
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新用户信息
+      tags:
+      - user
+  /backup/restore:
+    get:
+      consumes:
+      - application/json
+      description: 从备份文件恢复游戏存档
+      parameters:
+      - description: 备份文件名
+        in: query
+        name: backupName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 恢复备份
+      tags:
+      - backup
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

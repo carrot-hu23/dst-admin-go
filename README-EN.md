@@ -5,45 +5,82 @@
 
 [English](README-EN.md)/[中文](README.md)
 
-Don't Starve management panel written in go, easy to deploy, small memory usage, beautiful interface, simple operation, provides visual interface to operate room configuration and module online configuration, supports multi-room management, backup snapshot and other functions
+**Now supports both Windows and Linux platforms**
+
+## About
+
+DST Admin Go is a web-based management panel for "Don't Starve Together" dedicated servers, written in Go. Key features include:
+
+- 🚀 **Easy Deployment**: Single executable binary, no complex configuration required
+- 💾 **Low Resource Usage**: Built with Go, minimal memory footprint and high performance
+- 🎨 **Modern UI**: Clean and intuitive web interface
+- ⚙️ **Feature-Rich**:
+  - Visual configuration for game rooms and world settings
+  - Online mod management and configuration
+  - Multi-cluster and multi-world support
+  - Game save backup and snapshot restoration
+  - Player management (whitelist, blacklist, administrators)
+  - Real-time log viewing and game console access
+  - Automatic game server update detection
 
 ## Preview
 
-![首页效果](docs/image/登录.png)
-![首页效果](docs/image/房间.png)
-![首页效果](docs/image/mod.png)
-![首页效果](docs/image/mod配置.png)
-![统计效果](docs/image/统计.png)
-![面板效果](docs/image/面板.png)
-![日志效果](docs/image/日志.png)
+![首页效果](docs/image/dashboard.png)
+![首页效果](docs/image/panel.png)
+![首页效果](docs/image/toomanyitemplus.png)
+![首页效果](docs/image/player.png)
+![房间效果](docs/image/home.png)
+![世界效果](docs/image/level.png)
+![世界效果](docs/image/selectormod.png)
+![模组效果](docs/image/mod1.png)
+![模组效果](docs/image/mod3.png)
+![模组效果](docs/image/mod2.png)
+![日志效果](docs/image/playerlog.png)
+![大厅效果](docs/image/lobby.png)
 
 
 
 ## Run
 
-**config.yml**
-```
-#端口
+**Edit config.yml**
+```yaml
+# Bind address
+bindAddress: ""
+# Port
 port: 8082
+# Database
 database: dst-db
 ```
 
-
-run
-```
+Run
+```bash
 go mod tidy
-go run main.go
+go run cmd/server/main.go
 ```
 
 ## Build
 
+### Build for Linux
 
+```bash
+bash scripts/build_linux.sh
+# Output: dst-admin-go (Linux amd64 binary)
 ```
-打开 cmd
+
+### Build for Windows
+
+```bash
+bash scripts/build_window.sh
+# Output: dst-admin-go.exe (Windows amd64 binary)
+```
+
+### Cross-compile from Windows to Linux
+
+```cmd
+# Open cmd
 set GOARCH=amd64
 set GOOS=linux
-
-go build
+go build -o dst-admin-go cmd/server/main.go
 ```
 
 ## QQ Group
