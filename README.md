@@ -8,7 +8,7 @@
 **新面板 [泰拉瑞亚面板](https://github.com/carrot-hu23/terraria-panel-app) 支持window,linux 一键启动，内置 1449 版本**
 
 ## 推广
-**广告位招租，联系QQ 17628585445**
+**广告位招租，联系QQ 1762858544**
 
 [【腾讯云】热卖套餐配置低至32元/月起，助您一键开服，即刻畅玩，立享优惠！](https://cloud.tencent.com/act/cps/redirect?redirect=5878&cps_key=8478a20880d339923787a350f9f8cbf5&from=console)
 ![tengxunad1](docs/image/tengxunad1.png)
