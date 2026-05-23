@@ -370,6 +370,9 @@ func (s *GameUpdateCheck) Check(clusterName, levelName string) bool {
 	localDstVersion := gameService.GetLocalDstVersion(clusterName)
 	lastDstVersion := gameService.GetLastDstVersion()
 	log.Println("localDstVersion", localDstVersion, "lastDstVersion", lastDstVersion, lastDstVersion < localDstVersion)
+	if lastDstVersion == -1 {
+		return true
+	}
 	return lastDstVersion <= localDstVersion
 }
 

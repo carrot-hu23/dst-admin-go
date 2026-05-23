@@ -87,6 +87,9 @@ func initConfig() {
 	if _config.AutoUpdateModinfo.CheckInterval == 0 {
 		_config.AutoUpdateModinfo.CheckInterval = 5
 	}
+	if _config.DstVersionUrl == "" {
+		_config.DstVersionUrl = "http://ver.tugos.cn/getLocalVersion"
+	}
 	log.Println("config: ", _config)
 	global.Config = _config
 }

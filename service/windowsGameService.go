@@ -1,6 +1,7 @@
 package service
 
 import (
+	"dst-admin-go/config/global"
 	"dst-admin-go/model"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstUtils"
@@ -26,14 +27,18 @@ type WindowsGameService struct {
 
 func (g *WindowsGameService) GetLastDstVersion() int64 {
 
-	url := "http://ver.tugos.cn/getLocalVersion"
-	resp, err := http.Get(url)
+	url := global.Config.DstVersionUrl
+	client := &http.Client{Timeout: 350 * time.Millisecond}
+	resp, err := client.Get(url)
 	if err != nil {
 		log.Println(err)
+		return -1
 	}
+	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
+		return -1
 	}
 	s := string(body)
 	veriosn, err := strconv.Atoi(s)
