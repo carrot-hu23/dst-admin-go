@@ -28,7 +28,7 @@ type WindowsGameService struct {
 func (g *WindowsGameService) GetLastDstVersion() int64 {
 
 	url := global.Config.DstVersionUrl
-	client := &http.Client{Timeout: 350 * time.Millisecond}
+	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(url)
 	if err != nil {
 		log.Println(err)

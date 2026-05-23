@@ -13,17 +13,18 @@ import (
 	"dst-admin-go/utils/dstConfigUtils"
 	"dst-admin-go/utils/dstUtils"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/glebarez/sqlite"
-	"gopkg.in/yaml.v2"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
+	"gopkg.in/yaml.v2"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const logPath = "./dst-admin-go.log"
@@ -88,7 +89,7 @@ func initConfig() {
 		_config.AutoUpdateModinfo.CheckInterval = 5
 	}
 	if _config.DstVersionUrl == "" {
-		_config.DstVersionUrl = "http://ver.tugos.cn/getLocalVersion"
+		_config.DstVersionUrl = "https://api.dstserverlist.top/api/v2/Server/Version"
 	}
 	log.Println("config: ", _config)
 	global.Config = _config
