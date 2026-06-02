@@ -7,12 +7,14 @@ import (
 	"dst-admin-go/service/autoCheck"
 	"dst-admin-go/utils/clusterUtils"
 	"dst-admin-go/utils/dstConfigUtils"
+	"dst-admin-go/utils/dstUtils"
+	"dst-admin-go/utils/fileUtils"
+	"dst-admin-go/utils/levelConfigUtils"
 	"dst-admin-go/utils/shellUtils"
 	"dst-admin-go/vo"
 	"dst-admin-go/vo/level"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net"
@@ -23,6 +25,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 var gameLevel2Service = service.GameLevel2Service{}
@@ -267,6 +271,29 @@ func (g *GameLevel2Api) sendStatusData(ctx *gin.Context, clusterName string) {
 
 func startBefore(ctx *gin.Context) {
 	copyOsFile()
+	copyCommandLua()
+}
+
+func copyCommandLua() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
+	config := dstConfigUtils.GetDstConfig()
+	cluster := config.Cluster
+	clusterBasePath := dstUtils.GetClusterBasePath(cluster)
+	levelConfig, _ := levelConfigUtils.GetLevelConfig(cluster)
+	commandsContent, _ := fileUtils.ReadFile("./static/template/customcommands.lua")
+	for _, item := range levelConfig.LevelList {
+		levelName := item.File
+		levelPath := filepath.Join(clusterBasePath, levelName)
+		commandFile := filepath.Join(levelPath, "customcommands.lua")
+		if !fileUtils.Exists(commandFile) {
+			fileUtils.CreateFile(commandFile)
+			fileUtils.WriterTXT(commandFile, commandsContent)
+		}
+	}
 }
 
 func copyOsFile() {
@@ -356,6 +383,7 @@ func (g *GameLevel2Api) Stop(ctx *gin.Context) {
 
 // Start 启动世界
 func (g *GameLevel2Api) StartAll(ctx *gin.Context) {
+	startBefore(ctx)
 	cluster := clusterUtils.GetClusterFromGin(ctx)
 	clusterName := cluster.ClusterName
 
