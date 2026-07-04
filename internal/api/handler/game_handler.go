@@ -4,7 +4,6 @@ import (
 	"dst-admin-go/internal/middleware"
 	"dst-admin-go/internal/pkg/context"
 	"dst-admin-go/internal/pkg/response"
-	"dst-admin-go/internal/pkg/utils/shellUtils"
 	"dst-admin-go/internal/pkg/utils/systemUtils"
 	"dst-admin-go/internal/service/archive"
 	"dst-admin-go/internal/service/game"
@@ -15,7 +14,6 @@ import (
 	"log"
 	"net/http"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 
@@ -41,9 +39,9 @@ func NewGameHandler(process game.Process, levelService *level.LevelService, game
 }
 
 func (p *GameHandler) RegisterRoute(router *gin.RouterGroup) {
-	router.GET("/api/game/8level/start", p.Start, middleware.StartBeforeMiddleware(p.archive, p.levelConfigUtils))
+	router.GET("/api/game/8level/start", middleware.StartBeforeMiddleware(p.archive, p.levelConfigUtils), p.Start)
 	router.GET("/api/game/8level/stop", p.Stop)
-	router.GET("/api/game/8level/start/all", p.StartAll, middleware.StartBeforeMiddleware(p.archive, p.levelConfigUtils))
+	router.GET("/api/game/8level/start/all", middleware.StartBeforeMiddleware(p.archive, p.levelConfigUtils), p.StartAll)
 	router.GET("/api/game/8level/stop/all", p.StopAll)
 	router.POST("/api/game/8level/command", p.Command)
 	router.GET("/api/game/8level/status", p.Status)
@@ -72,6 +70,8 @@ func (p *GameHandler) Stop(ctx *gin.Context) {
 	err := p.process.Stop(clusterName, levelName)
 	if err != nil {
 		ctx.JSON(http.StatusOK, response.Response{Code: 500, Msg: "failed to stop game server: " + err.Error()})
+	} else if !p.waitForLevelStatus(clusterName, levelName, false, 8*time.Second) {
+		ctx.JSON(http.StatusOK, response.Response{Code: 500, Msg: "game server stop command was sent but process is still running"})
 	} else {
 		ctx.JSON(http.StatusOK, response.Response{Code: 200, Msg: "success"})
 	}
@@ -96,8 +96,24 @@ func (p *GameHandler) Start(ctx *gin.Context) {
 	err := p.process.Start(clusterName, levelName)
 	if err != nil {
 		ctx.JSON(http.StatusOK, response.Response{Code: 500, Msg: "failed to start game server: " + err.Error()})
+	} else if !p.waitForLevelStatus(clusterName, levelName, true, 12*time.Second) {
+		ctx.JSON(http.StatusOK, response.Response{Code: 500, Msg: "game server start command was sent but process did not stay running"})
 	} else {
 		ctx.JSON(http.StatusOK, response.Response{Code: 200, Msg: "success"})
+	}
+}
+
+func (p *GameHandler) waitForLevelStatus(clusterName, levelName string, expected bool, timeout time.Duration) bool {
+	deadline := time.Now().Add(timeout)
+	for {
+		status, err := p.process.Status(clusterName, levelName)
+		if err == nil && status == expected {
+			return true
+		}
+		if time.Now().After(deadline) {
+			return false
+		}
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
@@ -237,8 +253,11 @@ func (p *GameHandler) Status(ctx *gin.Context) {
 	} else {
 		for i := range levelList {
 			levelItem := levelList[i]
+			ps := p.process.PsAuxSpecified(clusterName, levelItem.Uuid)
+			status, _ := p.process.Status(clusterName, levelItem.Uuid)
 			result[i] = LevelStatus{
-				Status:            false,
+				Ps:                ps,
+				Status:            status,
 				RunVersion:        levelItem.RunVersion,
 				LevelName:         levelItem.LevelName,
 				IsMaster:          levelItem.IsMaster,
@@ -246,32 +265,6 @@ func (p *GameHandler) Status(ctx *gin.Context) {
 				Leveldataoverride: levelItem.Leveldataoverride,
 				Modoverrides:      levelItem.Modoverrides,
 				ServerIni:         levelItem.ServerIni,
-			}
-		}
-
-		cmd := "ps -aux | grep -v grep | grep -v tail | grep -v SCREEN | grep " + clusterName + " |awk '{print $3, $4, $5, $6,$16}'"
-		info, err := shellUtils.Shell(cmd)
-		if err != nil {
-			log.Println(cmd + " error: " + err.Error())
-		} else {
-			lines := strings.Split(info, "\n")
-			for lineIndex := range lines {
-				dstPsVo := game.DstPsAux{}
-				arr := strings.Split(lines[lineIndex], " ")
-				if len(arr) > 4 {
-					dstPsVo.CpuUage = strings.Replace(arr[0], "\n", "", -1)
-					dstPsVo.MemUage = strings.Replace(arr[1], "\n", "", -1)
-					dstPsVo.VSZ = strings.Replace(arr[2], "\n", "", -1)
-					dstPsVo.RSS = strings.Replace(arr[3], "\n", "", -1)
-					for i := range result {
-						levelName := result[i].Uuid
-						if strings.Contains(arr[4], levelName) {
-							result[i].Ps = dstPsVo
-							result[i].Status = true
-						}
-					}
-				}
-
 			}
 		}
 		ctx.JSON(http.StatusOK, response.Response{

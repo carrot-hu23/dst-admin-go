@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/internal/service/dstConfig"
 	"dst-admin-go/internal/service/levelConfig"
 	"log"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -99,14 +100,16 @@ func (p *LinuxProcess) shutdownLevel(clusterName, levelName string) error {
 }
 
 func (p *LinuxProcess) killLevel(clusterName, level string) error {
-
-	if ok, err := p.Status(clusterName, level); err != nil || !ok {
+	pids, err := p.levelPids(clusterName, level)
+	if err != nil {
+		return err
+	}
+	if len(pids) == 0 {
 		return nil
 	}
-	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + level + " |sed -n '1P'|awk '{print $2}' |xargs kill -9"
-	log.Println("正在kill世界", "cluster: ", clusterName, "level: ", level, "command: ", cmd)
-	_, err := shellUtils.Shell(cmd)
-	return err
+	log.Println("正在kill世界", "cluster: ", clusterName, "level: ", level, "pids: ", strings.Join(pids, ","))
+	args := append([]string{"-9"}, pids...)
+	return exec.Command("kill", args...).Run()
 }
 
 func (p *LinuxProcess) Stop(clusterName, levelName string) error {
@@ -123,7 +126,7 @@ func (p *LinuxProcess) stop(clusterName, levelName string) error {
 	if ok, err := p.Status(clusterName, levelName); err == nil && ok {
 		var i uint8 = 1
 		for {
-			if ok, err := p.Status(clusterName, levelName); err == nil && ok {
+			if ok, err := p.Status(clusterName, levelName); err == nil && !ok {
 				break
 			}
 			p.shutdownLevel(clusterName, levelName)
@@ -208,13 +211,30 @@ func (p *LinuxProcess) stopAll(clusterName string) error {
 }
 
 func (p *LinuxProcess) Status(clusterName, levelName string) (bool, error) {
-	cmd := " ps -ef | grep -v grep | grep -v tail |grep '" + clusterName + "'|grep " + levelName + " |sed -n '1P'|awk '{print $2}' "
-	result, err := shellUtils.Shell(cmd)
+	pids, err := p.levelPids(clusterName, levelName)
 	if err != nil {
-		return false, nil
+		return false, err
 	}
-	res := strings.Split(result, "\n")[0]
-	return res != "", nil
+	return len(pids) > 0, nil
+}
+
+func (p *LinuxProcess) levelPids(clusterName, levelName string) ([]string, error) {
+	output, err := exec.Command("ps", "-eo", "pid,comm,args", "--no-headers").Output()
+	if err != nil {
+		return nil, err
+	}
+	var pids []string
+	for _, line := range strings.Split(string(output), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) < 3 {
+			continue
+		}
+		pid, comm, args := fields[0], fields[1], strings.Join(fields[2:], " ")
+		if strings.Contains(comm, "dontstarve") && strings.Contains(args, clusterName) && strings.Contains(args, levelName) {
+			pids = append(pids, pid)
+		}
+	}
+	return pids, nil
 }
 
 func (p *LinuxProcess) Command(clusterName, levelName, command string) error {
@@ -225,22 +245,28 @@ func (p *LinuxProcess) Command(clusterName, levelName, command string) error {
 
 func (p *LinuxProcess) PsAuxSpecified(clusterName, levelName string) DstPsAux {
 	dstPsAux := DstPsAux{}
-	cmd := "ps -aux | grep -v grep | grep -v tail | grep " + clusterName + "  | grep " + levelName + " | sed -n '2P' |awk '{print $3, $4, $5, $6}'"
-
-	info, err := shellUtils.Shell(cmd)
+	output, err := exec.Command("ps", "-eo", "pcpu,pmem,vsz,rss,etime,comm,args", "--no-headers").Output()
 	if err != nil {
-		log.Println(cmd + " error: " + err.Error())
-		return dstPsAux
-	}
-	if info == "" {
+		log.Println("ps status error: " + err.Error())
 		return dstPsAux
 	}
 
-	arr := strings.Split(info, " ")
-	dstPsAux.CpuUage = strings.Replace(arr[0], "\n", "", -1)
-	dstPsAux.MemUage = strings.Replace(arr[1], "\n", "", -1)
-	dstPsAux.VSZ = strings.Replace(arr[2], "\n", "", -1)
-	dstPsAux.RSS = strings.Replace(arr[3], "\n", "", -1)
+	for _, line := range strings.Split(string(output), "\n") {
+		arr := strings.Fields(line)
+		if len(arr) < 7 {
+			continue
+		}
+		args := strings.Join(arr[6:], " ")
+		if !strings.Contains(arr[5], "dontstarve") || !strings.Contains(args, clusterName) || !strings.Contains(args, levelName) {
+			continue
+		}
+		dstPsAux.CpuUage = arr[0]
+		dstPsAux.MemUage = arr[1]
+		dstPsAux.VSZ = arr[2]
+		dstPsAux.RSS = arr[3]
+		dstPsAux.Elapsed = arr[4]
+		return dstPsAux
+	}
 
 	return dstPsAux
 }
