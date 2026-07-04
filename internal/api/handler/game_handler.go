@@ -48,6 +48,7 @@ func (p *GameHandler) RegisterRoute(router *gin.RouterGroup) {
 	router.POST("/api/game/8level/command", p.Command)
 	router.GET("/api/game/8level/status", p.Status)
 	router.GET("/api/game/archive", p.GameArchive)
+	router.GET("/api/game/system/info", p.SystemInfo)
 	router.GET("/api/game/system/info/stream", p.SystemInfoStream)
 }
 
@@ -296,6 +297,22 @@ func (p *GameHandler) GameArchive(ctx *gin.Context) {
 		Code: 200,
 		Msg:  "success",
 		Data: archiveInfo,
+	})
+}
+
+// SystemInfo 获取服务器系统信息
+// @Summary 系统信息
+// @Description 获取服务器系统信息
+// @Tags game
+// @Produce json
+// @Success 200 {object} response.Response
+// @Router /api/game/system/info [get]
+func (p *GameHandler) SystemInfo(ctx *gin.Context) {
+	clusterName := context.GetClusterName(ctx)
+	ctx.JSON(http.StatusOK, response.Response{
+		Code: 200,
+		Msg:  "success",
+		Data: p.GetSystemInfo(clusterName),
 	})
 }
 

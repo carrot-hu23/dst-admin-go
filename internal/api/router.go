@@ -69,6 +69,13 @@ func RegisterStaticFile(app *gin.Engine) {
 		}
 	}()
 	app.Use(func(context *gin.Context) {
+		path := context.Request.URL.Path
+		if path == "/" || path == "/index.html" || path == "/asset-manifest.json" {
+			context.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			context.Writer.Header().Set("Pragma", "no-cache")
+			context.Writer.Header().Set("Expires", "0")
+			return
+		}
 		context.Writer.Header().Set("Cache-Control", "public, max-age=30672000")
 	})
 	app.LoadHTMLGlob("dist/index.html") // 添加入口index.html
