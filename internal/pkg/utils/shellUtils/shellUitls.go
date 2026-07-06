@@ -31,7 +31,10 @@ func ExecuteCommand(command string) (string, error) {
 		return "", fmt.Errorf("run command error: %v, ERROR: %s", err, stderr.String())
 	}
 	if stderr.String() != "" {
-		return "", fmt.Errorf("exec command error: %s", stderr.String())
+		if out.String() != "" {
+			return out.String() + "\n" + stderr.String(), nil
+		}
+		return stderr.String(), nil
 	}
 	return out.String(), nil
 }
