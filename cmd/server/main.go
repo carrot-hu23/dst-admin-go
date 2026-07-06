@@ -1,5 +1,5 @@
 // @title           DST Admin Go API
-// @version         1.0
+// @version         1.7.0
 // @description     饥荒联机版服务器管理后台 API 文档
 // @termsOfService  http://swagger.io/terms/
 

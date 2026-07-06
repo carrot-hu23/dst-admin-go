@@ -24,7 +24,7 @@ cd scripts/docker
 bash docker_build.sh <version_tag>
 
 # 示例
-bash docker_build.sh 1.6.1
+bash docker_build.sh 1.7.0
 ```
 
 ### 2. 运行容器
