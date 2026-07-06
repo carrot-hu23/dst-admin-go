@@ -10,6 +10,7 @@ import (
 	"dst-admin-go/internal/service/level"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -114,6 +115,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) GameArchiveInfo {
 		gameArchie.ClusterPassword = clusterIni.ClusterPassword
 		gameArchie.GameMod = clusterIni.GameMode
 		gameArchie.MaxPlayers = int(clusterIni.MaxPlayers)
+		log.Println("获取基础信息成功")
 		wg.Done()
 	}()
 
@@ -125,6 +127,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) GameArchiveInfo {
 		} else {
 			gameArchie.Mods = len(dstUtils.WorkshopIds(masterModoverrides))
 		}
+		log.Println("获取mod数量成功")
 		wg.Done()
 	}()
 
@@ -135,6 +138,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) GameArchiveInfo {
 			if r := recover(); r != nil {
 			}
 		}()
+		log.Println("获取天数和季节")
 		gameArchie.Meta = d.Snapshoot(clusterName)
 	}()
 
@@ -172,7 +176,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) GameArchiveInfo {
 		}
 		gameArchie.Port = serverIni.ServerPort
 		gameArchie.Ip = wanip
-
+		log.Println("获取直连ip成功")
 	}()
 
 	go func() {
@@ -187,6 +191,7 @@ func (d *GameArchive) GetGameArchive(clusterName string) GameArchiveInfo {
 
 		gameArchie.Version = localVersion
 		gameArchie.LastVersion = version
+		log.Println("获取版本信息成功")
 	}()
 
 	wg.Wait()
