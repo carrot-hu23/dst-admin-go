@@ -8,9 +8,11 @@ import (
 	"dst-admin-go/internal/service/game"
 	"dst-admin-go/internal/service/gameConfig"
 	"dst-admin-go/internal/service/levelConfig"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-ini/ini"
@@ -184,16 +186,41 @@ func (l *LevelService) GetServerIni(filepath string, isMaster bool) levelConfig.
 
 // UpdateLevels 更新多个关卡配置
 func (l *LevelService) UpdateLevels(clusterName string, levels []levelConfig.LevelInfo) error {
+	dstCfg, err := l.dstConfig.GetDstConfig(clusterName)
+	if err != nil {
+		return err
+	}
+	modoverridesList := make([]string, 0, len(levels))
 	for i := range levels {
-		config, _ := l.dstConfig.GetDstConfig(clusterName)
-		dstUtils.DedicatedServerModsSetup(config, levels[i].Modoverrides)
-		err := l.UpdateLevel(clusterName, &levels[i])
-		if err != nil {
-			return err
+		modoverridesList = append(modoverridesList, levels[i].Modoverrides)
+	}
+	if err := dstUtils.DedicatedServerModsSetupExact(dstCfg, modoverridesList); err != nil {
+		return err
+	}
+
+	levelCfg, err := l.levelConfigUtils.GetLevelConfig(clusterName)
+	if err != nil {
+		return err
+	}
+	levelIndex := make(map[string]int, len(levelCfg.LevelList))
+	for i := range levelCfg.LevelList {
+		levelIndex[levelCfg.LevelList[i].File] = i
+	}
+
+	for i := range levels {
+		levelFolderPath := filepath.Join(l.resolver.ClusterPath(clusterName), levels[i].Uuid)
+		fileUtils.CreateDirIfNotExists(levelFolderPath)
+		l.initLevel(levelFolderPath, &levels[i])
+
+		if idx, ok := levelIndex[levels[i].Uuid]; ok {
+			levelCfg.LevelList[idx].Name = levels[i].LevelName
+		} else {
+			levelCfg.LevelList = append(levelCfg.LevelList, levelConfig.Item{Name: levels[i].LevelName, File: levels[i].Uuid})
+			levelIndex[levels[i].Uuid] = len(levelCfg.LevelList) - 1
 		}
 	}
 
-	return nil
+	return l.levelConfigUtils.SaveLevelConfig(clusterName, levelCfg)
 }
 
 // UpdateLevel 更新单个关卡配置
@@ -248,8 +275,28 @@ func (l *LevelService) CreateLevel(clusterName string, level *levelConfig.LevelI
 
 // DeleteLevel 删除关卡
 func (l *LevelService) DeleteLevel(clusterName string, levelName string) error {
+	levelName = strings.TrimSpace(levelName)
+	if levelName == "" || strings.Contains(levelName, "/") || strings.Contains(levelName, "\\") || levelName == "." || levelName == ".." {
+		return fmt.Errorf("invalid level name: %q", levelName)
+	}
 	// 停止关卡服务
-	l.gameProcess.Stop(clusterName, levelName)
+	if err := l.gameProcess.Stop(clusterName, levelName); err != nil {
+		return err
+	}
+	deadline := time.Now().Add(60 * time.Second)
+	for {
+		running, err := l.gameProcess.Status(clusterName, levelName)
+		if err != nil {
+			return err
+		}
+		if !running {
+			break
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("level %s is still running after stop timeout", levelName)
+		}
+		time.Sleep(1 * time.Second)
+	}
 
 	// 删除关卡目录
 	err := fileUtils.DeleteDir(filepath.Join(l.resolver.ClusterPath(clusterName), levelName))

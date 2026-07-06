@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -75,8 +76,9 @@ func (h *LevelLogHandler) Stream(c *gin.Context) {
 		return
 	}
 
+	base, baseOK := inferDSTLogBaseTime(lines, time.Now())
 	for _, line := range lines {
-		writeSSE(w, "log", line)
+		writeSSE(w, "log", formatDSTLogLine(line, base, baseOK))
 	}
 	flusher.Flush()
 
@@ -101,7 +103,13 @@ func (h *LevelLogHandler) Stream(c *gin.Context) {
 			if !ok {
 				return
 			}
-			writeSSE(w, "log", line)
+			if m := hermesLogMarkerRE.FindStringSubmatch(line); len(m) == 3 {
+				if wall, err := time.ParseInLocation("2006-01-02 15:04:05", m[1], time.Local); err == nil {
+					base = wall.Add(-time.Duration(parseElapsedStringSeconds(m[2])) * time.Second)
+					baseOK = true
+				}
+			}
+			writeSSE(w, "log", formatDSTLogLine(line, base, baseOK))
 			flusher.Flush()
 
 		case <-heartbeat.C:
@@ -144,9 +152,10 @@ func (h *LevelLogHandler) GetServerLog(ctx *gin.Context) {
 		})
 		return
 	}
+	formatted := formatDSTLogLines(read, time.Now())
 	ctx.JSON(200, response.Response{
 		Code: 200,
-		Data: read,
+		Data: formatted,
 		Msg:  "success",
 	})
 }
@@ -168,10 +177,117 @@ func (h *LevelLogHandler) DownloadServerLog(ctx *gin.Context) {
 		return
 	}
 	serverLogPath := h.archive.ServerLogPath(clusterName, levelName)
-	ctx.Header("Content-Type", "application/octet-stream")
-	ctx.Header("Content-Disposition", "attachment; filename="+"server_log.txt")
+	content, err := os.ReadFile(serverLogPath)
+	if err != nil {
+		ctx.JSON(200, response.Response{Code: 500, Msg: "failed to read server log: " + err.Error(), Data: nil})
+		return
+	}
+	formatted := formatDSTLogWithWallClock(strings.Split(string(content), "\n"), time.Now())
+	filename := fmt.Sprintf("%s_%s_server_log_%s.txt", sanitizeDownloadName(clusterName), sanitizeDownloadName(levelName), time.Now().Format("20060102_150405"))
+	ctx.Header("Content-Type", "text/plain; charset=utf-8")
+	ctx.Header("Content-Disposition", "attachment; filename="+filename)
 	ctx.Header("Content-Transfer-Encoding", "binary")
-	ctx.File(serverLogPath)
+	ctx.String(http.StatusOK, formatted)
+}
+
+var dstLogPrefixRE = regexp.MustCompile(`^\[(\d+):(\d+):(\d+)\]:?\s*`)
+var dstCurrentTimeRE = regexp.MustCompile(`^\[(\d+):(\d+):(\d+)\].*?Current time:\s*(.+)$`)
+var hermesLogMarkerRE = regexp.MustCompile(`HERMES_LOG_MARKER\s+.*wall=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+elapsed=([0-9:]+)`)
+
+func sanitizeDownloadName(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return "unknown"
+	}
+	return regexp.MustCompile(`[^A-Za-z0-9._-]+`).ReplaceAllString(name, "_")
+}
+
+func formatDSTLogWithWallClock(lines []string, now time.Time) string {
+	return strings.Join(formatDSTLogLines(lines, now), "\n")
+}
+
+func formatDSTLogLines(lines []string, now time.Time) []string {
+	base, ok := inferDSTLogBaseTime(lines, now)
+	out := make([]string, 0, len(lines))
+	for _, line := range lines {
+		out = append(out, formatDSTLogLine(line, base, ok))
+	}
+	return out
+}
+
+func inferDSTLogBaseTime(lines []string, now time.Time) (time.Time, bool) {
+	for _, line := range lines {
+		m := hermesLogMarkerRE.FindStringSubmatch(line)
+		if len(m) == 3 {
+			wall, err := time.ParseInLocation("2006-01-02 15:04:05", m[1], time.Local)
+			if err == nil {
+				return wall.Add(-time.Duration(parseElapsedStringSeconds(m[2])) * time.Second), true
+			}
+		}
+	}
+	for _, line := range lines {
+		m := dstCurrentTimeRE.FindStringSubmatch(line)
+		if len(m) != 5 {
+			continue
+		}
+		current, err := time.Parse(time.ANSIC, strings.TrimSpace(m[4]))
+		if err != nil {
+			continue
+		}
+		elapsed := dstLogElapsedSeconds(m[1], m[2], m[3])
+		return current.Add(-time.Duration(elapsed) * time.Second), true
+	}
+	maxElapsed := -1
+	for _, line := range lines {
+		m := dstLogPrefixRE.FindStringSubmatch(line)
+		if len(m) == 4 {
+			elapsed := dstLogElapsedSeconds(m[1], m[2], m[3])
+			if elapsed > maxElapsed {
+				maxElapsed = elapsed
+			}
+		}
+	}
+	if maxElapsed >= 0 {
+		return now.Add(-time.Duration(maxElapsed) * time.Second), true
+	}
+	return time.Time{}, false
+}
+
+func dstLogElapsedSeconds(hh, mm, ss string) int {
+	h, _ := strconv.Atoi(hh)
+	m, _ := strconv.Atoi(mm)
+	s, _ := strconv.Atoi(ss)
+	return h*3600 + m*60 + s
+}
+
+func parseElapsedStringSeconds(elapsed string) int {
+	parts := strings.Split(strings.TrimSpace(elapsed), ":")
+	if len(parts) == 3 {
+		return dstLogElapsedSeconds(parts[0], parts[1], parts[2])
+	}
+	if len(parts) == 2 {
+		m, _ := strconv.Atoi(parts[0])
+		s, _ := strconv.Atoi(parts[1])
+		return m*60 + s
+	}
+	if len(parts) == 1 {
+		s, _ := strconv.Atoi(parts[0])
+		return s
+	}
+	return 0
+}
+
+func formatDSTLogLine(line string, base time.Time, ok bool) string {
+	m := dstLogPrefixRE.FindStringSubmatch(line)
+	if len(m) != 4 {
+		return line
+	}
+	elapsed := dstLogElapsedSeconds(m[1], m[2], m[3])
+	body := line[len(m[0]):]
+	if ok {
+		return fmt.Sprintf("[%s] %s", base.Add(time.Duration(elapsed)*time.Second).Format("2006-01-02 15:04:05"), body)
+	}
+	return line
 }
 
 func writeSSE(w io.Writer, event, data string) {

@@ -5,8 +5,11 @@ import (
 	"dst-admin-go/internal/pkg/utils/shellUtils"
 	"dst-admin-go/internal/service/dstConfig"
 	"dst-admin-go/internal/service/levelConfig"
+	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -15,14 +18,28 @@ import (
 type LinuxProcess struct {
 	dstConfig        dstConfig.Config
 	levelConfigUtils *levelConfig.LevelConfigUtils
-	mu               sync.Mutex // 保护启动/停止操作，防止并发执行
+	locksMu          sync.Mutex
+	levelLocks       map[string]*sync.Mutex // 按 cluster/level 保护启停；不同世界不能互相阻塞
 }
 
 func NewLinuxProcess(dstConfig dstConfig.Config, levelConfigUtils *levelConfig.LevelConfigUtils) *LinuxProcess {
 	return &LinuxProcess{
 		dstConfig:        dstConfig,
 		levelConfigUtils: levelConfigUtils,
+		levelLocks:       make(map[string]*sync.Mutex),
 	}
+}
+
+func (p *LinuxProcess) levelLock(clusterName, levelName string) *sync.Mutex {
+	key := clusterName + "/" + levelName
+	p.locksMu.Lock()
+	defer p.locksMu.Unlock()
+	lock := p.levelLocks[key]
+	if lock == nil {
+		lock = &sync.Mutex{}
+		p.levelLocks[key] = lock
+	}
+	return lock
 }
 
 func (p *LinuxProcess) SessionName(clusterName, levelName string) string {
@@ -30,12 +47,16 @@ func (p *LinuxProcess) SessionName(clusterName, levelName string) string {
 }
 
 func (p *LinuxProcess) Start(clusterName, levelName string) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	lock := p.levelLock(clusterName, levelName)
+	lock.Lock()
+	defer lock.Unlock()
 
-	err := p.stop(clusterName, levelName)
-	if err != nil {
+	if ok, err := p.Status(clusterName, levelName); err != nil {
 		return err
+	} else if ok {
+		// 单世界“启动”按钮应是幂等操作：已经运行就直接成功，不要先 stop 再 restart。
+		// 否则用户连续点击/批量点击时会把已启动世界重新关停，并让 UI 等待一次完整 shutdown。
+		return nil
 	}
 	return p.launchLevel(clusterName, levelName)
 }
@@ -53,6 +74,14 @@ func (p *LinuxProcess) launchLevel(clusterName, levelName string) error {
 	ugcDirectory := cluster.Ugc_directory
 	persistent_storage_root := cluster.Persistent_storage_root
 	conf_dir := cluster.Conf_dir
+	tokenPath := p.clusterTokenPath(clusterName, persistent_storage_root, conf_dir)
+	if stat, err := os.Stat(tokenPath); err != nil {
+		return fmt.Errorf("cluster token not found at %s: %w", tokenPath, err)
+	} else if stat.Size() == 0 {
+		return fmt.Errorf("cluster token is empty at %s", tokenPath)
+	} else {
+		log.Println("cluster token check ok", "cluster:", clusterName, "path:", tokenPath, "bytes:", stat.Size())
+	}
 	var startCmd = ""
 
 	dstInstallDir = dstUtils.EscapePath(dstInstallDir)
@@ -80,9 +109,94 @@ func (p *LinuxProcess) launchLevel(clusterName, levelName string) error {
 		startCmd += " -conf_dir " + conf_dir
 	}
 	startCmd += "  ;"
-	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", levelName, "command: ", startCmd)
-	_, err = shellUtils.Shell(startCmd)
+	launchCmd := p.wrapLaunchCommand(sessionName, startCmd)
+	log.Println("正在启动世界", "cluster: ", clusterName, "level: ", levelName, "command: ", launchCmd)
+	startedAt := time.Now()
+	_, err = shellUtils.Shell(launchCmd)
+	if err == nil {
+		go p.injectLogMarker(clusterName, levelName, startedAt)
+	}
 	return err
+}
+
+func (p *LinuxProcess) wrapLaunchCommand(sessionName, startCmd string) string {
+	// Docker/container deployments usually do not have systemd as PID 1 and must
+	// not depend on systemd-run/systemctl.  If a real systemd runtime is available
+	// we use a transient scope to protect game processes from panel service
+	// restarts; otherwise we fall back to plain screen, which is the Docker path.
+	if os.Getenv("DST_DISABLE_SYSTEMD_SCOPE") != "1" && systemdScopeAvailable() {
+		scopeUnit := "dst-screen-" + sessionName
+		return "systemd-run --quiet --scope --collect --unit " + shellQuote(scopeUnit) + " bash -lc " + shellQuote(startCmd)
+	}
+	return startCmd
+}
+
+func systemdScopeAvailable() bool {
+	if _, err := exec.LookPath("systemd-run"); err != nil {
+		return false
+	}
+	if _, err := os.Stat("/run/systemd/system"); err != nil {
+		return false
+	}
+	return true
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+}
+
+func (p *LinuxProcess) clusterTokenPath(clusterName, persistentStorageRoot, confDir string) string {
+	if confDir == "" {
+		confDir = "DoNotStarveTogether"
+	}
+	base := persistentStorageRoot
+	if base == "" {
+		home, err := os.UserHomeDir()
+		if err != nil || home == "" {
+			home = "/root"
+		}
+		base = filepath.Join(home, ".klei")
+	}
+	return filepath.Join(base, confDir, clusterName, "cluster_token.txt")
+}
+
+func (p *LinuxProcess) serverLogPath(clusterName, levelName string) string {
+	cluster, err := p.dstConfig.GetDstConfig(clusterName)
+	if err != nil {
+		return ""
+	}
+	confDir := cluster.Conf_dir
+	if confDir == "" {
+		confDir = "DoNotStarveTogether"
+	}
+	base := cluster.Persistent_storage_root
+	if base == "" {
+		home, err := os.UserHomeDir()
+		if err != nil || home == "" {
+			home = "/root"
+		}
+		base = filepath.Join(home, ".klei")
+	}
+	return filepath.Join(base, confDir, clusterName, levelName, "server_log.txt")
+}
+
+func (p *LinuxProcess) injectLogMarker(clusterName, levelName string, startedAt time.Time) {
+	time.Sleep(2 * time.Second)
+	serverLogPath := p.serverLogPath(clusterName, levelName)
+	if serverLogPath == "" {
+		return
+	}
+	file, err := os.OpenFile(serverLogPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Println("注入日志时间标记失败", "cluster:", clusterName, "level:", levelName, "err:", err)
+		return
+	}
+	defer file.Close()
+	elapsed := int(time.Since(startedAt).Seconds())
+	marker := fmt.Sprintf("HERMES_LOG_MARKER wall=%s elapsed=%02d:%02d:%02d\n", time.Now().Format("2006-01-02 15:04:05"), elapsed/3600, (elapsed%3600)/60, elapsed%60)
+	if _, err := file.WriteString(marker); err != nil {
+		log.Println("写入日志时间标记失败", "cluster:", clusterName, "level:", levelName, "err:", err)
+	}
 }
 
 func (p *LinuxProcess) shutdownLevel(clusterName, levelName string) error {
@@ -113,13 +227,25 @@ func (p *LinuxProcess) killLevel(clusterName, level string) error {
 }
 
 func (p *LinuxProcess) Stop(clusterName, levelName string) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	return p.stop(clusterName, levelName)
+	go func() {
+		lock := p.levelLock(clusterName, levelName)
+		lock.Lock()
+		defer lock.Unlock()
+		if err := p.stop(clusterName, levelName); err != nil {
+			log.Println("停止世界失败", "cluster:", clusterName, "level:", levelName, "err:", err)
+		}
+	}()
+	return nil
 }
 
 // stop 内部实现，不加锁，供 Start 等方法内部调用
 func (p *LinuxProcess) stop(clusterName, levelName string) error {
+	if ok, err := p.Status(clusterName, levelName); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
+
 	p.shutdownLevel(clusterName, levelName)
 	time.Sleep(3 * time.Second)
 
@@ -127,7 +253,7 @@ func (p *LinuxProcess) stop(clusterName, levelName string) error {
 		var i uint8 = 1
 		for {
 			if ok, err := p.Status(clusterName, levelName); err == nil && !ok {
-				break
+				return nil
 			}
 			p.shutdownLevel(clusterName, levelName)
 			log.Println("正在第", i, "次stop世界", "cluster: ", clusterName, "level: ", levelName)
@@ -138,48 +264,55 @@ func (p *LinuxProcess) stop(clusterName, levelName string) error {
 			}
 		}
 	}
+	if ok, err := p.Status(clusterName, levelName); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
 	log.Println("使用kill命令强制结束世界", "cluster: ", clusterName, "level: ", levelName)
 	return p.killLevel(clusterName, levelName)
 }
 
 func (p *LinuxProcess) StartAll(clusterName string) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	err := p.stopAll(clusterName)
-	if err != nil {
-		return err
-	}
 	config, err := p.levelConfigUtils.GetLevelConfig(clusterName)
 	if err != nil {
 		return err
 	}
-	var wg sync.WaitGroup
-	wg.Add(len(config.LevelList))
 	for i := range config.LevelList {
 		go func(i int) {
 			defer func() {
-				wg.Done()
 				if r := recover(); r != nil {
 					log.Println(r)
 				}
 			}()
 			levelName := config.LevelList[i].File
-			err := p.launchLevel(clusterName, levelName)
+			lock := p.levelLock(clusterName, levelName)
+			lock.Lock()
+			defer lock.Unlock()
+
+			// The top-left Start button means "start every configured world".
+			// It must be idempotent: do not stop/restart worlds that are already running.
+			// Stopped worlds are launched; running worlds are left untouched.
+			ok, err := p.Status(clusterName, levelName)
 			if err != nil {
+				log.Println(err)
+				return
+			}
+			if ok {
+				log.Println("世界已运行，跳过启动", "cluster: ", clusterName, "level: ", levelName)
+				return
+			}
+			if err := p.launchLevel(clusterName, levelName); err != nil {
 				log.Println(err)
 				return
 			}
 		}(i)
 	}
 	ClearScreen()
-	wg.Wait()
 	return nil
 }
 
 func (p *LinuxProcess) StopAll(clusterName string) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
 	return p.stopAll(clusterName)
 }
 
@@ -200,6 +333,9 @@ func (p *LinuxProcess) stopAll(clusterName string) error {
 				}
 			}()
 			levelName := config.LevelList[i].File
+			lock := p.levelLock(clusterName, levelName)
+			lock.Lock()
+			defer lock.Unlock()
 			err := p.stop(clusterName, levelName)
 			if err != nil {
 				return
@@ -224,14 +360,26 @@ func (p *LinuxProcess) levelPids(clusterName, levelName string) ([]string, error
 		return nil, err
 	}
 	var pids []string
+	var candidates []string
 	for _, line := range strings.Split(string(output), "\n") {
 		fields := strings.Fields(line)
 		if len(fields) < 3 {
 			continue
 		}
 		pid, comm, args := fields[0], fields[1], strings.Join(fields[2:], " ")
+		if strings.Contains(args, "dontstarve_dedicated_server") || strings.Contains(args, "DST_8level_") {
+			candidates = append(candidates, line)
+		}
 		if strings.Contains(comm, "dontstarve") && strings.Contains(args, clusterName) && strings.Contains(args, levelName) {
 			pids = append(pids, pid)
+		}
+	}
+	if len(pids) == 0 && len(candidates) > 0 {
+		msg := "levelPids no match cluster=" + clusterName + " level=" + levelName + " candidates=" + strings.Join(candidates, " || ") + "\n"
+		log.Print(msg)
+		if f, err := os.OpenFile("/tmp/dst-levelpids.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644); err == nil {
+			_, _ = f.WriteString(msg)
+			_ = f.Close()
 		}
 	}
 	return pids, nil

@@ -95,6 +95,7 @@ func (h *ModHandler) GetModInfo(ctx *gin.Context) {
 
 	modData := map[string]interface{}{
 		"auth":          modinfo.Auth,
+		"author":        modinfo.Auth,
 		"consumer_id":   modinfo.ConsumerAppid,
 		"creator_appid": modinfo.CreatorAppid,
 		"description":   modinfo.Description,
@@ -133,6 +134,7 @@ func (h *ModHandler) GetMyModList(ctx *gin.Context) {
 
 		modData := map[string]interface{}{
 			"auth":          modinfo.Auth,
+			"author":        modinfo.Auth,
 			"consumer_id":   modinfo.ConsumerAppid,
 			"creator_appid": modinfo.CreatorAppid,
 			"description":   modinfo.Description,
@@ -296,6 +298,7 @@ func (h *ModHandler) UpdateMod(ctx *gin.Context) {
 
 	modData := map[string]interface{}{
 		"auth":          modinfo.Auth,
+		"author":        modinfo.Auth,
 		"consumer_id":   modinfo.ConsumerAppid,
 		"creator_appid": modinfo.CreatorAppid,
 		"description":   modinfo.Description,
