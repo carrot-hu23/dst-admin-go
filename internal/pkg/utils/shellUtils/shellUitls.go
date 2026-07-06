@@ -26,14 +26,26 @@ func ExecuteCommand(command string) (string, error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	err := cmd.Run()
+	stdoutText := out.String()
+	stderrText := stderr.String()
 
 	if err != nil {
-		return "", fmt.Errorf("run command error: %v, ERROR: %s", err, stderr.String())
+		combined := stdoutText
+		if stderrText != "" {
+			if combined != "" {
+				combined += "\n"
+			}
+			combined += stderrText
+		}
+		return combined, fmt.Errorf("run command error: %v, ERROR: %s", err, combined)
 	}
-	if stderr.String() != "" {
-		return "", fmt.Errorf("exec command error: %s", stderr.String())
+	if stderrText != "" {
+		if stdoutText != "" {
+			return stdoutText + "\n" + stderrText, nil
+		}
+		return stderrText, nil
 	}
-	return out.String(), nil
+	return stdoutText, nil
 }
 
 // 执行shell命令

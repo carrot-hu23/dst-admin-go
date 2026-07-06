@@ -6,6 +6,7 @@ import (
 	"dst-admin-go/internal/service/dstConfig"
 	"dst-admin-go/internal/service/levelConfig"
 	"log"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -218,9 +219,18 @@ func (p *LinuxProcess) Status(clusterName, levelName string) (bool, error) {
 }
 
 func (p *LinuxProcess) Command(clusterName, levelName, command string) error {
-	cmd := "screen -S \"" + p.SessionName(clusterName, levelName) + "\" -p 0 -X stuff \"" + command + "\\n\""
-	_, err := shellUtils.Shell(cmd)
-	return err
+	// Do not route remote console commands through `sh -c`: panel commands often
+	// contain Lua string quotes (for example c_give("cutgrass", 1)).  Shell
+	// parsing strips or reinterprets those quotes before `screen` receives them,
+	// causing DST to execute c_give(cutgrass, 1) or print(FOO) instead of the
+	// intended Lua.  Pass argv directly so the command text is delivered exactly.
+	return exec.Command(
+		"screen",
+		"-S", p.SessionName(clusterName, levelName),
+		"-p", "0",
+		"-X", "stuff",
+		command+"\n",
+	).Run()
 }
 
 func (p *LinuxProcess) PsAuxSpecified(clusterName, levelName string) DstPsAux {
