@@ -40,37 +40,46 @@ func WorkshopIds(content string) []string {
 }
 
 func DedicatedServerModsSetup(dstConfig dstConfig.DstConfig, modConfig string) error {
-	if modConfig != "" {
-		var serverModSetup []string
+	return DedicatedServerModsSetupExact(dstConfig, []string{modConfig})
+}
+
+func DedicatedServerModsSetupExact(dstConfig dstConfig.DstConfig, modConfigs []string) error {
+	modSetupPath := GetModSetup2(dstConfig)
+	mods, err := fileUtils.ReadLnFile(modSetupPath)
+	if err != nil {
+		return err
+	}
+
+	seen := map[string]bool{}
+	var serverModSetup []string
+	for _, modConfig := range modConfigs {
+		if modConfig == "" {
+			continue
+		}
 		workshopIds := WorkshopIds(modConfig)
 		for _, workshopId := range workshopIds {
+			if workshopId == "" || seen[workshopId] {
+				continue
+			}
+			seen[workshopId] = true
 			serverModSetup = append(serverModSetup, "ServerModSetup(\""+workshopId+"\")")
 		}
-		modSetupPath := GetModSetup2(dstConfig)
-		mods, err := fileUtils.ReadLnFile(modSetupPath)
-		if err != nil {
-			return err
-		}
-		var newServerModSetup []string
-		for i := range serverModSetup {
-			var notFind = true
-			for j := range mods {
-				if serverModSetup[i] == mods[j] {
-					notFind = false
-					break
-				}
-			}
-			if notFind {
-				newServerModSetup = append(newServerModSetup, serverModSetup[i])
-			}
-		}
-		newServerModSetup = append(newServerModSetup, mods...)
-		err = fileUtils.WriterLnFile(modSetupPath, newServerModSetup)
-		if err != nil {
-			return err
-		}
 	}
-	return nil
+
+	serverModSetupPattern := regexp.MustCompile(`^\s*ServerModSetup\s*\(`)
+	var preserved []string
+	for _, line := range mods {
+		if serverModSetupPattern.MatchString(line) {
+			continue
+		}
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		preserved = append(preserved, line)
+	}
+
+	newServerModSetup := append(serverModSetup, preserved...)
+	return fileUtils.WriterLnFile(modSetupPath, newServerModSetup)
 }
 
 func GetModSetup2(dstConfig dstConfig.DstConfig) string {

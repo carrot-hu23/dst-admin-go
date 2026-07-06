@@ -5,6 +5,7 @@ type DstPsAux struct {
 	MemUage string `json:"memUage"`
 	VSZ     string `json:"VSZ"`
 	RSS     string `json:"RSS"`
+	Elapsed string `json:"elapsed"`
 }
 
 type Process interface {

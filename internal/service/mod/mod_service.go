@@ -157,6 +157,7 @@ type ModInfo struct {
 	Desc          string  `json:"desc"`
 	Time          int     `json:"time"`
 	Sub           int     `json:"sub"`
+	Favorited     int     `json:"favorited"`
 	Img           string  `json:"img"`
 	FileUrl       string  `json:"file_url"`
 	V             string  `json:"v"`
@@ -284,14 +285,19 @@ func (s *ModService) SearchModList(text string, page, size int, lang string) (*S
 			img := modInfo["preview_url"].(string)
 			voteData := modInfo["vote_data"].(map[string]interface{})
 			auth := fmt.Sprintf("%v", modInfo["creator"])
+			favorited := 0
+			if value, ok := modInfo["favorited"].(float64); ok {
+				favorited = int(value)
+			}
 			mod := ModInfo{
-				ID:     fmt.Sprintf("%v", modInfo["publishedfileid"]),
-				Name:   fmt.Sprintf("%v", modInfo["title"]),
-				Author: auth,
-				Desc:   fmt.Sprintf("%v", modInfo["file_description"]),
-				Time:   int(modInfo["time_updated"].(float64)),
-				Sub:    int(modInfo["subscriptions"].(float64)),
-				Img:    img,
+				ID:        fmt.Sprintf("%v", modInfo["publishedfileid"]),
+				Name:      fmt.Sprintf("%v", modInfo["title"]),
+				Author:    auth,
+				Desc:      fmt.Sprintf("%v", modInfo["file_description"]),
+				Time:      int(modInfo["time_updated"].(float64)),
+				Sub:       int(modInfo["subscriptions"].(float64)),
+				Favorited: favorited,
+				Img:       img,
 				Vote: struct {
 					Star int `json:"star"`
 					Num  int `json:"num"`
@@ -479,17 +485,35 @@ func (s *ModService) GetModByModId(modId string) (*model.ModInfo, error) {
 
 // DeleteMod 删除模组
 func (s *ModService) DeleteMod(clusterName, modId string) error {
-	// 从数据库删除
+	// 先从数据库删除，确保 UI/订阅列表立即消失；本地文件体积大时异步清理，避免接口长时间阻塞。
 	err := s.db.Where("modid = ?", modId).Delete(&model.ModInfo{}).Error
 	if err != nil {
 		return err
 	}
 
-	// 删除本地文件
-	config, _ := s.dstConfig.GetDstConfig(clusterName)
+	config, err := s.dstConfig.GetDstConfig(clusterName)
+	if err != nil {
+		return err
+	}
 	modDownloadPath := config.Mod_download_path
 	modPath := filepath.Join(modDownloadPath, "steamapps", "workshop", "content", "322330", modId)
-	return fileUtils.DeleteDir(modPath)
+	if !fileUtils.Exists(modPath) {
+		return nil
+	}
+
+	deletePath := fmt.Sprintf("%s.deleting.%d", modPath, time.Now().UnixNano())
+	if err := os.Rename(modPath, deletePath); err != nil {
+		// 跨设备/权限等场景下保底异步 RemoveAll 原路径；接口仍返回成功，避免删除大量小文件阻塞前端。
+		deletePath = modPath
+	}
+
+	go func(path string) {
+		if err := fileUtils.DeleteDir(path); err != nil {
+			log.Printf("async delete mod %s failed: %v", path, err)
+		}
+	}(deletePath)
+
+	return nil
 }
 
 // UpdateAllModInfos 批量更新所有模组信息

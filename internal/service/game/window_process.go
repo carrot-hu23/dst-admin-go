@@ -39,7 +39,9 @@ func (p *WindowProcess) Start(clusterName, levelName string) error {
 }
 
 func (p *WindowProcess) Stop(clusterName, levelName string) error {
-	p.cli.StopLevel(clusterName, levelName)
+	go func() {
+		p.cli.StopLevel(clusterName, levelName)
+	}()
 	return nil
 }
 
