@@ -68,12 +68,18 @@ func (h *LevelLogHandler) Stream(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	// 1️⃣ snapshot
+	// 1️⃣ snapshot. The React log panel loads its visible segment via the paged JSON
+	// endpoint, then uses SSE only for live appends. Keeping snapshot optional
+	// prevents an initial burst from repainting thousands of Monaco lines.
 	serverLogPath := h.archive.ServerLogPath(clusterName, levelName)
-	lines, err := reader.Snapshot(serverLogPath, 100)
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
+	lines := []string{}
+	if c.DefaultQuery("snapshot", "true") != "false" {
+		var err error
+		lines, err = reader.Snapshot(serverLogPath, 100)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	base, baseOK := inferDSTLogBaseTime(lines, time.Now())
@@ -133,11 +139,50 @@ func (h *LevelLogHandler) GetServerLog(ctx *gin.Context) {
 	clusterName := clusterContext.GetClusterName(ctx)
 	levelName := ctx.Query("levelName")
 	lines := ctx.DefaultQuery("lines", "100")
+	limitQuery := ctx.DefaultQuery("limit", "")
+	offsetQuery := ctx.DefaultQuery("offset", "")
 	if clusterName == "" || levelName == "" {
 		ctx.JSON(400, gin.H{"error": "cluster and level required"})
 		return
 	}
 	serverLogPath := h.archive.ServerLogPath(clusterName, levelName)
+	if ctx.Query("paged") == "true" || limitQuery != "" || offsetQuery != "" {
+		limit := 300
+		if limitQuery != "" {
+			parsed, err := strconv.Atoi(limitQuery)
+			if err != nil {
+				ctx.JSON(400, gin.H{"error": "limit must be a number"})
+				return
+			}
+			limit = parsed
+		}
+		if limit < 1 {
+			limit = 1
+		}
+		if limit > 1000 {
+			limit = 1000
+		}
+
+		var page LogPage
+		var err error
+		if offsetQuery != "" {
+			offset, parseErr := strconv.Atoi(offsetQuery)
+			if parseErr != nil {
+				ctx.JSON(400, gin.H{"error": "offset must be a number"})
+				return
+			}
+			page, err = reader.Range(serverLogPath, offset, limit)
+		} else {
+			page, err = reader.Tail(serverLogPath, limit)
+		}
+		if err != nil {
+			ctx.JSON(200, response.Response{Code: 500, Msg: "failed to read server log: " + err.Error(), Data: nil})
+			return
+		}
+		page.Lines = formatDSTLogLines(page.Lines, time.Now())
+		ctx.JSON(200, response.Response{Code: 200, Data: page, Msg: "success"})
+		return
+	}
 	linesInt, err := strconv.Atoi(lines)
 	if err != nil {
 		ctx.JSON(400, gin.H{"error": "lines must be a number"})
@@ -310,6 +355,13 @@ type FileLogReader struct {
 	interval time.Duration
 }
 
+type LogPage struct {
+	Lines []string `json:"lines"`
+	Total int      `json:"total"`
+	Start int      `json:"start"`
+	End   int      `json:"end"`
+}
+
 func NewFileLogReader() *FileLogReader {
 	return &FileLogReader{
 		interval: time.Second,
@@ -378,6 +430,77 @@ func (r *FileLogReader) Snapshot(
 		lines[i], lines[j] = lines[j], lines[i]
 	}
 
+	return lines, nil
+}
+
+func (r *FileLogReader) Tail(serverLogPath string, limit int) (LogPage, error) {
+	all, err := r.readAllLines(serverLogPath)
+	if err != nil {
+		return LogPage{}, err
+	}
+	total := len(all)
+	if limit < 1 {
+		limit = 1
+	}
+	start := total - limit + 1
+	if start < 1 {
+		start = 1
+	}
+	return r.pageFromLines(all, start, limit), nil
+}
+
+func (r *FileLogReader) Range(serverLogPath string, offset, limit int) (LogPage, error) {
+	all, err := r.readAllLines(serverLogPath)
+	if err != nil {
+		return LogPage{}, err
+	}
+	return r.pageFromLines(all, offset, limit), nil
+}
+
+func (r *FileLogReader) pageFromLines(all []string, offset, limit int) LogPage {
+	total := len(all)
+	if limit < 1 {
+		limit = 1
+	}
+	if offset < 1 {
+		offset = 1
+	}
+	if offset > total+1 {
+		offset = total + 1
+	}
+	startIndex := offset - 1
+	endIndex := startIndex + limit
+	if endIndex > total {
+		endIndex = total
+	}
+	lines := []string{}
+	if startIndex < endIndex {
+		lines = append(lines, all[startIndex:endIndex]...)
+	}
+	end := offset + len(lines) - 1
+	if len(lines) == 0 {
+		end = offset - 1
+	}
+	return LogPage{Lines: lines, Total: total, Start: offset, End: end}
+}
+
+func (r *FileLogReader) readAllLines(serverLogPath string) ([]string, error) {
+	f, err := os.Open(serverLogPath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	lines := make([]string, 0, 1024)
+	scanner := bufio.NewScanner(f)
+	buf := make([]byte, 64*1024)
+	scanner.Buffer(buf, 4*1024*1024)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
 	return lines, nil
 }
 
