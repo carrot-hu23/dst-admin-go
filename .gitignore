@@ -32,7 +32,7 @@ yarn-debug.log*
 yarn-error.log*
 
 #py-dst-cli
-/py-dst-cli/__pycache__
-/py-dst-cli/data
+/script/py-dst-cli/__pycache__
+/script/py-dst-cli/data
 
 /test

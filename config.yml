@@ -2,8 +2,9 @@
 bindAddress: ""
 #启动端口
 port: 8082
-# wincli端口
-dstCliPort: 8102
+#数据目录前缀，配置文件和数据库文件都会存放在此目录下，默认为 ./
+#例如设置为 /data 则配置文件路径为 /data/config.yml，数据库路径为 /data/dst-db
+dataDir: "./data"
 #数据库
 database: dst-db
 #自动检测 单位都是 分钟

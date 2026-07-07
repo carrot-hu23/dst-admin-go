@@ -1,0 +1,1 @@
+GOOS=windows GOARCH=amd64 go build -o dst-admin-go.exe cmd/server/main.go
