@@ -34,7 +34,11 @@ COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod 755 /app/docker-entrypoint.sh
 
 COPY config.yml /app/config.yml
-COPY docker_dst_config /app/dst_config
+# config.yml sets dataDir to ./data, so the pre-seeded dst_config (steamcmd,
+# force_install_dir, backup, mod_download_path, bin/beta) must live under
+# /app/data or the app never finds it, silently creates an empty one, and
+# every field shows up blank in the panel on first run.
+COPY docker_dst_config /app/data/dst_config
 COPY dist /app/dist
 COPY static /app/static
 
