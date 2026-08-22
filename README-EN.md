@@ -3,7 +3,7 @@
 >
 > preview https://carrot-hu23.github.io/dst-admin-go-preview/
 
-[English](README-EN.md)/[中文](README.md)
+[English](README-EN.md)/[中文](README.md)/[Español](README-ES.md)
 
 **Now supports both Windows and Linux platforms**
 

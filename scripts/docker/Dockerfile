@@ -1,19 +1,20 @@
-# 使用官方的Ubuntu基础镜像
-FROM ubuntu:20.04
+# 使用官方的Debian基础镜像
+FROM debian:bookworm-slim
 
 LABEL maintainer="hujinbo23 jinbohu23@outlook.com"
 LABEL description="DoNotStarveTogehter server panel written in golang.  github: https://github.com/hujinbo23/dst-admin-go"
 
 # 更新并安装必要的软件包
+# 注意：Debian bookworm 将 lib32gcc1/libgcc1 重命名为 lib32gcc-s1/libgcc-s1
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     curl \
     libcurl4-gnutls-dev:i386 \
-    lib32gcc1 \
+    lib32gcc-s1 \
     lib32stdc++6 \
     libcurl4-gnutls-dev \
-    libgcc1 \
+    libgcc-s1 \
     libstdc++6 \
     wget \
     ca-certificates \

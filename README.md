@@ -3,7 +3,7 @@
 > 
 > 预览 https://carrot-hu23.github.io/dst-admin-go-preview/
 
-[English](README-EN.md)/[中文](README.md)
+[English](README-EN.md)/[中文](README.md)/[Español](README-ES.md)
 
 **新面板 [泰拉瑞亚面板](https://github.com/carrot-hu23/terraria-panel-app) 支持window,linux 一键启动，内置 1449 版本**
 
