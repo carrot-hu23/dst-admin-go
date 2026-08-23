@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-contrib/sessions"
@@ -14,12 +15,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	PasswordPath = "./password.txt"
-)
-
 type LoginService struct {
 	config *config.Config
+}
+
+// passwordPath 账户信息文件的完整路径，与 dst_config 共用同一个数据目录
+func (l *LoginService) passwordPath() string {
+	return filepath.Join(l.config.DataDir, "password.txt")
 }
 
 type UserInfo struct {
@@ -36,7 +38,7 @@ func NewLoginService(config *config.Config) *LoginService {
 }
 
 func (l *LoginService) GetUserInfo() UserInfo {
-	user, err := fileUtils.ReadLnFile(PasswordPath)
+	user, err := fileUtils.ReadLnFile(l.passwordPath())
 
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
@@ -58,7 +60,7 @@ func (l *LoginService) Login(userInfo UserInfo, ctx *gin.Context) *response.Resp
 
 	response := &response.Response{}
 
-	user, err := fileUtils.ReadLnFile(PasswordPath)
+	user, err := fileUtils.ReadLnFile(l.passwordPath())
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
@@ -104,7 +106,7 @@ func (l *LoginService) Logout(ctx *gin.Context) {
 }
 
 func (l *LoginService) DirectLogin(ctx *gin.Context) {
-	user, err := fileUtils.ReadLnFile(PasswordPath)
+	user, err := fileUtils.ReadLnFile(l.passwordPath())
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
@@ -114,13 +116,14 @@ func (l *LoginService) DirectLogin(ctx *gin.Context) {
 }
 
 func (l *LoginService) ChangeUser(username, password string) {
-	user, err := fileUtils.ReadLnFile(PasswordPath)
+	user, err := fileUtils.ReadLnFile(l.passwordPath())
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
 	}
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
 	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	fileUtils.WriterLnFile(PasswordPath, []string{
+	fileUtils.CreateDirIfNotExists(l.config.DataDir)
+	fileUtils.WriterLnFile(l.passwordPath(), []string{
 		"username = " + username,
 		"password = " + password,
 		"displayName=" + displayName,
@@ -131,7 +134,7 @@ func (l *LoginService) ChangeUser(username, password string) {
 func (l *LoginService) ChangePassword(newPassword string) *response.Response {
 
 	response := &response.Response{}
-	user, err := fileUtils.ReadLnFile(PasswordPath)
+	user, err := fileUtils.ReadLnFile(l.passwordPath())
 
 	if err != nil {
 		log.Panicln("Not find password file error: " + err.Error())
@@ -139,7 +142,8 @@ func (l *LoginService) ChangePassword(newPassword string) *response.Response {
 	username := strings.TrimSpace(strings.Split(user[0], "=")[1])
 	displayName := strings.TrimSpace(strings.Split(user[2], "=")[1])
 	photoURL := strings.TrimSpace(strings.Split(user[3], "=")[1])
-	fileUtils.WriterLnFile(PasswordPath, []string{
+	fileUtils.CreateDirIfNotExists(l.config.DataDir)
+	fileUtils.WriterLnFile(l.passwordPath(), []string{
 		"username = " + username,
 		"password = " + newPassword,
 		"displayName=" + displayName,
@@ -157,7 +161,8 @@ func (l *LoginService) InitUserInfo(userInfo UserInfo) {
 	password := "password=" + userInfo.Password
 	displayName := "displayName=" + userInfo.DisplayName
 	photoURL := "photoURL=" + userInfo.PhotoURL
-	fileUtils.WriterLnFile(PasswordPath, []string{username, password, displayName, photoURL})
+	fileUtils.CreateDirIfNotExists(l.config.DataDir)
+	fileUtils.WriterLnFile(l.passwordPath(), []string{username, password, displayName, photoURL})
 }
 
 func (l *LoginService) IsWhiteIP(ctx *gin.Context) bool {

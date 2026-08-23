@@ -29,22 +29,49 @@ bash docker_build.sh 1.6.1
 
 ### 2. 运行容器
 
-```bash
-# 创建数据目录
-mkdir -p ~/dstsave/{back,steamcmd,dst-dedicated-server}
+镜像已经在构建时内置了 steamcmd 和饥荒服务器本体，所以真正**必须**挂载的只有 `/app/data`
+（面板设置、存档、管理员账号）。下面这条命令就是一个可以直接跑起来的最小示例：
 
-# 运行容器
+```bash
+mkdir -p ~/dstsave/data
+
 docker run -d \
   --name dst-admin \
   -p 8082:8082 \
   -p 10888:10888/udp \
   -p 10998:10998/udp \
   -p 10999:10999/udp \
-  -v ~/dstsave:/root/.klei/DoNotStarveTogether \
+  -v ~/dstsave/data:/app/data \
+  hujinbo23/dst-admin-go:latest
+```
+
+如果还想在容器重建/镜像升级时跳过重新安装 steamcmd 和游戏本体，或者想复用已有的
+`/app/backup`、`/app/mod` 缓存，可以再加上这些**可选**挂载：
+
+```bash
+mkdir -p ~/dstsave/{back,mod,steamcmd,dst-dedicated-server}
+
+docker run -d \
+  --name dst-admin \
+  -p 8082:8082 \
+  -p 10888:10888/udp \
+  -p 10998:10998/udp \
+  -p 10999:10999/udp \
+  -v ~/dstsave/data:/app/data \
   -v ~/dstsave/back:/app/backup \
+  -v ~/dstsave/mod:/app/mod \
   -v ~/dstsave/steamcmd:/app/steamcmd \
   -v ~/dstsave/dst-dedicated-server:/app/dst-dedicated-server \
   hujinbo23/dst-admin-go:latest
+```
+
+**迁移已有存档**：默认的存档路径固定为
+`/app/data/save/DoNotStarveTogether/Cluster_1`（与饥荒本体 `-cluster` 参数的默认值
+`Cluster_1` 保持一致）。如果你已经有一份用其它工具/其它默认名称建立的存档，不需要在
+面板里改 `cluster` 名称，直接把你的存档目录挂载到这个固定路径上即可，例如：
+
+```bash
+-v ~/my-old-backup:/app/data/save/DoNotStarveTogether/Cluster_1
 ```
 
 ### 3. 访问管理面板
@@ -66,21 +93,20 @@ docker run -d \
 
 | 容器内路径 | 用途 | 是否推荐挂载 |
 |-----------|------|-------------|
-| `/root/.klei/DoNotStarveTogether` | 游戏存档目录 | ✅ 推荐 |
-| `/app/backup` | 存档备份目录 | ✅ 推荐 |
-| `/app/mod` | MOD 缓存目录 | 可选 |
-| `/app/steamcmd` | SteamCMD 安装目录 | ✅ 推荐 |
-| `/app/dst-dedicated-server` | 饥荒服务器文件 | ✅ 推荐 |
-| `/app/dst-db` | SQLite 数据库文件 | ✅ 推荐 |
-| `/app/password.txt` | 初始密码文件 | ✅ 推荐 |
-| `/app/first` | 首次登录标记文件 | ✅ 推荐 |
+| `/app/data` | 面板设置（`dst_config`）、游戏存档、管理员账号（`password.txt`）、SQLite 数据库、首次登录标记 —— 唯一真正需要挂载的目录 | ✅ 必须 |
+| `/app/backup` | 存档备份目录 | 可选（不挂载也能正常使用，只是容器重建后备份历史会丢失） |
+| `/app/mod` | MOD 缓存目录 | 可选（不挂载的话，容器重建后 mod 会重新下载） |
+| `/app/steamcmd` | SteamCMD 安装目录 | 可选；不挂载的话容器每次都是全新安装（几十 MB，很快） |
+| `/app/dst-dedicated-server` | 饥荒服务器文件 | 可选；不挂载的话容器每次都是全新安装（app 343050 完整安装约 4.5GB，看网络情况可能需要几分钟） |
 | `/app/dst-admin-go.log` | 应用日志文件 | 可选 |
 | `/app/config.yml` | 配置文件 | 可选 |
 
 **特别说明**：
-- `first` 文件：如果存在，启动时会跳过初始化界面，使用 `password.txt` 中的账号登录
-- `dst-db` 文件：SQLite 数据库，包含所有配置和运行数据
-- `password.txt` 文件：初始管理员账号信息，格式见 Docker Compose 示例
+- 面板设置、存档、管理员账号、数据库、首次登录标记现在统一放在 `/app/data` 下，只挂载这一个目录即可持久化全部重要数据。
+- `/app/data/dst_config`：镜像里已经内置了默认值（steamcmd、force_install_dir、cluster、backup、mod_download_path、persistent_storage_root）；如果 `/app/data` 是一个全新的空目录，容器启动时会自动从镜像内置的默认值播种这个文件，不需要手动创建。
+- 官方发布的镜像**不会**内置 steamcmd/游戏本体本身（app 343050 完整安装约 4.5GB，内置会让镜像体积膨胀约 20 倍）；如果你想要一个开箱即用、完全不需要联网下载的镜像，可以用 `docker build --build-arg BAKE_GAME_SERVER=true ...` 自行构建。
+- `/app/data/password.txt`：初始管理员账号信息（`admin` / `123456`），同样会在 `/app/data` 为空时自动创建；建议登录后立刻在面板里修改密码。
+- 旧版本中单独挂载 `/root/.klei/DoNotStarveTogether`、`/app/password.txt`、`/app/first` 的方式仍然可以工作（未设置 `persistent_storage_root` 时会退回旧的默认路径），但不再推荐——迁移到 `/app/data` 之后挂载点更少、也更不容易出现"改了面板设置但重启后又变回默认值"的问题。
 
 ## 镜像特性
 
@@ -113,57 +139,39 @@ docker run -d \
   -p 10888:10888/udp \
   -p 10998:10998/udp \
   -p 10999:10999/udp \
-  -v ~/dstsave:/root/.klei/DoNotStarveTogether \
-  -v ~/dstsave/back:/app/backup \
-  -v ~/dstsave/steamcmd:/app/steamcmd \
-  -v ~/dstsave/dst-dedicated-server:/app/dst-dedicated-server \
+  -v ~/dstsave/data:/app/data \
   -v ~/dstsave/config.yml:/app/config.yml \
   hujinbo23/dst-admin-go:latest
 ```
 
 ## Docker Compose 示例
 
-### 1. 创建前置文件和目录
-
-在使用 Docker Compose 之前，需要先创建必要的文件和目录：
+### 1. 创建数据目录
 
 ```bash
-# 创建所有必要的目录
-mkdir -p ~/dstsave/back
-mkdir -p ~/dstsave/steamcmd
-mkdir -p ~/dstsave/dst-dedicated-server
+mkdir -p ~/dstsave/data
+```
 
-# 创建 first 文件（标记非首次登录，避免进入初始化界面）
-touch ~/dstsave/first
+`~/dstsave/data` 是唯一必须提前创建的目录——首次启动时，容器会自动在里面播种
+`dst_config`（面板设置默认值）和 `password.txt`（初始管理员账号 `admin` / `123456`），
+不需要手动创建这些文件。
 
-# 创建数据库文件
-touch ~/dstsave/dst-db
+如果想让 `/app/backup`、`/app/mod`、`/app/steamcmd`、`/app/dst-dedicated-server`
+也持久化（详见上面的[数据卷](#数据卷)说明，这几个都是可选的），可以一并创建：
 
-# 创建初始密码文件
-cat > ~/dstsave/password.txt << EOF
-username = admin
-password = 123456
-displayName = admin
-photoURL =
-email = xxx
-EOF
+```bash
+mkdir -p ~/dstsave/{back,mod,steamcmd,dst-dedicated-server}
 ```
 
 **目录结构**：
 ```
 ~/dstsave/
-├── back/                        # 备份目录
-├── steamcmd/                    # SteamCMD 安装目录
-├── dst-dedicated-server/        # 饥荒服务器文件
-├── dst-db                       # SQLite 数据库文件
-├── password.txt                 # 初始密码文件
-└── first                        # 首次登录标记文件
+├── data/                         # 面板设置、存档、账号、数据库 —— 必须挂载
+├── back/                         # 备份目录（可选）
+├── mod/                          # MOD 缓存目录（可选）
+├── steamcmd/                     # SteamCMD 安装目录（可选，避免每次重建容器都重新下载）
+└── dst-dedicated-server/         # 饥荒服务器文件（可选，避免每次重建容器都重新下载）
 ```
-
-**说明**：
-- `first` 文件：如果存在则跳过初始化界面，直接使用 `password.txt` 中的账号登录
-- `dst-db` 文件：SQLite 数据库文件
-- `password.txt` 文件：初始管理员账号信息
 
 ### 2. 创建 docker-compose.yml
 
@@ -184,22 +192,23 @@ services:
       # 时区同步
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      # 游戏存档目录
-      - ${PWD}/dstsave:/root/.klei/DoNotStarveTogether
-      # 备份目录
+      # 面板设置、存档、账号、数据库 —— 唯一必须挂载的目录
+      - ${PWD}/dstsave/data:/app/data
+      # 以下都是可选挂载
       - ${PWD}/dstsave/back:/app/backup
-      # SteamCMD 目录
+      - ${PWD}/dstsave/mod:/app/mod
       - ${PWD}/dstsave/steamcmd:/app/steamcmd
-      # 饥荒服务器目录
       - ${PWD}/dstsave/dst-dedicated-server:/app/dst-dedicated-server
-      # 数据库文件
-      - ${PWD}/dstsave/dst-db:/app/dst-db
-      # 初始密码文件
-      - ${PWD}/dstsave/password.txt:/app/password.txt
-      # 首次登录标记文件
-      - ${PWD}/dstsave/first:/app/first
     environment:
       - TZ=Asia/Shanghai
+```
+
+**迁移已有存档**：如果你已经有一份用其它工具或其它默认名称建立的存档，把它挂载到
+`/app/data/save/DoNotStarveTogether/Cluster_1`（默认的 `cluster` 名称固定为
+`Cluster_1`，与饥荒本体自身的默认值一致），就不需要在面板里改任何设置：
+
+```yaml
+      - ${PWD}/my-old-backup:/app/data/save/DoNotStarveTogether/Cluster_1
 ```
 
 ### 3. 启动容器
@@ -249,9 +258,12 @@ chmod -R 755 ~/dstsave
 
 ### 游戏下载缓慢
 
-首次启动需要下载 SteamCMD 和饥荒服务器文件（约 1-2GB），国内网络可能较慢。可以考虑：
-1. 预先下载 SteamCMD 到 `~/dstsave/steamcmd` 目录
-2. 预先使用 SteamCMD 下载游戏文件到 `~/dstsave/dst-dedicated-server` 目录
+官方发布的镜像不内置游戏本体（约 4.5GB，内置会让镜像体积膨胀约 20 倍），所以首次启动
+需要下载 SteamCMD 和饥荒服务器文件，国内网络可能较慢。可以考虑：
+1. 挂载 `/app/steamcmd` 和 `/app/dst-dedicated-server` 为持久化目录，这样只有第一次
+   启动才需要下载，之后重建容器都会复用已下载的内容
+2. 自行用 `docker build --build-arg BAKE_GAME_SERVER=true ...` 构建一个把游戏本体
+   直接内置到镜像里的版本，首次启动完全不需要联网下载（代价是镜像体积会大很多）
 3. 使用代理加速 Steam 下载
 
 ## 性能建议

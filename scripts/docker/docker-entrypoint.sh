@@ -6,6 +6,27 @@ ulimit -Sn 10000
 # 获取传入的参数
 steam_cmd_path='/app/steamcmd'
 steam_dst_server='/app/dst-dedicated-server'
+data_dir='/app/data'
+
+# 确保持久化数据目录存在，并在其为空（例如首次挂载一个全新的空 volume）时
+# 从镜像内置的默认值播种 dst_config 和管理员账户文件，这样这一步与
+# /app/data 是否被挂载为 volume 无关，每次启动都会执行。
+mkdir -p "$data_dir"
+if [ ! -f "$data_dir/dst_config" ]; then
+  cp /app/docker_dst_config.default "$data_dir/dst_config"
+fi
+if [ ! -f "$data_dir/password.txt" ]; then
+  echo "username=admin" >> "$data_dir/password.txt"
+  echo "password=123456" >> "$data_dir/password.txt"
+  echo "displayName=admin" >> "$data_dir/password.txt"
+  echo "photoURL=xxx" >> "$data_dir/password.txt"
+fi
+mkdir -p /app/backup
+mkdir -p /app/mod
+# 与 docker_dst_config 中的 persistent_storage_root=/app/data/save 和默认的
+# cluster=Cluster_1 保持一致，方便直接把已有存档挂载到这个固定路径上，
+# 而不需要在面板里修改 cluster 名称。
+mkdir -p "$data_dir/save/DoNotStarveTogether/Cluster_1"
 
 # 判断 steam_cmd_path 是否存在，不存在则创建
 if [ ! -d "$steam_cmd_path" ]; then
@@ -15,7 +36,9 @@ fi
 # 进入 steam_cmd_path 目录
 cd "$steam_cmd_path"
 
-# 如果 $steam_dst_server 目录不存在，则下载并解压 SteamCMD 并安装游戏服务器
+# 镜像构建时已经内置了 steamcmd 和游戏本体，正常情况下下面两个循环会
+# 立即通过检查、不会真正下载。只有在构建时安装失败，或者把这两个目录
+# 挂载成了空 volume 时，才会在这里补装。
 retry=1
 while [ ! -d "${steam_cmd_path}" ] || [ ! -e "${steam_cmd_path}/steamcmd.sh" ]; do
   if [ $retry -gt 3 ]; then
@@ -29,7 +52,6 @@ while [ ! -d "${steam_cmd_path}" ] || [ ! -e "${steam_cmd_path}/steamcmd.sh" ]; 
   ((retry++))
 done
 
-# 如果 $steam_dst_server 目录不存在，则下载并解压 SteamCMD 并安装游戏服务器
 retry=1
 while [ ! -e "${steam_dst_server}/bin/dontstarve_dedicated_server_nullrenderer" ]; do
   if [ $retry -gt 3 ]; then
@@ -38,13 +60,6 @@ while [ ! -e "${steam_dst_server}/bin/dontstarve_dedicated_server_nullrenderer" 
   fi
   echo "Not found Dont Starve Together Sever, start to installing, try: ${retry}"
   bash $steam_cmd_path/steamcmd.sh +force_install_dir $steam_dst_server +login anonymous +app_update 343050 validate +quit
-  mkdir -p $USER_DIR/.klei/DoNotStarveTogether/MyDediServer
-  mkdir -p /app/backup
-  mkdir -p /app/mod
-  echo "username=admin" >> /app/password.txt
-  echo "password=123456" >> /app/password.txt
-  echo "displayName=admin" >> /app/password.txt
-  echo "photoURL=xxx" >> /app/password.txt
   sleep 3
   ((retry++))
 done

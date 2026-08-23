@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"dst-admin-go/internal/config"
 	"dst-admin-go/internal/database"
 	"dst-admin-go/internal/model"
 	"dst-admin-go/internal/pkg/response"
@@ -8,14 +9,21 @@ import (
 	"dst-admin-go/internal/service/login"
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-const (
-	PasswordPath = "./password.txt"
-)
+// passwordPath 账户信息文件的完整路径，与 dst_config 共用同一个数据目录
+func passwordPath() string {
+	return filepath.Join(config.Cfg.DataDir, "password.txt")
+}
+
+// firstInitMarkerPath 首次初始化标记文件的完整路径
+func firstInitMarkerPath() string {
+	return filepath.Join(config.Cfg.DataDir, "first")
+}
 
 type LoginHandler struct {
 	loginService *login.LoginService
@@ -145,7 +153,8 @@ func (h *LoginHandler) UpdateUserInfo(ctx *gin.Context) {
 		})
 		return
 	}
-	err := fileUtils.WriterLnFile(PasswordPath, []string{
+	fileUtils.CreateDirIfNotExists(config.Cfg.DataDir)
+	err := fileUtils.WriterLnFile(passwordPath(), []string{
 		"username = " + body.Username,
 		"password = " + body.Password,
 		"displayName=" + body.DisplayName,
@@ -180,7 +189,7 @@ func (h *LoginHandler) InitFirst(ctx *gin.Context) {
 	db := database.Db
 	kv := model.KV{}
 	db.Where("key = 'FIRST_INIT'").First(&kv)
-	if kv.Value == "TRUE" || fileUtils.Exists("./first") {
+	if kv.Value == "TRUE" || fileUtils.Exists(firstInitMarkerPath()) {
 		log.Panicln("非法请求")
 	}
 	var payload struct {
@@ -233,7 +242,7 @@ func (h *LoginHandler) CheckIsFirst(ctx *gin.Context) {
 	if kv.Value == "TRUE" {
 		exist = true
 	} else {
-		exist = fileUtils.Exists("./first")
+		exist = fileUtils.Exists(firstInitMarkerPath())
 	}
 
 	code := 200

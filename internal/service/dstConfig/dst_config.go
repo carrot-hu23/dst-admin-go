@@ -15,6 +15,11 @@ type DstConfig struct {
 	Persistent_storage_root string `json:"persistent_storage_root"`
 	// 存档相对位置
 	Conf_dir string `json:"conf_dir"`
+
+	// ContainerMode 由 DST_ADMIN_CONTAINER_MODE 环境变量决定，不写入配置文件。
+	// 为 true 时，前端会锁定 steamcmd/force_install_dir/cluster 等由 Docker 镜像
+	// 固定路径决定的字段，改用 volume 挂载来适配不同的存档/安装路径。
+	ContainerMode bool `json:"container_mode"`
 }
 
 type Config interface {
