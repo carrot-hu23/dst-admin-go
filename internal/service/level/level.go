@@ -46,7 +46,7 @@ func (l *LevelService) GetLevelList(clusterName string) []levelConfig.LevelInfo 
 		if !fileUtils.Exists(masterLevelPath) {
 			master := levelConfig.LevelInfo{
 				IsMaster:          true,
-				LevelName:         "森林",
+				LevelName:         "Forest",
 				Uuid:              "Master",
 				Leveldataoverride: "return {}",
 				Modoverrides:      "return {}",
@@ -55,7 +55,7 @@ func (l *LevelService) GetLevelList(clusterName string) []levelConfig.LevelInfo 
 			l.initLevel(filepath.Join(l.resolver.ClusterPath(clusterName), "Master"), &master)
 			levels = append([]levelConfig.LevelInfo{}, master)
 			config.LevelList = append(config.LevelList, levelConfig.Item{
-				Name: "森林",
+				Name: "Forest",
 				File: "Master",
 			})
 			err = l.levelConfigUtils.SaveLevelConfig(clusterName, config)
@@ -68,13 +68,13 @@ func (l *LevelService) GetLevelList(clusterName string) []levelConfig.LevelInfo 
 			master := l.GetLevel(clusterName, "Master")
 			levels = append([]levelConfig.LevelInfo{}, master)
 			config.LevelList = append(config.LevelList, levelConfig.Item{
-				Name: "森林",
+				Name: "Forest",
 				File: "Master",
 			})
 			cavesLevelPath := filepath.Join(l.resolver.ClusterPath(clusterName), "Caves")
 			if fileUtils.Exists(cavesLevelPath) {
 				config.LevelList = append(config.LevelList, levelConfig.Item{
-					Name: "洞穴",
+					Name: "Caves",
 					File: "Caves",
 				})
 				caves := l.GetLevel(clusterName, "Caves")

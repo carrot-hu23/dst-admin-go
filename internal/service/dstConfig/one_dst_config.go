@@ -154,9 +154,10 @@ func (o *OneDstConfig) GetDstConfig(clusterName string) (DstConfig, error) {
 			}
 		}
 	}
-	// 设置默认值
+	// 设置默认值，与饥荒本体 -cluster 参数的默认值 "Cluster_1" 保持一致，
+	// 方便直接迁移使用原版默认目录名的已有存档
 	if dstConfig.Cluster == "" {
-		dstConfig.Cluster = "Cluster1"
+		dstConfig.Cluster = "Cluster_1"
 	}
 	if dstConfig.Backup == "" {
 		defaultPath := filepath.Join(o.kleiBasePath(dstConfig), "backup")
@@ -171,6 +172,7 @@ func (o *OneDstConfig) GetDstConfig(clusterName string) (DstConfig, error) {
 	if dstConfig.Bin == 0 {
 		dstConfig.Bin = 32
 	}
+	dstConfig.ContainerMode = os.Getenv("DST_ADMIN_CONTAINER_MODE") == "true"
 	return dstConfig, nil
 }
 

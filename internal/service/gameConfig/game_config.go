@@ -6,7 +6,6 @@ import (
 	"dst-admin-go/internal/pkg/utils/fileUtils"
 	"dst-admin-go/internal/service/archive"
 	"dst-admin-go/internal/service/levelConfig"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -128,7 +127,7 @@ func (p *GameConfig) GetClusterIni(clusterName string) (ClusterIni, error) {
 	}
 	cfg, err := ini.Load(clusterIniPath)
 	if err != nil {
-		log.Panicln("Failed to load INI file:", err)
+		return ClusterIni{}, err
 	}
 
 	// [GAMEPLAY]
