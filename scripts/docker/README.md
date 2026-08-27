@@ -4,12 +4,27 @@
 
 ## 目录内容
 
-- `Dockerfile` - Docker 镜像构建文件（基于 Ubuntu 20.04）
+- `Dockerfile` - Docker 镜像构建文件（基于 Debian bookworm-slim）
 - `docker-entrypoint.sh` - 容器启动入口脚本
-- `docker_build.sh` - 构建并推送镜像到 Docker Hub 的自动化脚本
+- `docker_build.sh` - 构建并推送镜像到 Docker Hub 的自动化脚本（手动发布）
 - `docker_dst_config` - Docker 环境默认配置文件
 
-## 快速开始
+## 自动化发布（GHCR）
+
+每次推送 tag（例如 `1.6.1`）都会触发 [`.github/workflows/release.yml`](../../.github/workflows/release.yml)：
+构建前端（配套仓库 `dst-manage-web2`）、打包 Linux/Windows 二进制归档并附加到 GitHub Release，
+同时把本 Dockerfile 构建的镜像发布到 `ghcr.io/<owner>/dst-admin-go:<tag>` 和 `:latest`，无需任何额外的
+Secrets 配置（使用 Actions 自带的 `GITHUB_TOKEN`）。在 Fork 上运行时会自动构建同一账号下的
+`dst-manage-web2` Fork，合并到上游后则自动使用上游的前端仓库。
+
+```bash
+docker pull ghcr.io/<owner>/dst-admin-go:latest
+```
+
+容器基于 Debian 运行，因此可以直接在任意能跑 Docker/Podman 的 Debian 主机上部署，无需自行编译或
+安装 Go/Node 工具链。
+
+## 手动构建
 
 ### 1. 构建镜像
 
@@ -110,12 +125,12 @@ docker run -d \
 
 ## 镜像特性
 
-- **基础镜像**: Ubuntu 20.04
+- **基础镜像**: Debian 12 (bookworm-slim)
 - **目标架构**: Linux x86_64 (amd64)
 - **已安装组件**:
   - curl, wget - 网络工具
   - screen - 游戏进程管理
-  - lib32gcc1, lib32stdc++6 - 32位运行库（饥荒服务器依赖）
+  - lib32gcc-s1, lib32stdc++6 - 32位运行库（饥荒服务器依赖）
   - libcurl4-gnutls-dev - cURL 开发库
   - procps, sudo, unzip - 系统工具
 
