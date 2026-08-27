@@ -21,12 +21,13 @@ if [ ! -f "$data_dir/password.txt" ]; then
   echo "displayName=admin" >> "$data_dir/password.txt"
   echo "photoURL=xxx" >> "$data_dir/password.txt"
 fi
-mkdir -p /app/backup
-mkdir -p /app/mod
-# 与 docker_dst_config 中的 persistent_storage_root=/app/data/save 和默认的
-# cluster=Cluster_1 保持一致，方便直接把已有存档挂载到这个固定路径上，
-# 而不需要在面板里修改 cluster 名称。
-mkdir -p "$data_dir/save/DoNotStarveTogether/Cluster_1"
+mkdir -p "$data_dir/backup"
+mkdir -p "$data_dir/mod"
+# 与 docker_dst_config 中的 persistent_storage_root=/app/data 和默认的
+# cluster=Cluster_1 保持一致（游戏本体自己会在这之下再建一层 DoNotStarveTogether
+# 目录），方便直接把已有存档挂载到这个固定路径上，而不需要在面板里修改
+# cluster 名称。
+mkdir -p "$data_dir/DoNotStarveTogether/Cluster_1"
 
 # 判断 steam_cmd_path 是否存在，不存在则创建
 if [ ! -d "$steam_cmd_path" ]; then

@@ -45,11 +45,12 @@ docker run -d \
   hujinbo23/dst-admin-go:latest
 ```
 
-如果还想在容器重建/镜像升级时跳过重新安装 steamcmd 和游戏本体，或者想复用已有的
-`/app/backup`、`/app/mod` 缓存，可以再加上这些**可选**挂载：
+`/app/data` 下面已经包含了存档、备份（`/app/data/backup`）和 MOD 缓存
+（`/app/data/mod`），所以真正需要额外考虑的**可选**挂载只有 steamcmd 和游戏本体本身
+——挂载它们可以在容器重建/镜像升级时跳过重新安装：
 
 ```bash
-mkdir -p ~/dstsave/{back,mod,steamcmd,dst-dedicated-server}
+mkdir -p ~/dstsave/{data,steamcmd,dst-dedicated-server}
 
 docker run -d \
   --name dst-admin \
@@ -58,20 +59,19 @@ docker run -d \
   -p 10998:10998/udp \
   -p 10999:10999/udp \
   -v ~/dstsave/data:/app/data \
-  -v ~/dstsave/back:/app/backup \
-  -v ~/dstsave/mod:/app/mod \
   -v ~/dstsave/steamcmd:/app/steamcmd \
   -v ~/dstsave/dst-dedicated-server:/app/dst-dedicated-server \
   hujinbo23/dst-admin-go:latest
 ```
 
 **迁移已有存档**：默认的存档路径固定为
-`/app/data/save/DoNotStarveTogether/Cluster_1`（与饥荒本体 `-cluster` 参数的默认值
-`Cluster_1` 保持一致）。如果你已经有一份用其它工具/其它默认名称建立的存档，不需要在
-面板里改 `cluster` 名称，直接把你的存档目录挂载到这个固定路径上即可，例如：
+`/app/data/DoNotStarveTogether/Cluster_1`（`DoNotStarveTogether` 是饥荒本体自己在
+`persistent_storage_root` 下创建的目录，`Cluster_1` 与饥荒本体 `-cluster` 参数的默认值
+保持一致）。如果你已经有一份用其它工具/其它默认名称建立的存档，不需要在面板里改
+`cluster` 名称，直接把你的存档目录挂载到这个固定路径上即可，例如：
 
 ```bash
--v ~/my-old-backup:/app/data/save/DoNotStarveTogether/Cluster_1
+-v ~/my-old-backup:/app/data/DoNotStarveTogether/Cluster_1
 ```
 
 ### 3. 访问管理面板
@@ -93,20 +93,20 @@ docker run -d \
 
 | 容器内路径 | 用途 | 是否推荐挂载 |
 |-----------|------|-------------|
-| `/app/data` | 面板设置（`dst_config`）、游戏存档、管理员账号（`password.txt`）、SQLite 数据库、首次登录标记 —— 唯一真正需要挂载的目录 | ✅ 必须 |
-| `/app/backup` | 存档备份目录 | 可选（不挂载也能正常使用，只是容器重建后备份历史会丢失） |
-| `/app/mod` | MOD 缓存目录 | 可选（不挂载的话，容器重建后 mod 会重新下载） |
+| `/app/data` | 面板设置（`dst_config`）、游戏存档（`DoNotStarveTogether/`）、备份（`backup/`）、MOD 缓存（`mod/`）、管理员账号（`password.txt`）、SQLite 数据库、首次登录标记 —— 唯一真正需要挂载的目录 | ✅ 必须 |
 | `/app/steamcmd` | SteamCMD 安装目录 | 可选；不挂载的话容器每次都是全新安装（几十 MB，很快） |
 | `/app/dst-dedicated-server` | 饥荒服务器文件 | 可选；不挂载的话容器每次都是全新安装（app 343050 完整安装约 4.5GB，看网络情况可能需要几分钟） |
 | `/app/dst-admin-go.log` | 应用日志文件 | 可选 |
 | `/app/config.yml` | 配置文件 | 可选 |
 
 **特别说明**：
-- 面板设置、存档、管理员账号、数据库、首次登录标记现在统一放在 `/app/data` 下，只挂载这一个目录即可持久化全部重要数据。
+- 面板设置、存档、备份、MOD 缓存、管理员账号、数据库、首次登录标记现在统一放在 `/app/data` 下，只挂载这一个目录即可持久化全部重要数据。
 - `/app/data/dst_config`：镜像里已经内置了默认值（steamcmd、force_install_dir、cluster、backup、mod_download_path、persistent_storage_root）；如果 `/app/data` 是一个全新的空目录，容器启动时会自动从镜像内置的默认值播种这个文件，不需要手动创建。
+- `persistent_storage_root` 直接指向 `/app/data` 本身（不是某个子目录），饥荒本体会在这之下自己创建 `DoNotStarveTogether/` 目录（这是 `-conf_dir` 参数的默认值），存档最终落在 `/app/data/DoNotStarveTogether/<cluster>/`；这样存档、面板设置等文件都是 `/app/data` 下的平级目录，不用再多一层自定义的中间目录。
+- `backup`/`mod_download_path` 的默认值也改成了 `/app/data/backup`、`/app/data/mod`；如果你想让备份或 MOD 缓存单独存放，仍然可以在面板 Settings 里把这两个字段改成任意路径，再单独挂载一个 volume 到那个路径。
 - 官方发布的镜像**不会**内置 steamcmd/游戏本体本身（app 343050 完整安装约 4.5GB，内置会让镜像体积膨胀约 20 倍）；如果你想要一个开箱即用、完全不需要联网下载的镜像，可以用 `docker build --build-arg BAKE_GAME_SERVER=true ...` 自行构建。
 - `/app/data/password.txt`：初始管理员账号信息（`admin` / `123456`），同样会在 `/app/data` 为空时自动创建；建议登录后立刻在面板里修改密码。
-- 旧版本中单独挂载 `/root/.klei/DoNotStarveTogether`、`/app/password.txt`、`/app/first` 的方式仍然可以工作（未设置 `persistent_storage_root` 时会退回旧的默认路径），但不再推荐——迁移到 `/app/data` 之后挂载点更少、也更不容易出现"改了面板设置但重启后又变回默认值"的问题。
+- 旧版本中单独挂载 `/root/.klei/DoNotStarveTogether`、`/app/backup`、`/app/mod`、`/app/password.txt`、`/app/first` 的方式仍然可以工作（未设置 `persistent_storage_root` 时会退回旧的默认路径），但不再推荐——迁移到 `/app/data` 之后挂载点更少、也更不容易出现"改了面板设置但重启后又变回默认值"的问题。
 
 ## 镜像特性
 
@@ -156,19 +156,18 @@ mkdir -p ~/dstsave/data
 `dst_config`（面板设置默认值）和 `password.txt`（初始管理员账号 `admin` / `123456`），
 不需要手动创建这些文件。
 
-如果想让 `/app/backup`、`/app/mod`、`/app/steamcmd`、`/app/dst-dedicated-server`
-也持久化（详见上面的[数据卷](#数据卷)说明，这几个都是可选的），可以一并创建：
+`/app/data` 下面已经包含了存档、备份、MOD 缓存，如果还想让 `/app/steamcmd`、
+`/app/dst-dedicated-server` 也持久化（详见上面的[数据卷](#数据卷)说明，这两个是可选
+的，只是为了避免每次重建容器都重新下载），可以一并创建：
 
 ```bash
-mkdir -p ~/dstsave/{back,mod,steamcmd,dst-dedicated-server}
+mkdir -p ~/dstsave/{steamcmd,dst-dedicated-server}
 ```
 
 **目录结构**：
 ```
 ~/dstsave/
-├── data/                         # 面板设置、存档、账号、数据库 —— 必须挂载
-├── back/                         # 备份目录（可选）
-├── mod/                          # MOD 缓存目录（可选）
+├── data/                         # 面板设置、存档、备份、MOD 缓存、账号、数据库 —— 必须挂载
 ├── steamcmd/                     # SteamCMD 安装目录（可选，避免每次重建容器都重新下载）
 └── dst-dedicated-server/         # 饥荒服务器文件（可选，避免每次重建容器都重新下载）
 ```
@@ -192,11 +191,9 @@ services:
       # 时区同步
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      # 面板设置、存档、账号、数据库 —— 唯一必须挂载的目录
+      # 面板设置、存档、备份、MOD 缓存、账号、数据库 —— 唯一必须挂载的目录
       - ${PWD}/dstsave/data:/app/data
-      # 以下都是可选挂载
-      - ${PWD}/dstsave/back:/app/backup
-      - ${PWD}/dstsave/mod:/app/mod
+      # 以下是可选挂载
       - ${PWD}/dstsave/steamcmd:/app/steamcmd
       - ${PWD}/dstsave/dst-dedicated-server:/app/dst-dedicated-server
     environment:
@@ -204,11 +201,12 @@ services:
 ```
 
 **迁移已有存档**：如果你已经有一份用其它工具或其它默认名称建立的存档，把它挂载到
-`/app/data/save/DoNotStarveTogether/Cluster_1`（默认的 `cluster` 名称固定为
-`Cluster_1`，与饥荒本体自身的默认值一致），就不需要在面板里改任何设置：
+`/app/data/DoNotStarveTogether/Cluster_1`（`DoNotStarveTogether` 是饥荒本体自己创建
+的目录，默认的 `cluster` 名称固定为 `Cluster_1`，与饥荒本体自身的默认值一致），就不
+需要在面板里改任何设置：
 
 ```yaml
-      - ${PWD}/my-old-backup:/app/data/save/DoNotStarveTogether/Cluster_1
+      - ${PWD}/my-old-backup:/app/data/DoNotStarveTogether/Cluster_1
 ```
 
 ### 3. 启动容器
