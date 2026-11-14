@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -21,6 +22,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+// levelNamePattern restricts world/shard names to a safe character set.
+// These names are interpolated into shell command strings (see
+// service/game/linux_process.go), so characters outside this set could be
+// used for shell command injection.
+var levelNamePattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
+
+func isValidLevelName(name string) bool {
+	return levelNamePattern.MatchString(name)
+}
 
 type GameHandler struct {
 	process          game.Process
@@ -68,6 +79,10 @@ func (p *GameHandler) Stop(ctx *gin.Context) {
 		ctx.JSON(400, response.Response{Code: 400, Msg: "levelName query parameter is required"})
 		return
 	}
+	if !isValidLevelName(levelName) {
+		ctx.JSON(400, response.Response{Code: 400, Msg: "invalid levelName"})
+		return
+	}
 	err := p.process.Stop(clusterName, levelName)
 	if err != nil {
 		ctx.JSON(http.StatusOK, response.Response{Code: 500, Msg: "failed to stop game server: " + err.Error()})
@@ -90,6 +105,10 @@ func (p *GameHandler) Start(ctx *gin.Context) {
 	levelName := ctx.Query("levelName")
 	if levelName == "" {
 		ctx.JSON(400, response.Response{Code: 400, Msg: "levelName query parameter is required"})
+		return
+	}
+	if !isValidLevelName(levelName) {
+		ctx.JSON(400, response.Response{Code: 400, Msg: "invalid levelName"})
 		return
 	}
 	err := p.process.Start(clusterName, levelName)
@@ -158,6 +177,10 @@ func (p *GameHandler) Command(ctx *gin.Context) {
 	}
 	if command.LevelName == "" {
 		ctx.JSON(400, response.Response{Code: 400, Msg: "levelName query parameter is required"})
+		return
+	}
+	if !isValidLevelName(command.LevelName) {
+		ctx.JSON(400, response.Response{Code: 400, Msg: "invalid levelName"})
 		return
 	}
 	status, err := p.process.Status(clusterName, command.LevelName)
